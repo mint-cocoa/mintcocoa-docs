@@ -44,6 +44,20 @@ jobs:
       - name: Build unified Pages site
         run: bash scripts/build-site.sh
 
+      - name: Verify ServerCore generated portfolio
+        run: |
+          set -euo pipefail
+          test -f _site/portfolio/server/ServerCorePortfolio.html
+          test -f _site/portfolio/servercore/index.html
+          test -f _site/portfolio/servercore/docs/1.overview.html
+          test -f _site/portfolio/servercore/docs/13.whole-repo-inventory.html
+          test -f _site/portfolio/servercore/downloads/ServerCore-Portfolio-jinhoo.pdf
+          grep -q "servercore/docs/1.overview.html" _site/portfolio/server/ServerCorePortfolio.html
+          if find _site/portfolio/servercore -type f \( -name '*.qmd' -o -name '*.md' \) | grep -q .; then
+            echo "ServerCore source markdown leaked into _site" >&2
+            exit 1
+          fi
+
       - name: Set up QEMU
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/setup-qemu-action@v3
