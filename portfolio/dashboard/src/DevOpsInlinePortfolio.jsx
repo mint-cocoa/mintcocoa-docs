@@ -193,7 +193,7 @@ const destinationLabels = {
 const DOC_PATHS = {
   home: '/',
   docsRoot: '/portfolio/',
-  server: '/portfolio/server/ServerCorePortfolio.html',
+  server: '/portfolio/servercore/docs/1.overview.html',
   client: '/portfolio/client/ClientPortfolio.html',
   devops: '/portfolio/devops/DevOpsPortfolio.html',
   ops: '/portfolio/devops/OpsDashboard.html',

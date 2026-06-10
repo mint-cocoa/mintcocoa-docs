@@ -29,6 +29,9 @@ echo "==> Verify expected paths"
 test -f "$site_dir/index.html"
 test -f "$site_dir/portfolio/index.html"
 test -f "$site_dir/portfolio/server/ServerCorePortfolio.html"
+test -f "$site_dir/portfolio/servercore/index.html"
+test -f "$site_dir/portfolio/servercore/docs/1.overview.html"
+test -f "$site_dir/portfolio/servercore/docs/11.cicd-gitops-infra.html"
 test -f "$site_dir/portfolio/server/RuntimeWebPortfolio.html"
 test -f "$site_dir/portfolio/server/RuntimeProxyPortfolio.html"
 test -f "$site_dir/portfolio/server/RuntimeGamePortfolio.html"
@@ -43,4 +46,3 @@ if find "$site_dir" -type f \( -name '*.qmd' -o -name '*.md' \) | grep -q .; the
 fi
 
 echo "Built $site_dir"
-

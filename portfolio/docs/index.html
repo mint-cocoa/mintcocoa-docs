@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -21,7 +21,7 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
   vertical-align: middle;
 }
 </style>
@@ -34,10 +34,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="index_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="index_files/libs/quarto-html/anchor.min.js"></script>
 <link href="index_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="index_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="index_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="index_files/libs/bootstrap/bootstrap-b266025aee7dee100f5553a3ab926a66.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="index_files/libs/bootstrap/bootstrap-2ad086f31e7238a25da6f265a7fdf516.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 <link rel="stylesheet" href="portfolio.css">
@@ -65,11 +65,11 @@ ul.task-list li input[type="checkbox"] {
              <p>배진후 </p>
           </div>
   </div>
-    
-  
-    
+
+
+
   </div>
-  
+
 
 
 </header>
@@ -105,11 +105,11 @@ ul.task-list li input[type="checkbox"] {
 <p>이 문서는 C++ 네트워크 서버 구현을 중심으로 정리했습니다. TCP Echo와 게임 서버 구현에서 시작해 <code>io_uring</code> 기반 Runtime, HTTP/Web 모듈, TCP Proxy 모듈, Packet Game 모듈로 책임을 나누었습니다. 클라이언트 문서는 <code>RuntimeGame</code> 기반 서버와 패킷을 주고받는 소비자 관점이고, DevOps 문서는 RuntimeWeb 기반 포트폴리오 서버의 배포 경로를 다룹니다.</p>
 <div class="doc-grid">
 <section id="서버-구현-포트폴리오" class="level3 doc-card" data-number="2.1">
-<h3 data-number="2.1" class="anchored" data-anchor-id="서버-구현-포트폴리오"><span class="header-section-number">2.1</span> <a href="server/ServerCorePortfolio.html">서버 구현 포트폴리오</a></h3>
+<h3 data-number="2.1" class="anchored" data-anchor-id="서버-구현-포트폴리오"><span class="header-section-number">2.1</span> <a href="servercore/docs/1.overview.html">서버 구현 포트폴리오</a></h3>
 <p><code>iouring-runtime</code>의 core Runtime과 선택 모듈 구조를 설명한 문서입니다. <code>io_uring</code> 비동기 I/O, 세션 수명관리, 버퍼 관리, 작업 큐, 모듈 경계, 벤치마크를 중심으로 정리했습니다.</p>
 <div class="serve-path">
 <p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/server/ServerCorePortfolio.html</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/servercore/docs/1.overview.html</code></p>
 <p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
 </div>
 <div class="serve-path runtime-example">
@@ -279,7 +279,7 @@ ul.task-list li input[type="checkbox"] {
     anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
-        if (clz.startsWith('code-annotation-')) {                     
+        if (clz.startsWith('code-annotation-')) {
           return true;
         }
       }
@@ -299,11 +299,11 @@ ul.task-list li input[type="checkbox"] {
         button.setAttribute("data-bs-toggle", "tooltip");
         button.setAttribute("data-bs-placement", "left");
         button.setAttribute("data-bs-title", "복사완료!");
-        tooltip = new bootstrap.Tooltip(button, 
-          { trigger: "manual", 
+        tooltip = new bootstrap.Tooltip(button,
+          { trigger: "manual",
             customClass: "code-copy-button-tooltip",
             offset: [0, -8]});
-        tooltip.show();    
+        tooltip.show();
       }
       setTimeout(function() {
         if (tooltip) {
@@ -385,7 +385,7 @@ ul.task-list li input[type="checkbox"] {
       if (onUntriggerFn) {
         config.onUntrigger = onUntriggerFn;
       }
-      window.tippy(el, config); 
+      window.tippy(el, config);
     }
     const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
     for (var i=0; i<noterefs.length; i++) {
@@ -460,7 +460,7 @@ ul.task-list li input[type="checkbox"] {
       tippyHover(xref, undefined, function(instance) {
         instance.disable();
         let url = xref.getAttribute('href');
-        let hash = undefined; 
+        let hash = undefined;
         if (url.startsWith('#')) {
           hash = url;
         } else {
@@ -488,7 +488,7 @@ ul.task-list li input[type="checkbox"] {
               if (note !== null) {
                 const html = processXRef(id, note);
                 instance.setContent(html);
-              } 
+              }
             }).finally(() => {
               instance.enable();
               instance.show();
@@ -512,7 +512,7 @@ ul.task-list li input[type="checkbox"] {
               }
               const html = processXRef(null, note);
               instance.setContent(html);
-            } 
+            }
           }).finally(() => {
             instance.enable();
             instance.show();
@@ -552,7 +552,7 @@ ul.task-list li input[type="checkbox"] {
               height = bottom - top;
             }
             if (top !== null && height !== null && parent !== null) {
-              // cook up a div (if necessary) and position it 
+              // cook up a div (if necessary) and position it
               let div = window.document.getElementById("code-annotation-line-highlight");
               if (div === null) {
                 div = window.document.createElement("div");

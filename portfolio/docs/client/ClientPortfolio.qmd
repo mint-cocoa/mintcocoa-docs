@@ -462,7 +462,7 @@ if (sendTimer_ >= kSendRate) {    // kSendRate = 0.05s
         lastSentRot_ = data_->rotationY;
     }
 }
-``` 
+```
 
 ## 네트워크 아키텍처 {#sec-network}
 
@@ -771,7 +771,7 @@ ImGui는 윈도우를 생성하면 자동으로 해당 윈도우에 포커스를
 
 : 클라이언트-서버 연관 기술 {#tbl-cross-ref}
 
-서버 아키텍처 상세(io_uring 네트워크 엔진, JobQueue 공정 스케줄링, BufferPool, 벤치마크 등)는 [ServerCore 포트폴리오](../server/ServerCorePortfolio.html)를 참조하시기 바랍니다.
+서버 아키텍처 상세(io_uring 네트워크 엔진, JobQueue 공정 스케줄링, BufferPool, 벤치마크 등)는 [ServerCore 포트폴리오](../servercore/docs/1.overview.html)를 참조하시기 바랍니다.
 
 ## 관련 레포
 
@@ -788,6 +788,6 @@ ImGui는 윈도우를 생성하면 자동으로 해당 윈도우에 포커스를
 
 ::: {.next-docs}
 [포트폴리오 문서 인덱스](../index.html) ·
-[서버 구현 포트폴리오](../server/ServerCorePortfolio.html) ·
+[서버 구현 포트폴리오](../servercore/docs/1.overview.html) ·
 [홈랩 DevOps 포트폴리오](../devops/DevOpsPortfolio.html)
 :::

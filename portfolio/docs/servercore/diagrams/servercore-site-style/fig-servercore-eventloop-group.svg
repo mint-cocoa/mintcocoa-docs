@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1200"
+   height="522"
+   viewBox="0 95 1200 522"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg34"
+   sodipodi:docname="fig-servercore-eventloop-group.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview34"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.1549079"
+     inkscape:cx="507.91034"
+     inkscape:cy="278.43417"
+     inkscape:window-width="3840"
+     inkscape:window-height="2036"
+     inkscape:window-x="3572"
+     inkscape:window-y="-12"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg34" />
+  <title
+     id="title">ServerCore 워커 풀과 io_uring 실행 루프</title>
+  <desc
+     id="desc">각 워커 스레드는 IoRing, Listener, BufferPool, SessionManager를 소유하고, 수락과 세션 I/O 완료를 같은 owner 실행 루프에서 처리한다. 프로토콜 모듈은 Core 밖에서 바이트 의미를 해석하고 다시 Session send 표면으로 내려온다.</desc>
+  <defs
+     id="defs3">
+    <marker markerUnits="userSpaceOnUse"
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="5.5"
+       markerHeight="5.5"
+       orient="auto-start-reverse">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#334155"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path1" />
+    </marker>
+    <marker markerUnits="userSpaceOnUse"
+       id="tealArrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="5.5"
+       markerHeight="5.5"
+       orient="auto-start-reverse">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#0f766e"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path2" />
+    </marker>
+    <marker markerUnits="userSpaceOnUse"
+       id="orangeArrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="5.5"
+       markerHeight="5.5"
+       orient="auto-start-reverse">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#ea580c"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path3" />
+    </marker>
+    <style
+       id="style3">
+      .bg{fill:#f8fafc}.panel{fill:#ffffff;stroke:#cbd5e1;stroke-width:1.5}.pool{fill:#ffffff;stroke:#64748b;stroke-width:1.5;stroke-dasharray:7 7}.worker{fill:#eff6ff;stroke:#2563eb;stroke-width:2}.loop{fill:#f8fafc;stroke:#94a3b8;stroke-width:1.5}.core{fill:#dbeafe;stroke:#2563eb;stroke-width:1.5}.module{fill:#f0fdfa;stroke:#0f766e;stroke-width:2}.send{fill:#fff7ed;stroke:#ea580c;stroke-width:1.5}.note{fill:#ffffff;stroke:#cbd5e1;stroke-width:1.5}.chip{fill:#ffffff;stroke:#94a3b8;stroke-width:1.5}.h{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:700}.t{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:20px;font-weight:700}.s{font-family:Segoe UI,Arial,sans-serif;fill:#475569;font-size:16px}.xs{font-family:Segoe UI,Arial,sans-serif;fill:#64748b;font-size:14px}.mini{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:13px;font-weight:700}.line{stroke:#334155;stroke-width:2.2;fill:none;marker-end:url(#arrow)}.tealLine{stroke:#0f766e;stroke-width:2.2;fill:none;marker-end:url(#tealArrow)}.orangeLine{stroke:#ea580c;stroke-width:2.2;fill:none;marker-end:url(#orangeArrow)}.dash{stroke:#94a3b8;stroke-width:1.5;stroke-dasharray:7 7;fill:none}
+    </style>
+  </defs>
+  <rect
+     class="bg"
+     width="1200"
+     height="760"
+     id="rect3" />
+  <rect
+     class="panel"
+     x="54"
+     y="154"
+     width="152"
+     height="310"
+     rx="12"
+     id="rect4" />
+  <text
+     class="t"
+     x="86"
+     y="194"
+     id="text4">클라이언트</text>
+  <rect
+     class="chip"
+     x="82"
+     y="232"
+     width="96"
+     height="38"
+     rx="6"
+     id="rect5" />
+  <text
+     class="xs"
+     x="108"
+     y="256"
+     id="text5">client</text>
+  <rect
+     class="chip"
+     x="82"
+     y="304"
+     width="96"
+     height="38"
+     rx="6"
+     id="rect6" />
+  <text
+     class="xs"
+     x="108"
+     y="328"
+     id="text6">client</text>
+  <rect
+     class="chip"
+     x="82"
+     y="376"
+     width="96"
+     height="38"
+     rx="6"
+     id="rect7" />
+  <text
+     class="xs"
+     x="108"
+     y="400"
+     id="text7">client</text>
+  <rect
+     class="pool"
+     x="246"
+     y="128"
+     width="610"
+     height="456"
+     rx="18"
+     id="rect8" />
+  <text
+     class="t"
+     x="506"
+     y="164"
+     id="text8">워커 풀</text>
+  <text
+     class="xs"
+     x="474.26193"
+     y="191.39218"
+     id="text9">스레드별 독립 IoRing</text>
+  <rect
+     class="worker"
+     x="282"
+     y="220"
+     width="250"
+     height="310"
+     rx="12"
+     id="rect9" />
+  <text
+     class="t"
+     x="340"
+     y="254"
+     id="text10">워커 #0</text>
+  <text
+     class="xs"
+     x="340"
+     y="278"
+     id="text11">accept owner</text>
+  <rect
+     class="loop"
+     x="314.02188"
+     y="306.02188"
+     width="185.95621"
+     height="86.878273"
+     rx="9.9976454"
+     id="rect11" />
+  <text
+     class="mini"
+     x="371.51599"
+     y="327.43726"
+     id="text12">IoRing loop</text>
+  <rect
+     class="chip"
+     x="341.51599"
+     y="345.43726"
+     width="48"
+     height="22"
+     rx="4"
+     id="rect12" />
+  <text
+     class="xs"
+     x="351.51599"
+     y="361.43726"
+     id="text13">SQE</text>
+  <rect
+     class="chip"
+     x="407.51599"
+     y="345.43726"
+     width="48"
+     height="22"
+     rx="4"
+     id="rect13" />
+  <text
+     class="xs"
+     x="417.51599"
+     y="361.43726"
+     id="text14">CQE</text>
+  <path
+     class="line"
+     d="m 389.516,356.43724 h 14"
+     id="path14" />
+  <path
+     class="line"
+     d="m 454.86229,356.57904 c 29.32731,28.57567 -72.80556,42.45268 -90.85314,12.63459"
+     id="path15"
+     sodipodi:nodetypes="cc" />
+  <rect
+     class="core"
+     x="314"
+     y="420"
+     width="186"
+     height="82"
+     rx="10"
+     id="rect15" />
+  <text
+     class="mini"
+     x="348"
+     y="446"
+     id="text15">Core session path</text>
+  <text
+     class="xs"
+     x="350.81708"
+     y="472"
+     id="text16">Listener / Session</text>
+  <text
+     class="xs"
+     x="342"
+     y="492"
+     id="text17">Manager / BufferPool</text>
+  <path
+     class="orangeLine"
+     d="m 407,393.90648 v 22.33819"
+     id="path17" />
+  <rect
+     class="worker"
+     x="568"
+     y="220"
+     width="250"
+     height="310"
+     rx="12"
+     id="rect17" />
+  <text
+     class="t"
+     x="626"
+     y="254"
+     id="text18">워커 #1</text>
+  <text
+     class="xs"
+     x="626"
+     y="278"
+     id="text19">session I/O owner</text>
+  <rect
+     class="loop"
+     x="600.02191"
+     y="306.02188"
+     width="185.95621"
+     height="86.878273"
+     rx="9.9976454"
+     id="rect19" />
+  <text
+     class="mini"
+     x="655.54718"
+     y="328.42166"
+     id="text20">IoRing loop</text>
+  <rect
+     class="chip"
+     x="636.37573"
+     y="344.45282"
+     width="48"
+     height="22"
+     rx="4"
+     id="rect20" />
+  <text
+     class="xs"
+     x="646.37573"
+     y="360.45282"
+     id="text21">SQE</text>
+  <rect
+     class="chip"
+     x="702.37573"
+     y="344.45282"
+     width="48"
+     height="22"
+     rx="4"
+     id="rect21" />
+  <text
+     class="xs"
+     x="712.37573"
+     y="360.45282"
+     id="text22">CQE</text>
+  <path
+     class="line"
+     d="m 684.37572,355.45283 h 15.96883"
+     id="path22"
+     sodipodi:nodetypes="cc" />
+  <path
+     class="line"
+     d="m 750.37572,355.45283 c 26,23 -79.29614,37.23462 -95.29614,13.23462"
+     id="path23"
+     sodipodi:nodetypes="cc" />
+  <rect
+     class="core"
+     x="600"
+     y="420"
+     width="186"
+     height="82"
+     rx="10"
+     id="rect23" />
+  <text
+     class="mini"
+     x="634"
+     y="446"
+     id="text23">Core session path</text>
+  <text
+     class="xs"
+     x="628"
+     y="472"
+     id="text24">OnRecv / OnSend</text>
+  <text
+     class="xs"
+     x="618.25482"
+     y="492.46405"
+     id="text25">SendQueue / BufferPool</text>
+  <path
+     class="orangeLine"
+     d="M 692.67186,393.25021 693,416"
+     id="path25"
+     sodipodi:nodetypes="cc" />
+  <path
+     class="line"
+     d="M 178 251 C 204 251 218 282 282 332"
+     id="path26" />
+  <path
+     class="line"
+     d="M 178 323 C 214 323 228 356 282 356"
+     id="path27" />
+  <path
+     class="line"
+     d="M 178 395 C 214 395 230 430 282 458"
+     id="path28" />
+  <rect
+     class="panel"
+     x="906"
+     y="154"
+     width="240"
+     height="310"
+     rx="12"
+     id="rect28" />
+  <text
+     class="t"
+     x="954"
+     y="194"
+     id="text28">프로토콜 모듈</text>
+  <text
+     class="xs"
+     x="954"
+     y="220"
+     id="text29">바이트 의미는 Core 밖</text>
+  <rect
+     class="module"
+     x="944"
+     y="252"
+     width="164"
+     height="44"
+     rx="8"
+     id="rect29" />
+  <text
+     class="mini"
+     x="1010"
+     y="280"
+     id="text30">Web</text>
+  <rect
+     class="module"
+     x="944"
+     y="318"
+     width="164"
+     height="44"
+     rx="8"
+     id="rect30" />
+  <text
+     class="mini"
+     x="1004"
+     y="346"
+     id="text31">Proxy</text>
+  <rect
+     class="module"
+     x="944"
+     y="384"
+     width="164"
+     height="44"
+     rx="8"
+     id="rect31" />
+  <text
+     class="mini"
+     x="1006"
+     y="412"
+     id="text32">Game</text>
+  <path
+     class="tealLine"
+     d="M 786 462 C 842 462 874 288 944 274"
+     id="path32" />
+  <text
+     class="xs"
+     x="812"
+     y="332"
+     id="text33">OnRecv(bytes)</text>
+  <path
+     class="orangeLine"
+     d="M 944 406 C 870 414 842 482 786 482"
+     id="path33" />
+  <text
+     class="xs"
+     x="828"
+     y="448"
+     id="text34">Session::Send</text>
+  <text
+     xml:space="preserve"
+     style="writing-mode:lr-tb;direction:ltr;fill:#ffffff;fill-opacity:1;stroke:#ed3a3a"
+     x="460.80856"
+     y="165.0726"
+     id="text35"><tspan
+       sodipodi:role="line"
+       id="tspan34" /></text>
+  <text
+     xml:space="preserve"
+     style="writing-mode:lr-tb;direction:ltr;fill:#ffffff;fill-opacity:1;stroke:#ed3a3a"
+     x="445.95874"
+     y="144.6541"
+     id="text36"><tspan
+       sodipodi:role="line"
+       id="tspan35"
+       x="445.95874"
+       y="144.6541" /></text>
+</svg>

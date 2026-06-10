@@ -1,0 +1,590 @@
+:root {
+  --portfolio-ink: #172033;
+  --portfolio-muted: #5d667a;
+  --portfolio-line: #d9dee8;
+  --portfolio-soft: #f5f7fb;
+  --portfolio-blue: #2563eb;
+  --portfolio-green: #16815b;
+  --portfolio-red: #c2413d;
+  --portfolio-amber: #a16207;
+}
+
+body {
+  color: var(--portfolio-ink);
+  line-height: 1.7;
+}
+
+.portfolio-hero {
+  margin: 0.5rem 0 2rem;
+  padding: 1.35rem 1.5rem;
+  border: 1px solid var(--portfolio-line);
+  border-left: 6px solid var(--portfolio-blue);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.portfolio-hero h2 {
+  margin-top: 0.35rem;
+}
+
+.hero-kicker {
+  color: var(--portfolio-blue);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.hero-meta,
+.signal-strip,
+.chapter-map {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.hero-meta {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1.2rem;
+}
+
+.hero-meta-item,
+.signal-item,
+.chapter-card {
+  border: 1px solid var(--portfolio-line);
+  border-radius: 8px;
+  background: var(--portfolio-soft);
+}
+
+.hero-meta-item {
+  padding: 0.85rem;
+}
+
+.hero-meta-item strong,
+.signal-item strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--portfolio-ink);
+}
+
+.signal-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 1.4rem 0 2rem;
+}
+
+.signal-item {
+  padding: 1rem;
+}
+
+.signal-item p {
+  margin: 0;
+  color: var(--portfolio-muted);
+}
+
+.chapter-map {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1rem 0 2rem;
+}
+
+.chapter-card {
+  position: relative;
+  min-height: 12rem;
+  padding: 1rem 1.1rem;
+  background: #fff;
+}
+
+.chapter-title {
+  margin: 0.85rem 0 0.45rem;
+  color: var(--portfolio-ink);
+  font-size: 1.06rem;
+  font-weight: 700;
+}
+
+.chapter-card p {
+  margin: 0;
+  color: var(--portfolio-muted);
+}
+
+.chapter-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 8px;
+  background: #e7efff;
+  color: var(--portfolio-blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.quarto-title-block .subtitle {
+  color: var(--portfolio-muted);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.summary-card,
+.doc-card,
+.evidence-block,
+.repo-links,
+.next-docs {
+  border: 1px solid var(--portfolio-line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.summary-card {
+  padding: 1rem;
+}
+
+.summary-card strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--portfolio-blue);
+  font-size: 0.86rem;
+}
+
+.summary-card p {
+  margin: 0;
+  color: var(--portfolio-muted);
+}
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+
+.doc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 100%;
+  padding: 1.1rem;
+  border-top: 5px solid var(--portfolio-blue);
+}
+
+.doc-card.client {
+  border-top-color: var(--portfolio-red);
+}
+
+.doc-card.devops {
+  border-top-color: var(--portfolio-green);
+}
+
+.doc-card.ops {
+  border-top-color: var(--portfolio-amber);
+}
+
+.doc-card h3 {
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.doc-card p {
+  margin: 0;
+  color: var(--portfolio-muted);
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: auto;
+}
+
+.tag-row code {
+  color: var(--portfolio-muted);
+  background: var(--portfolio-soft);
+}
+
+.serve-path {
+  display: grid;
+  gap: 0.38rem;
+  margin: 0.15rem 0 0.2rem;
+  padding: 0.75rem;
+  border: 1px solid var(--portfolio-line);
+  border-radius: 8px;
+  background: var(--portfolio-soft);
+  color: var(--portfolio-muted);
+  font-size: 0.9rem;
+}
+
+.serve-path strong {
+  margin: 0;
+  color: var(--portfolio-ink);
+  font-size: 0.82rem;
+}
+
+.serve-path code {
+  color: var(--portfolio-blue);
+  background: #fff;
+  white-space: normal;
+}
+
+.serve-path.runtime-example {
+  border-left: 4px solid var(--portfolio-blue);
+  background: #fff;
+}
+
+.serve-path.runtime-example a {
+  font-weight: 650;
+}
+
+.exposure-map {
+  margin: 0.5rem 0 2rem;
+  padding: 1rem;
+  border: 1px solid var(--portfolio-line);
+  border-left: 5px solid var(--portfolio-green);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.exposure-map strong {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--portfolio-green);
+}
+
+.exposure-map code {
+  color: var(--portfolio-muted);
+  background: var(--portfolio-soft);
+  white-space: normal;
+}
+
+.evidence-block,
+.repo-links,
+.next-docs {
+  padding: 1rem;
+  margin: 1.25rem 0;
+}
+
+.evidence-block {
+  background: var(--portfolio-soft);
+}
+
+.repo-links table,
+.metric-table table {
+  margin-bottom: 0;
+}
+
+.column-page table {
+  font-size: 0.94rem;
+}
+
+.flow-visual {
+  margin: 1.35rem 0 1.8rem;
+  padding: 1rem;
+  border: 1px solid var(--portfolio-line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.flow-visual .flow-title {
+  margin: 0 0 0.8rem;
+  color: var(--portfolio-ink);
+  font-weight: 650;
+}
+
+.flow-steps,
+.flow-lanes,
+.flow-matrix {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.flow-steps {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  align-items: stretch;
+}
+
+.flow-lanes {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.flow-matrix {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.flow-step,
+.flow-lane,
+.flow-cell {
+  padding: 0.85rem;
+  border: 1px solid var(--portfolio-line);
+  border-radius: 8px;
+  background: var(--portfolio-soft);
+}
+
+.flow-step strong,
+.flow-lane strong,
+.flow-cell strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--portfolio-blue);
+  font-size: 0.9rem;
+}
+
+.flow-step p,
+.flow-lane p,
+.flow-cell p {
+  margin: 0;
+  color: var(--portfolio-muted);
+  font-size: 0.92rem;
+}
+
+.flow-arrow {
+  align-self: center;
+  color: var(--portfolio-muted);
+  font-weight: 650;
+  text-align: center;
+}
+
+.flow-accent-green strong {
+  color: var(--portfolio-green);
+}
+
+.flow-accent-amber strong {
+  color: var(--portfolio-amber);
+}
+
+.flow-accent-red strong {
+  color: var(--portfolio-red);
+}
+
+.lifecycle-phase-map {
+  margin: 1.5rem 0 2rem;
+}
+
+.lifecycle-phase {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 1.25rem;
+  min-height: 13rem;
+}
+
+.lifecycle-phase:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 47px;
+  top: 5.5rem;
+  bottom: -1.25rem;
+  width: 2px;
+  background: #dde5f0;
+}
+
+.phase-marker {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.phase-orb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.8rem;
+  height: 4.8rem;
+  border: 6px solid #c8f7df;
+  border-radius: 999px;
+  background: #ecfdf4;
+  color: var(--portfolio-green);
+  font-weight: 650;
+}
+
+.phase-badge {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: #ccfbdf;
+  color: var(--portfolio-green);
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.lifecycle-phase.warn .phase-orb {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: var(--portfolio-amber);
+}
+
+.lifecycle-phase.warn .phase-badge {
+  background: #fef3c7;
+  color: var(--portfolio-amber);
+}
+
+.lifecycle-phase.danger .phase-orb {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: var(--portfolio-red);
+}
+
+.lifecycle-phase.danger .phase-badge {
+  background: #fee2e2;
+  color: var(--portfolio-red);
+}
+
+.lifecycle-phase.done .phase-orb {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: var(--portfolio-blue);
+}
+
+.lifecycle-phase.done .phase-badge {
+  background: #dbeafe;
+  color: var(--portfolio-blue);
+}
+
+.phase-card {
+  margin-bottom: 1.75rem;
+  overflow: hidden;
+  border: 1px solid var(--portfolio-line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.phase-card-head {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--portfolio-line);
+  background: #fbfcff;
+}
+
+.phase-card-head h3 {
+  margin: 0 0 0.35rem;
+  color: var(--portfolio-ink);
+  font-size: 1.28rem;
+}
+
+.phase-card-head p {
+  margin: 0;
+  color: var(--portfolio-muted);
+}
+
+.phase-card-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.85fr);
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.phase-section-title {
+  margin: 0 0 0.8rem;
+  color: #91a2bc;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.phase-events {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--portfolio-ink);
+}
+
+.phase-events li {
+  margin: 0.55rem 0;
+  padding-left: 0.25rem;
+}
+
+.phase-state-panel {
+  padding: 1rem;
+  border: 1px solid var(--portfolio-line);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.phase-state-row {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+  margin: 0.65rem 0;
+}
+
+.phase-state-label {
+  display: inline-block;
+  padding: 0.22rem 0.55rem;
+  border-radius: 6px;
+  background: #e9ddff;
+  color: #6d28d9;
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 0.88rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+.phase-state-label.pending {
+  background: #fff2bd;
+  color: #b45309;
+}
+
+.phase-state-label.dispatch {
+  background: #dff3ff;
+  color: #0369a1;
+}
+
+.phase-state-label.event {
+  background: #cff8e3;
+  color: #047857;
+}
+
+.phase-state-label.manager {
+  background: #dfe7ff;
+  color: #4338ca;
+}
+
+.phase-state-row p {
+  margin: 0;
+  color: var(--portfolio-ink);
+}
+
+@media (max-width: 900px) {
+  .hero-meta,
+  .signal-strip,
+  .chapter-map {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-arrow {
+    display: none;
+  }
+
+  .lifecycle-phase {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .lifecycle-phase::before {
+    display: none;
+  }
+
+  .phase-marker {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  .phase-orb {
+    width: 3.4rem;
+    height: 3.4rem;
+    border-width: 4px;
+  }
+
+  .phase-card-body {
+    grid-template-columns: 1fr;
+  }
+
+  .phase-state-row {
+    grid-template-columns: 1fr;
+  }
+}

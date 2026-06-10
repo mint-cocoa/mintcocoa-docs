@@ -43,7 +43,7 @@ const workItems: WorkItem[] = [
     thumbnail: serverThumbnailUrl,
     summary:
       "io_uring 기반의 C++ 라이브러리/ 런타임",
-    detailUrl: "/portfolio/server/ServerCorePortfolio.html#sec-iouring",
+    detailUrl: "/portfolio/servercore/docs/1.overview.html",
     repoUrl: "https://github.com/mint-cocoa/iouring-runtime",
     repoName: "iouring-runtime",
     chips: ["소켓", "세션 수명", "버퍼", "워커 루프"],

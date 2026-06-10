@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260" height="768" viewBox="0 11 1260 768" role="img" aria-labelledby="title desc">
+  <title id="title">세션 소유 스레드별 출력 순서 보장</title>
+  <desc id="desc">1번 세션은 1번 스레드, 2번 세션은 2번 스레드, 3번 세션은 3번 스레드에서 처리되고, Room이 직렬로 만든 출력이 각 세션 소유 스레드의 outbox와 SendQueue로 들어가며 순서가 유지되는 과정을 보여준다.</desc>
+  <defs>
+    <marker markerUnits="userSpaceOnUse" id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 2 1 L 8 5 L 2 9" fill="none"
+         stroke="#334155"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"/>
+    </marker>
+    <style>
+      .bg{fill:#f8fafc}.lane{fill:#fff;stroke:#cbd5e1;stroke-width:2}.room{fill:#f0fdfa;stroke:#0f766e;stroke-width:2}.thread{fill:#f1f5f9;stroke:#475569;stroke-width:2}.out{fill:#fefce8;stroke:#ca8a04;stroke-width:2}.send{fill:#fff7ed;stroke:#ea580c;stroke-width:2}.pkt1{fill:#dbeafe;stroke:#2563eb;stroke-width:2}.pkt2{fill:#f3e8ff;stroke:#9333ea;stroke-width:2}.pkt3{fill:#dcfce7;stroke:#16a34a;stroke-width:2}.note{fill:#fef2f2;stroke:#dc2626;stroke-width:2}.h{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:700}.t{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:19px}.s{font-family:Segoe UI,Arial,sans-serif;fill:#475569;font-size:15px}.s1{font-family:Segoe UI,Arial,sans-serif;fill:#1d4ed8;font-size:15px}.s2{font-family:Segoe UI,Arial,sans-serif;fill:#7e22ce;font-size:15px}.s3{font-family:Segoe UI,Arial,sans-serif;fill:#15803d;font-size:15px}.xs{font-family:Segoe UI,Arial,sans-serif;fill:#64748b;font-size:13px}.n{font-family:Segoe UI,Arial,sans-serif;fill:#fff;font-size:14px;font-weight:700}.line{stroke:#334155;stroke-width:3;fill:none;marker-end:url(#arrow)}.dash{stroke:#64748b;stroke-width:2;stroke-dasharray:8 8;fill:none;marker-end:url(#arrow)}.thin{stroke:#94a3b8;stroke-width:2;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1260" height="820"/>
+  <rect class="pkt1" x="820" y="44" width="100" height="34" rx="8"/>
+  <text class="s1" x="844" y="66">Session 1</text>
+  <rect class="pkt2" x="934" y="44" width="100" height="34" rx="8"/>
+  <text class="s2" x="958" y="66">Session 2</text>
+  <rect class="pkt3" x="1048" y="44" width="100" height="34" rx="8"/>
+  <text class="s3" x="1072" y="66">Session 3</text>
+
+  <text class="t" x="54" y="162">세션 입력 스레드</text>
+  <rect class="lane" x="200" y="118" width="940" height="110" rx="10"/>
+  <rect class="thread" x="226" y="138" width="282" height="70" rx="8"/>
+  <text class="s" x="250" y="162">Thread 1 owns Session 1</text>
+  <rect class="pkt1" x="250" y="174" width="74" height="24" rx="6"/>
+  <text class="s1" x="266" y="191">S1 #1</text>
+  <rect class="pkt1" x="340" y="174" width="74" height="24" rx="6"/>
+  <text class="s1" x="356" y="191">S1 #4</text>
+  <rect class="pkt1" x="430" y="174" width="54" height="24" rx="6"/>
+  <text class="s1" x="442" y="191">S1</text>
+
+  <rect class="thread" x="538" y="138" width="252" height="70" rx="8"/>
+  <text class="s" x="562" y="162">Thread 2 owns Session 2</text>
+  <rect class="pkt2" x="562" y="174" width="74" height="24" rx="6"/>
+  <text class="s2" x="578" y="191">S2 #2</text>
+  <rect class="pkt2" x="652" y="174" width="74" height="24" rx="6"/>
+  <text class="s2" x="668" y="191">S2 #5</text>
+
+  <rect class="thread" x="820" y="138" width="292" height="70" rx="8"/>
+  <text class="s" x="844" y="162">Thread 3 owns Session 3</text>
+  <rect class="pkt3" x="844" y="174" width="74" height="24" rx="6"/>
+  <text class="s3" x="860" y="191">S3 #3</text>
+  <rect class="pkt3" x="934" y="174" width="74" height="24" rx="6"/>
+  <text class="s3" x="950" y="191">S3 #6</text>
+
+  <text class="t" x="54" y="326">Room 입력 큐</text>
+  <rect class="lane" x="200" y="270" width="940" height="88" rx="10"/>
+  <rect class="pkt1" x="222" y="296" width="110" height="34" rx="8"/>
+  <circle cx="242" cy="313" r="13" fill="#2563eb"/><text class="n" x="238" y="318">1</text>
+  <text class="s1" x="268" y="318">S1 이동</text>
+  <rect class="pkt2" x="358" y="296" width="110" height="34" rx="8"/>
+  <circle cx="378" cy="313" r="13" fill="#9333ea"/><text class="n" x="374" y="318">2</text>
+  <text class="s2" x="404" y="318">S2 채팅</text>
+  <rect class="pkt3" x="494" y="296" width="110" height="34" rx="8"/>
+  <circle cx="514" cy="313" r="13" fill="#16a34a"/><text class="n" x="510" y="318">3</text>
+  <text class="s3" x="540" y="318">S3 이동</text>
+  <rect class="pkt1" x="630" y="296" width="110" height="34" rx="8"/>
+  <circle cx="650" cy="313" r="13" fill="#2563eb"/><text class="n" x="646" y="318">4</text>
+  <text class="s1" x="676" y="318">S1 공격</text>
+  <rect class="pkt2" x="766" y="296" width="110" height="34" rx="8"/>
+  <circle cx="786" cy="313" r="13" fill="#9333ea"/><text class="n" x="782" y="318">5</text>
+  <text class="s2" x="812" y="318">S2 이동</text>
+  <rect class="pkt3" x="902" y="296" width="110" height="34" rx="8"/>
+  <circle cx="922" cy="313" r="13" fill="#16a34a"/><text class="n" x="918" y="318">6</text>
+  <text class="s3" x="948" y="318">S3 획득</text>
+  <path class="line" d="M 332 313 L 352 313"/>
+  <path class="line" d="M 468 313 L 488 313"/>
+  <path class="line" d="M 604 313 L 624 313"/>
+  <path class="line" d="M 740 313 L 760 313"/>
+  <path class="line" d="M 876 313 L 896 313"/>
+  <text class="xs" x="1034" y="318">Room은 1→2→3→4→5→6</text>
+
+  <text class="t" x="54" y="458">Room 단일 처리</text>
+  <rect class="lane" x="200" y="400" width="940" height="98" rx="10"/>
+  <rect class="room" x="332" y="426" width="620" height="46" rx="8"/>
+  <text class="s" x="372" y="454">Room owner가 하나씩 처리하고, 출력 대상 세션을 결정한다</text>
+  <path class="thin" d="M 616 330 L 616 420"/>
+
+  <text class="t" x="54" y="608">세션 소유 스레드</text>
+  <rect class="lane" x="200" y="542" width="940" height="118" rx="10"/>
+  <rect class="out" x="226" y="564" width="284" height="70" rx="10"/>
+  <text class="s" x="250" y="588">Thread 1 outbox[Session 1]</text>
+  <rect class="pkt1" x="252" y="602" width="76" height="22" rx="5"/>
+  <text class="s1" x="268" y="619">S1 #1</text>
+  <rect class="pkt1" x="350" y="602" width="76" height="22" rx="5"/>
+  <text class="s1" x="366" y="619">S1 #4</text>
+  <path class="line" d="M 328 613 L 344 613"/>
+
+  <rect class="out" x="538" y="564" width="252" height="70" rx="10"/>
+  <text class="s" x="562" y="588">Thread 2 outbox[Session 2]</text>
+  <rect class="pkt2" x="568" y="602" width="76" height="22" rx="5"/>
+  <text class="s2" x="584" y="619">S2 #2</text>
+  <rect class="pkt2" x="666" y="602" width="76" height="22" rx="5"/>
+  <text class="s2" x="682" y="619">S2 #5</text>
+  <path class="line" d="M 644 613 L 660 613"/>
+
+  <rect class="out" x="820" y="564" width="292" height="70" rx="10"/>
+  <text class="s" x="844" y="588">Thread 3 outbox[Session 3]</text>
+  <rect class="pkt3" x="850" y="602" width="76" height="22" rx="5"/>
+  <text class="s3" x="866" y="619">S3 #3</text>
+  <rect class="pkt3" x="948" y="602" width="76" height="22" rx="5"/>
+  <text class="s3" x="964" y="619">S3 #6</text>
+  <path class="line" d="M 926 613 L 942 613"/>
+  <path class="dash" d="M 522 472 C 454 504 376 524 290 596"/>
+  <path class="dash" d="M 612 472 C 610 506 608 528 604 596"/>
+  <path class="dash" d="M 708 472 C 774 506 858 528 888 596"/>
+
+  <text class="t" x="54" y="724">SendQueue</text>
+  <rect class="lane" x="200" y="690" width="940" height="56" rx="10"/>
+  <rect class="send" x="226" y="704" width="284" height="28" rx="7"/>
+  <text class="xs" x="250" y="723">S1 SendQueue: #1 → #4</text>
+  <rect class="send" x="538" y="704" width="252" height="28" rx="7"/>
+  <text class="xs" x="562" y="723">S2 SendQueue: #2 → #5</text>
+  <rect class="send" x="820" y="704" width="292" height="28" rx="7"/>
+  <text class="xs" x="844" y="723">S3 SendQueue: #3 → #6</text>
+</svg>

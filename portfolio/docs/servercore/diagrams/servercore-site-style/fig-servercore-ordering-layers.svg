@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1200"
+   height="496"
+   viewBox="0 99 1200 496"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg32"
+   sodipodi:docname="fig-servercore-ordering-layers.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview32"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.52375"
+     inkscape:cx="546.34947"
+     inkscape:cy="235.60295"
+     inkscape:window-width="3840"
+     inkscape:window-height="2036"
+     inkscape:window-x="3572"
+     inkscape:window-y="-12"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg32" />
+  <title
+     id="title">Room의 논리 순서와 Session의 바이트 순서</title>
+  <desc
+     id="desc">Room은 게임 상태 변경과 출력 메시지의 논리 순서를 본다. Session은 같은 연결의 SendQueue, active SendOp, TCP stream 위에서 바이트 순서와 부분 송신 커서를 본다.</desc>
+  <defs
+     id="defs3">
+    <marker markerUnits="userSpaceOnUse"
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto-start-reverse">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#334155"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path1" />
+    </marker>
+    <marker markerUnits="userSpaceOnUse"
+       id="blueArrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto-start-reverse">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#2563eb"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path2" />
+    </marker>
+    <marker markerUnits="userSpaceOnUse"
+       id="orangeArrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto-start-reverse">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#ea580c"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path3" />
+    </marker>
+    <style
+       id="style3">
+      .bg{fill:#f8fafc}.panel{fill:#ffffff;stroke:#cbd5e1;stroke-width:1.5}.roomPanel{fill:#eff6ff;stroke:#2563eb;stroke-width:2}.sessionPanel{fill:#fff7ed;stroke:#ea580c;stroke-width:2}.bridge{fill:#f8fafc;stroke:#64748b;stroke-width:1.5}.msg{fill:#dbeafe;stroke:#2563eb;stroke-width:1.5}.event{fill:#eff6ff;stroke:#2563eb;stroke-width:1.5}.queue{fill:#fff7ed;stroke:#ea580c;stroke-width:1.5}.bytes{fill:#ffedd5;stroke:#ea580c;stroke-width:1.5}.done{fill:#dcfce7;stroke:#16a34a;stroke-width:1.5}.tail{fill:#fef3c7;stroke:#ca8a04;stroke-width:1.5}.neutral{fill:#f1f5f9;stroke:#94a3b8;stroke-width:1.5}.h{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:700}.t{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:20px;font-weight:700}.s{font-family:Segoe UI,Arial,sans-serif;fill:#475569;font-size:16px}.xs{font-family:Segoe UI,Arial,sans-serif;fill:#64748b;font-size:14px}.mini{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:13px;font-weight:700}.line{stroke:#334155;stroke-width:3;fill:none;marker-end:url(#arrow)}.blueLine{stroke:#2563eb;stroke-width:3;fill:none;marker-end:url(#blueArrow)}.orangeLine{stroke:#ea580c;stroke-width:3;fill:none;marker-end:url(#orangeArrow)}.dash{stroke:#94a3b8;stroke-width:1.5;stroke-dasharray:7 7;fill:none}.thin{stroke:#334155;stroke-width:1.5;fill:none}
+    </style>
+  </defs>
+  <rect
+     class="bg"
+     width="1200"
+     height="760"
+     id="rect3" />
+  <rect
+     class="roomPanel"
+     x="56"
+     y="132"
+     width="500"
+     height="430"
+     rx="14"
+     id="rect4" />
+  <text
+     class="t"
+     x="88"
+     y="172"
+     id="text4">Room 관점</text>
+  <text
+     class="s"
+     x="88"
+     y="202"
+     id="text5">논리 이벤트와 상태 변경 순서</text>
+  <rect
+     class="event"
+     x="92"
+     y="242"
+     width="170"
+     height="58"
+     rx="8"
+     id="rect5" />
+  <text
+     class="mini"
+     x="126"
+     y="265"
+     id="text6">event #1</text>
+  <text
+     class="xs"
+     x="124"
+     y="285"
+     id="text7">player move</text>
+  <rect
+     class="event"
+     x="92"
+     y="326"
+     width="170"
+     height="58"
+     rx="8"
+     id="rect7" />
+  <text
+     class="mini"
+     x="126"
+     y="349"
+     id="text8">event #2</text>
+  <text
+     class="xs"
+     x="122"
+     y="369"
+     id="text9">player attack</text>
+  <path
+     class="blueLine"
+     d="m 177.32814,303.28138 c -0.58379,17.75867 0.0635,9.1735 0,20"
+     id="path9"
+     sodipodi:nodetypes="cc" />
+  <rect
+     class="neutral"
+     x="314"
+     y="264"
+     width="174"
+     height="96"
+     rx="8"
+     id="rect9" />
+  <text
+     class="mini"
+     x="354"
+     y="292"
+     id="text10">Room state</text>
+  <text
+     class="xs"
+     x="342"
+     y="316"
+     id="text11">같은 공간의 상태를</text>
+  <text
+     class="xs"
+     x="352"
+     y="338"
+     id="text12">순서대로 변경</text>
+  <path
+     class="blueLine"
+     d="M 262 271 L 308 298"
+     id="path12" />
+  <path
+     class="blueLine"
+     d="M 262 355 L 308 330"
+     id="path13" />
+  <text
+     class="s"
+     x="92"
+     y="434"
+     id="text13">Room output</text>
+  <rect
+     class="msg"
+     x="210"
+     y="406"
+     width="112"
+     height="46"
+     rx="8"
+     id="rect13" />
+  <text
+     class="mini"
+     x="236"
+     y="434"
+     id="text14">S_MOVE</text>
+  <rect
+     class="msg"
+     x="334"
+     y="406"
+     width="112"
+     height="46"
+     rx="8"
+     id="rect14" />
+  <text
+     class="mini"
+     x="356"
+     y="434"
+     id="text15">S_ATTACK</text>
+  <path
+     class="blueLine"
+     d="M 401 360 L 312 402"
+     id="path15" />
+  <rect
+     class="panel"
+     x="80"
+     y="488"
+     width="442"
+     height="52"
+     rx="8"
+     id="rect15" />
+  <text
+     class="s"
+     x="143.90891"
+     y="520.9281"
+     id="text16"><tspan
+       sodipodi:role="line"
+       id="tspan32"
+       x="143.90891"
+       y="520.9281">게임 의미 단위가 어떤 순서로 확정됐는지</tspan><tspan
+       sodipodi:role="line"
+       id="tspan33"
+       x="143.90891"
+       y="540.9281" /></text>
+  <rect
+     class="sessionPanel"
+     x="644"
+     y="132"
+     width="500"
+     height="430"
+     rx="14"
+     id="rect16" />
+  <text
+     class="t"
+     x="676"
+     y="172"
+     id="text17">Session 관점</text>
+  <text
+     class="s"
+     x="676"
+     y="202"
+     id="text18">한 연결의 byte range와 cursor 순서</text>
+  <text
+     class="s"
+     x="682"
+     y="260"
+     id="text19">SendQueue</text>
+  <rect
+     class="queue"
+     x="804"
+     y="232"
+     width="266"
+     height="58"
+     rx="8"
+     id="rect19" />
+  <rect
+     class="msg"
+     x="826"
+     y="249"
+     width="90"
+     height="24"
+     rx="4"
+     id="rect20" />
+  <text
+     class="mini"
+     x="844"
+     y="266"
+     id="text20">S_MOVE</text>
+  <rect
+     class="msg"
+     x="930"
+     y="249"
+     width="104"
+     height="24"
+     rx="4"
+     id="rect21" />
+  <text
+     class="mini"
+     x="948"
+     y="266"
+     id="text21">S_ATTACK</text>
+  <text
+     class="s"
+     x="699.1701"
+     y="412.9025"
+     id="text22">Active SendOp</text>
+  <rect
+     class="queue"
+     x="804"
+     y="326"
+     width="266"
+     height="66"
+     rx="8"
+     id="rect22" />
+  <rect
+     class="done"
+     x="826"
+     y="346"
+     width="92"
+     height="24"
+     rx="4"
+     id="rect23" />
+  <text
+     class="mini"
+     x="846"
+     y="363"
+     id="text23">prefix</text>
+  <rect
+     class="tail"
+     x="930"
+     y="346"
+     width="104"
+     height="24"
+     rx="4"
+     id="rect24" />
+  <text
+     class="mini"
+     x="954"
+     y="363"
+     id="text24">suffix</text>
+  <path
+     class="orangeLine"
+     d="M 938 290 L 938 320"
+     id="path24" />
+  <text
+     class="s"
+     x="703.81067"
+     y="468.17651"
+     id="text25">TCP stream</text>
+  <rect
+     class="queue"
+     x="804"
+     y="434"
+     width="266"
+     height="58"
+     rx="8"
+     id="rect25" />
+  <rect
+     class="bytes"
+     x="826"
+     y="451"
+     width="82"
+     height="24"
+     rx="4"
+     id="rect26" />
+  <text
+     class="mini"
+     x="848"
+     y="468"
+     id="text26">bytes #1</text>
+  <rect
+     class="bytes"
+     x="920"
+     y="451"
+     width="82"
+     height="24"
+     rx="4"
+     id="rect27" />
+  <text
+     class="mini"
+     x="942"
+     y="468"
+     id="text27">bytes #2</text>
+  <path
+     class="orangeLine"
+     d="M 938 392 L 938 428"
+     id="path27" />
+  <rect
+     class="panel"
+     x="680.52954"
+     y="500.06549"
+     width="442"
+     height="52"
+     rx="8"
+     id="rect28" />
+  <text
+     class="s"
+     x="753.25549"
+     y="532.99359"
+     id="text28">fd에 어떤 바이트가 먼저 들어갔는지</text>
+  <rect
+     class="bridge"
+     x="532.34039"
+     y="301.5361"
+     width="140.42384"
+     height="48.665833"
+     rx="6.7511463"
+     id="rect29" />
+  <text
+     class="t"
+     x="566.80426"
+     y="333.0719"
+     id="text29">연결부</text>
+  <text
+     class="s"
+     x="537.45764"
+     y="366.64056"
+     id="text30">Room output은</text>
+  <text
+     class="s"
+     x="546.242"
+     y="386"
+     id="text31">Session input</text>
+  <path
+     class="line"
+     d="m 448.50871,427.13804 c 6.74891,-28.77153 4.09792,-42.09081 83.42772,-90.75966"
+     id="path31"
+     sodipodi:nodetypes="cc" />
+  <path
+     class="line"
+     d="M 675.69253,328.98648 C 711.69253,328.98648 758,278 804,262"
+     id="path32"
+     sodipodi:nodetypes="cc" />
+  <text
+     xml:space="preserve"
+     style="writing-mode:lr-tb;direction:ltr;fill:#e5e0f4;fill-opacity:0.352941;stroke:#ed3a3a"
+     x="425.54022"
+     y="514.79504"
+     id="text35"><tspan
+       sodipodi:role="line"
+       id="tspan35"
+       x="425.54022"
+       y="514.79504" /></text>
+</svg>

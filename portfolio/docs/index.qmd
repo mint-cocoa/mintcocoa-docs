@@ -49,7 +49,7 @@ Cloudflare Tunnel 뒤의 Ops API로 Prometheus와 Proxmox 상태 표시
 
 ::: {.doc-grid}
 ::: {.doc-card}
-### [서버 구현 포트폴리오](server/ServerCorePortfolio.html)
+### [서버 구현 포트폴리오](servercore/docs/1.overview.html)
 
 `iouring-runtime`의 core Runtime과 선택 모듈 구조를 설명한 문서입니다.
 `io_uring` 비동기 I/O, 세션 수명관리, 버퍼 관리, 작업 큐, 모듈 경계,
@@ -58,7 +58,7 @@ Cloudflare Tunnel 뒤의 Ops API로 Prometheus와 Proxmox 상태 표시
 ::: {.serve-path}
 **서빙 경로**
 
-`docs.mintcocoa.dev/portfolio/server/ServerCorePortfolio.html`
+`docs.mintcocoa.dev/portfolio/servercore/docs/1.overview.html`
 
 `GitHub Actions` → `GHCR image` → `Argo CD` → `OCI OKE`
 :::

@@ -166,6 +166,6 @@ Kubernetes Ingress, local service, RuntimeWeb service로 분기했습니다.
 ::: {.next-docs}
 [포트폴리오 문서 인덱스](../index.html) ·
 [OCI OKE 프로덕션 GitOps](OciOkeGitOpsPortfolio.html) ·
-[서버 구현 포트폴리오](../server/ServerCorePortfolio.html) ·
+[서버 구현 포트폴리오](../servercore/docs/1.overview.html) ·
 [클라이언트 구현 포트폴리오](../client/ClientPortfolio.html)
 :::

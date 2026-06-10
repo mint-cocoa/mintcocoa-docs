@@ -6,6 +6,7 @@ node_modules/
 hub/_site/
 hub/node_modules/
 portfolio/_site/
+portfolio/generated-quarto/
 portfolio/.quarto/
 portfolio/.gitignore
 portfolio/dashboard/node_modules/

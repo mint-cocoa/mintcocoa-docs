@@ -20,7 +20,7 @@ nav:
   - Home: index.html
   - Server:
       - Runtime 문제 해결 예시: server/server-runtime-problem-solving-example.md
-      - Server Core: server/ServerCorePortfolio.html
+      - Server Core: servercore/docs/1.overview.html
       - Runtime Web: server/RuntimeWebPortfolio.html
       - Runtime Proxy: server/RuntimeProxyPortfolio.html
       - Runtime Game: server/RuntimeGamePortfolio.html

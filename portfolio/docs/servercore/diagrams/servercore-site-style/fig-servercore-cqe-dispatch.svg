@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1200"
+   height="618"
+   viewBox="0 77 1200 618"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg35"
+   sodipodi:docname="fig-servercore-cqe-dispatch.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview35"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.71844662"
+     inkscape:cx="531.00674"
+     inkscape:cy="-29.925675"
+     inkscape:window-width="2560"
+     inkscape:window-height="1351"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg35" />
+  <title
+     id="title">Submitted I/O and callback target lifetime</title>
+  <desc
+     id="desc">Timeline diagram showing that SessionManager ownership, submitted IoEvent ownership, dispatch-local ownership, pending I/O accounting, and SessionState protect different intervals.</desc>
+  <defs
+     id="defs1">
+    <marker markerUnits="userSpaceOnUse"
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto-start-reverse">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#334155"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path1" />
+    </marker>
+    <style
+       id="style1">
+      .bg{fill:#f8fafc}.axis{stroke:#334155;stroke-width:3;marker-end:url(#arrow)}.tick{stroke:#cbd5e1;stroke-width:2}.guide{stroke:#e2e8f0;stroke-width:1.5}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:2}.manager{fill:#dbeafe;stroke:#2563eb;stroke-width:2}.event{fill:#ccfbf1;stroke:#0f766e;stroke-width:2}.stack{fill:#fef3c7;stroke:#d97706;stroke-width:2}.state{fill:#dcfce7;stroke:#16a34a;stroke-width:2}.danger{fill:#fee2e2;stroke:#dc2626;stroke-width:2}.muted{fill:#f1f5f9;stroke:#94a3b8;stroke-width:2}.h{font-family:Segoe UI,Malgun Gothic,Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:700}.t{font-family:Segoe UI,Malgun Gothic,Arial,sans-serif;fill:#0f172a;font-size:19px;font-weight:700}.s{font-family:Segoe UI,Malgun Gothic,Arial,sans-serif;fill:#475569;font-size:16px}.xs{font-family:Segoe UI,Malgun Gothic,Arial,sans-serif;fill:#64748b;font-size:13px}.label{font-family:Segoe UI,Malgun Gothic,Arial,sans-serif;fill:#0f172a;font-size:17px;font-weight:700}.line{stroke:#334155;stroke-width:2.5;fill:none;marker-end:url(#arrow)}.dash{stroke:#64748b;stroke-width:2;stroke-dasharray:7 7;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect
+     class="bg"
+     width="1200"
+     height="760"
+     id="rect1" />
+  <line
+     class="axis"
+     x1="250"
+     y1="145"
+     x2="1084"
+     y2="145"
+     id="line1" />
+  <line
+     class="tick"
+     x1="285"
+     y1="126"
+     x2="285"
+     y2="620"
+     id="line2" />
+  <line
+     class="tick"
+     x1="455"
+     y1="126"
+     x2="455"
+     y2="620"
+     id="line3" />
+  <line
+     class="tick"
+     x1="645"
+     y1="126"
+     x2="645"
+     y2="620"
+     id="line4" />
+  <line
+     class="tick"
+     x1="745"
+     y1="126"
+     x2="745"
+     y2="620"
+     id="line5" />
+  <line
+     class="tick"
+     x1="940"
+     y1="126"
+     x2="940"
+     y2="620"
+     id="line6" />
+  <line
+     class="tick"
+     x1="1055"
+     y1="126"
+     x2="1055"
+     y2="620"
+     id="line7" />
+  <text
+     class="xs"
+     x="285"
+     y="119"
+     text-anchor="middle"
+     id="text7">connect</text>
+  <text
+     class="xs"
+     x="455"
+     y="119"
+     text-anchor="middle"
+     id="text8">SQE submit</text>
+  <text
+     class="xs"
+     x="645"
+     y="119"
+     text-anchor="middle"
+     id="text9">CQE restore</text>
+  <text
+     class="xs"
+     x="745"
+     y="119"
+     text-anchor="middle"
+     id="text10">handler return</text>
+  <text
+     class="xs"
+     x="940"
+     y="119"
+     text-anchor="middle"
+     id="text11">final CQE</text>
+  <text
+     class="xs"
+     x="1055"
+     y="119"
+     text-anchor="middle"
+     id="text12">release</text>
+  <rect
+     class="panel"
+     x="260"
+     y="176"
+     width="135"
+     height="70"
+     rx="10"
+     id="rect12" />
+  <text
+     class="t"
+     x="285"
+     y="207"
+     id="text13">Session</text>
+  <text
+     class="xs"
+     x="285"
+     y="230"
+     id="text14">Op 생성</text>
+  <path
+     class="line"
+     d="M 398 211 L 448 211"
+     id="path14" />
+  <rect
+     class="event"
+     x="455"
+     y="176"
+     width="155"
+     height="70"
+     rx="10"
+     id="rect14" />
+  <text
+     class="t"
+     x="478"
+     y="207"
+     id="text15">IoEvent*</text>
+  <text
+     class="xs"
+     x="478"
+     y="230"
+     id="text16">user_data 저장</text>
+  <path
+     class="line"
+     d="M 613 211 L 638 211"
+     id="path16" />
+  <rect
+     class="muted"
+     x="645"
+     y="176"
+     width="145"
+     height="70"
+     rx="10"
+     id="rect16" />
+  <text
+     class="t"
+     x="669"
+     y="207"
+     id="text17">IoRing</text>
+  <text
+     class="xs"
+     x="669"
+     y="230"
+     id="text18">복원 후 dispatch</text>
+  <path
+     class="line"
+     d="M 793 211 L 838 211"
+     id="path18" />
+  <rect
+     class="panel"
+     x="845"
+     y="176"
+     width="155"
+     height="70"
+     rx="10"
+     id="rect18" />
+  <text
+     class="t"
+     x="862.14203"
+     y="207.98422"
+     id="text19">owner handler</text>
+  <text
+     class="xs"
+     x="871"
+     y="230"
+     id="text20">OnRecv / OnSend</text>
+  <line
+     class="guide"
+     x1="48"
+     y1="282"
+     x2="1112"
+     y2="282"
+     id="line20" />
+  <text
+     class="label"
+     x="56"
+     y="326"
+     id="text21">SessionManager</text>
+  <rect
+     class="manager"
+     x="285"
+     y="300"
+     width="360"
+     height="42"
+     rx="8"
+     id="rect21" />
+  <text
+     class="s"
+     x="379.94257"
+     y="327.39191"
+     id="text22">연결 세션 장기 소유</text>
+  <path
+     class="dash"
+     d="M 645 321 C 704 324 765 334 830 362"
+     id="path22" />
+  <text
+     class="xs"
+     x="684"
+     y="314"
+     id="text23">manager 제거 가능</text>
+  <text
+     class="label"
+     x="56"
+     y="406"
+     id="text24">OwnerBoundEvent</text>
+  <rect
+     class="event"
+     x="455"
+     y="380"
+     width="485"
+     height="42"
+     rx="8"
+     id="rect24" />
+  <text
+     class="s"
+     x="482"
+     y="406"
+     id="text25">SQE submit부터 final CQE까지 owner callback 대상 보장</text>
+  <text
+     class="label"
+     x="56"
+     y="486"
+     id="text26">dispatch-local owner</text>
+  <rect
+     class="stack"
+     x="645"
+     y="460"
+     width="100"
+     height="42"
+     rx="8"
+     id="rect26" />
+  <text
+     class="s"
+     x="655.9527"
+     y="486.69595"
+     id="text27">현재 stack</text>
+  <text
+     class="xs"
+     x="754.51691"
+     y="487.04391"
+     id="text28">CQE 하나를 처리하는 동안만 보호</text>
+  <text
+     class="label"
+     x="56"
+     y="566"
+     id="text29">pending_io_</text>
+  <rect
+     class="danger"
+     x="455"
+     y="540"
+     width="485"
+     height="42"
+     rx="8"
+     id="rect29" />
+  <text
+     class="s"
+     x="482"
+     y="566"
+     id="text30">아직 최종 CQE가 남은 제출 I/O 수</text>
+  <text
+     class="xs"
+     x="945.04053"
+     y="566"
+     id="text31">0일 때만 release 후보</text>
+  <text
+     class="label"
+     x="56"
+     y="646"
+     id="text32">SessionState</text>
+  <rect
+     class="state"
+     x="284.99609"
+     y="619.99609"
+     width="243.0394"
+     height="42.007832"
+     rx="7.9359803"
+     id="rect32" />
+  <text
+     class="s"
+     x="310"
+     y="646"
+     id="text33">kOpen: 새 작업 허용</text>
+  <rect
+     class="danger"
+     x="529.99835"
+     y="619.99835"
+     width="408.61142"
+     height="42.003311"
+     rx="7.9729056"
+     id="rect33" />
+  <text
+     class="s"
+     x="560"
+     y="646"
+     id="text34">kClosing / kDraining: 새 일반 I/O 차단</text>
+  <rect
+     class="panel"
+     x="941.04395"
+     y="620"
+     width="143"
+     height="42"
+     rx="8"
+     id="rect34" />
+  <text
+     class="s"
+     x="981.57092"
+     y="648.43579"
+     id="text35">kClosed</text>
+  <text
+     xml:space="preserve"
+     style="writing-mode:lr-tb;direction:ltr;fill:#efeaef;stroke:#ed3a3a"
+     x="391.4696"
+     y="331.02026"
+     id="text36"><tspan
+       sodipodi:role="line"
+       id="tspan35" /></text>
+</svg>

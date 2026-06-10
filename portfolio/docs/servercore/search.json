@@ -1,0 +1,784 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "서버 런타임 구현 포트폴리오",
+    "section": "",
+    "text": "Obsidian Vault의 Markdown 원본을 GitHub Actions에서 Quarto 문서로 렌더링한 각 장입니다.\n\n\n    \n      \n      \n    \n\n\n\n\n\n\n문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. 전체 구조\n\n\n1. io_uring 기반으로 구현한 Core 런타임의 전체 구조와 실행 모델을 설명\n\n\n\n\n\n\n2. 제출된 I/O와 콜백 대상 생존\n\n\n2. SessionManager, IoEvent, pending_io_, SessionState가 각각 어느 생존 범위를 판단하는지 분리\n\n\n\n\n\n\n3. 수신 버퍼\n\n\n3. 수신 fast/slow path와 송신 순서 보장, 부분 송신 복구를 설명\n\n\n\n\n\n\n4. Room과 Session 직렬화\n\n\n4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명\n\n\n\n\n\n\n5. SendQueue를 메모리 압력 측정 단위로\n\n\n5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결\n\n\n\n\n\n\n6. 선택 모듈로 확장한 결과\n\n\n6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리\n\n\n\n\n\n\n7. Git 이력으로 보는 전체 개발 흐름\n\n\n7. Git 이력을 기준으로 개발 흐름과 증거 범위를 정리\n\n\n\n\n\n\n8. 초기 저장소와 ServerCore 전환\n\n\n8. 초기 저장소의 ServerCore, FactionClash, SwarmDominion 증거와 이후 런타임 중심 전환\n\n\n\n\n\n\n9. 프레임워크를 실제 앱으로 검증\n\n\n9. RuntimeWeb, RuntimeProxy, RuntimeGame으로 실제 앱 검증\n\n\n\n\n\n\n10. 홈랩 운영 대시보드와 관측 가능한 증거\n\n\n10. Proxmox, Prometheus, Kubernetes 상태를 읽는 운영 대시보드\n\n\n\n\n\n\n11. CI/CD, GitOps, Kubernetes, 인프라 자동화\n\n\n11. GitHub Actions, GHCR, GitOps, Argo CD, 인프라 자동화 증거\n\n\n\n\n\n\n12. 포트폴리오 출판과 재현 가능한 산출물\n\n\n12. Quarto와 Pages, PDF로 이어지는 문서 출판 파이프라인\n\n\n\n\n\n\n13. 전체 저장소 훑기 결과\n\n\n13. 첫 커밋부터 현재까지 전체 저장소를 훑은 프로젝트/문서/운영 축 정리\n\n\n\n\n\n\n일치 없음\n\n\n\n\n\n항목\n링크\n\n\n\n\n구현 저장소\niouring-runtime\n\n\n문서 URL\ndocs.mintcocoa.dev/portfolio/servercore/\n\n\nPDF\nServerCore-Portfolio-jinhoo.pdf"
+  },
+  {
+    "objectID": "index.html#문서-구성",
+    "href": "index.html#문서-구성",
+    "title": "서버 런타임 구현 포트폴리오",
+    "section": "",
+    "text": "Obsidian Vault의 Markdown 원본을 GitHub Actions에서 Quarto 문서로 렌더링한 각 장입니다.\n\n\n    \n      \n      \n    \n\n\n\n\n\n\n문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. 전체 구조\n\n\n1. io_uring 기반으로 구현한 Core 런타임의 전체 구조와 실행 모델을 설명\n\n\n\n\n\n\n2. 제출된 I/O와 콜백 대상 생존\n\n\n2. SessionManager, IoEvent, pending_io_, SessionState가 각각 어느 생존 범위를 판단하는지 분리\n\n\n\n\n\n\n3. 수신 버퍼\n\n\n3. 수신 fast/slow path와 송신 순서 보장, 부분 송신 복구를 설명\n\n\n\n\n\n\n4. Room과 Session 직렬화\n\n\n4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명\n\n\n\n\n\n\n5. SendQueue를 메모리 압력 측정 단위로\n\n\n5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결\n\n\n\n\n\n\n6. 선택 모듈로 확장한 결과\n\n\n6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리\n\n\n\n\n\n\n7. Git 이력으로 보는 전체 개발 흐름\n\n\n7. Git 이력을 기준으로 개발 흐름과 증거 범위를 정리\n\n\n\n\n\n\n8. 초기 저장소와 ServerCore 전환\n\n\n8. 초기 저장소의 ServerCore, FactionClash, SwarmDominion 증거와 이후 런타임 중심 전환\n\n\n\n\n\n\n9. 프레임워크를 실제 앱으로 검증\n\n\n9. RuntimeWeb, RuntimeProxy, RuntimeGame으로 실제 앱 검증\n\n\n\n\n\n\n10. 홈랩 운영 대시보드와 관측 가능한 증거\n\n\n10. Proxmox, Prometheus, Kubernetes 상태를 읽는 운영 대시보드\n\n\n\n\n\n\n11. CI/CD, GitOps, Kubernetes, 인프라 자동화\n\n\n11. GitHub Actions, GHCR, GitOps, Argo CD, 인프라 자동화 증거\n\n\n\n\n\n\n12. 포트폴리오 출판과 재현 가능한 산출물\n\n\n12. Quarto와 Pages, PDF로 이어지는 문서 출판 파이프라인\n\n\n\n\n\n\n13. 전체 저장소 훑기 결과\n\n\n13. 첫 커밋부터 현재까지 전체 저장소를 훑은 프로젝트/문서/운영 축 정리\n\n\n\n\n\n\n일치 없음\n\n\n\n\n\n항목\n링크\n\n\n\n\n구현 저장소\niouring-runtime\n\n\n문서 URL\ndocs.mintcocoa.dev/portfolio/servercore/\n\n\nPDF\nServerCore-Portfolio-jinhoo.pdf"
+  },
+  {
+    "objectID": "docs/8.servercore-start.html",
+    "href": "docs/8.servercore-start.html",
+    "title": "8. 초기 저장소와 ServerCore 전환",
+    "section": "",
+    "text": "이력의 시작점은 단일 포트폴리오 저장소였습니다. 최초 커밋 85c8f49는 ServerCore만 담고 있지 않았고, 서버 런타임, 클라이언트, 그래픽스 설계 문서를 함께 포함했습니다.\n\n\n\n\n\n\n\n\n날짜\n커밋\n근거\n\n\n\n\n2026-04-09\n85c8f49 Initial commit: Game server portfolio documents\nServerCore v4, SwarmDominion DX11/DX12 SVO 설계, FactionClash DX11 클라이언트 자료를 한 번에 추가\n\n\n2026-04-13\n4469271 Add GitHub Pages site with rendered portfolio documents\n문서를 단순 로컬 파일이 아니라 공개 가능한 Pages 산출물로 전환\n\n\n2026-04-14\n13f2411 Remove non-Pages files from tracking, keep only docs/ for GitHub Pages\n초기 원본 폴더를 삭제하고 Pages용 산출물 중심으로 저장소 정리\n\n\n2026-04-18\n2e9c0d7 Update portfolio repo links for split server projects\n서버 프로젝트를 분리된 저장소 단위로 보여주도록 링크 정리\n\n\n\n\n\n초기 README.md는 저장소를 다음 세 영역으로 설명했습니다.\n\n\n\n\n\n\n\n\n\n영역\n초기 경로\n성격\n확인 명령\n\n\n\n\nServerCore v4\n01_ServerCore_v4/\nC++20, Linux, io_uring 기반 게임 서버 프레임워크와 벤치마크\ngit show 85c8f49:01_ServerCore_v4/ServerCorePortfolio.qmd\n\n\nSwarmDominion\n02_SwarmDominion_DX11/\nDX11 프로젝트를 DX12 + SVO 레이마칭 렌더러로 확장하기 위한 조사/설계 문서\ngit show 85c8f49:02_SwarmDominion_DX11/SwarmDominion_DX11_Architecture.md\n\n\nFactionClash Client\n03_FactionClash_Client/\nDirectX 11 아이소메트릭 멀티플레이 던전 RPG 클라이언트 문서와 일부 C++ 소스\ngit show 85c8f49:03_FactionClash_Client/ClientPortfolio.qmd\n\n\n\n초기 저장소에는 03_FactionClash_Client/src/*.cpp, proto/battle.proto, battle.pb.cc, battle.pb.h도 포함되어 있었습니다. 따라서 클라이언트 쪽은 문서만 있던 것이 아니라 일부 구현 파일도 최초 커밋에 들어 있었습니다.\n\n\n\n초기 ServerCore 문서는 “게임 서버 라이브러리”로 출발합니다. 핵심 근거는 다음입니다.\n\n\n\n\n\n\n\n근거\n내용\n\n\n\n\nio_uring 직접 구현 이유\nepoll의 read/write syscall 경로와 비교해 SQ/CQ 공유 메모리, Multishot Accept/Recv의 이점을 검증하려고 했습니다.\n\n\n라이브러리 분리 이유\nIoRing, Session, BufferPool 같은 코어와 GameRoom, PacketSession 같은 게임 프레임워크 계층이 섞인 문제를 분리했습니다.\n\n\n주요 기술\nMultishot Accept, Multishot Recv + Provided Buffer, MSG_RING, weak_ptr 기반 IoEvent owner, keep_alive 배치 보호, pending_io_ 기반 세션 수명관리\n\n\n벤치마크\nEcho 327K echo/s, 200봇 broadcast p50에서 epoll 대비 큰 지연 차이, Room sharding 효과\n\n\n\n초기 벤치마크 보고서에는 Integrated, Separated, Epoll 세 모델 비교가 들어 있습니다. 즉 단순 구현 소개가 아니라 같은 게임 로직을 서로 다른 I/O 구조로 비교한 결과가 남아 있습니다.\n\n\n\n초기 FactionClash 문서는 ServerCore 기반 GameServer와 연동되는 DirectX 11 클라이언트를 설명합니다.\n\n\n\n\n\n\n\n근거\n내용\n\n\n\n\n기술 스택\nC++, DirectX 11, Protobuf 3, Dear ImGui, WinSock2\n\n\n네트워크\nTcpClient, PacketFramer, PacketHandler, PacketBuilder, Binary Header + Protobuf payload\n\n\n씬 구조\nLoginScene, CharSelectScene, LobbyScene, GameScene\n\n\n렌더링\nInstanceRenderer, StructuredBuffer 인스턴싱, DrawIndexedInstanced, 프로시저럴 이펙트 셰이더\n\n\n서버 연동\nC_SCENE_READY, Room broadcast 준비 상태, MapData 기반 dungeon build, 서버 권위 판정\n\n\n\n이 부분은 현재 저장소에서 삭제되었지만, 최초 커밋에는 03_FactionClash_Client/proto/battle.proto와 C++ 소스 파일이 함께 들어 있었으므로 “문서만 작성했다”보다 강한 증거로 볼 수 있습니다.\n\n\n\nSwarmDominion은 구현 완료 프로젝트라기보다 DirectX 학습과 DX12/SVO 확장 설계 자료로 보는 것이 정확합니다.\n\n\n\n\n\n\n\n근거\n내용\n\n\n\n\nDX11 구조 학습\nWinMain, D3D11CreateDeviceAndSwapChain, RTV/DSV, ImGui DX11 backend, terrain/unit/particle layer\n\n\nGPU 렌더링 개념\nStructuredBuffer, ShaderResourceView, instanced draw, particle billboard\n\n\nDX12/SVO 확장 설계\nSparse Voxel Octree, GPU voxelization, traversal shader, chunk dirty update, partial rebuild\n\n\n레퍼런스 분석\nSparseVoxelOctree, voxel-rs, unity-svo-demo, voxel-raycaster, Teardown, Atomontage, CryEngine SVOGI\n\n\n\n따라서 이력상 SwarmDominion은 “그래픽스 구현 능력”보다는 “렌더링 파이프라인을 학습하고 DX12/SVO 구현 계획을 세운 자료”로 표현하는 것이 안전합니다.\n\n\n\n처음에는 세 프로젝트가 한 포트폴리오 저장소에 함께 있었습니다. 이후 저장소는 GitHub Pages 배포와 문서 공개에 맞춰 산출물 중심으로 정리되었고, 서버 런타임은 별도 구현 저장소와 연결되는 방향으로 재구성되었습니다.\n이후 ServerCore 설명은 게임 서버 기능 자체보다 아래에 있는 네트워크 I/O 실행 기반으로 이동합니다. 현재 문서의 1장은 이 전환을 명시합니다.\n\n처음에는 게임 서버를 만들기 위한 기반 코드로 시작했지만, TCP 연결 수락, 수신/송신, 시간 초과와 취소, 버퍼 소유권, 세션 수명주기, 스레드 간 작업 전달이 특정 게임 로직에만 종속되는 기능이 아니라고 정리했습니다.\n\n\n\n\ngit show --stat 85c8f49\ngit show --stat 13f2411\ngit show 85c8f49:README.md\ngit show 85c8f49:01_ServerCore_v4/ServerCorePortfolio.qmd\ngit show 85c8f49:01_ServerCore_v4/Benchmarks/v4-benchmark-report.md\ngit show 85c8f49:03_FactionClash_Client/ClientPortfolio.qmd\ngit show 85c8f49:03_FactionClash_Client/proto/battle.proto\ngit show 85c8f49:02_SwarmDominion_DX11/SwarmDominion_DX11_Architecture.md",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "8. 초기 저장소와 ServerCore 전환"
+    ]
+  },
+  {
+    "objectID": "docs/8.servercore-start.html#최초-저장소-인벤토리",
+    "href": "docs/8.servercore-start.html#최초-저장소-인벤토리",
+    "title": "8. 초기 저장소와 ServerCore 전환",
+    "section": "",
+    "text": "초기 README.md는 저장소를 다음 세 영역으로 설명했습니다.\n\n\n\n\n\n\n\n\n\n영역\n초기 경로\n성격\n확인 명령\n\n\n\n\nServerCore v4\n01_ServerCore_v4/\nC++20, Linux, io_uring 기반 게임 서버 프레임워크와 벤치마크\ngit show 85c8f49:01_ServerCore_v4/ServerCorePortfolio.qmd\n\n\nSwarmDominion\n02_SwarmDominion_DX11/\nDX11 프로젝트를 DX12 + SVO 레이마칭 렌더러로 확장하기 위한 조사/설계 문서\ngit show 85c8f49:02_SwarmDominion_DX11/SwarmDominion_DX11_Architecture.md\n\n\nFactionClash Client\n03_FactionClash_Client/\nDirectX 11 아이소메트릭 멀티플레이 던전 RPG 클라이언트 문서와 일부 C++ 소스\ngit show 85c8f49:03_FactionClash_Client/ClientPortfolio.qmd\n\n\n\n초기 저장소에는 03_FactionClash_Client/src/*.cpp, proto/battle.proto, battle.pb.cc, battle.pb.h도 포함되어 있었습니다. 따라서 클라이언트 쪽은 문서만 있던 것이 아니라 일부 구현 파일도 최초 커밋에 들어 있었습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "8. 초기 저장소와 ServerCore 전환"
+    ]
+  },
+  {
+    "objectID": "docs/8.servercore-start.html#servercore에서-증명되는-내용",
+    "href": "docs/8.servercore-start.html#servercore에서-증명되는-내용",
+    "title": "8. 초기 저장소와 ServerCore 전환",
+    "section": "",
+    "text": "초기 ServerCore 문서는 “게임 서버 라이브러리”로 출발합니다. 핵심 근거는 다음입니다.\n\n\n\n\n\n\n\n근거\n내용\n\n\n\n\nio_uring 직접 구현 이유\nepoll의 read/write syscall 경로와 비교해 SQ/CQ 공유 메모리, Multishot Accept/Recv의 이점을 검증하려고 했습니다.\n\n\n라이브러리 분리 이유\nIoRing, Session, BufferPool 같은 코어와 GameRoom, PacketSession 같은 게임 프레임워크 계층이 섞인 문제를 분리했습니다.\n\n\n주요 기술\nMultishot Accept, Multishot Recv + Provided Buffer, MSG_RING, weak_ptr 기반 IoEvent owner, keep_alive 배치 보호, pending_io_ 기반 세션 수명관리\n\n\n벤치마크\nEcho 327K echo/s, 200봇 broadcast p50에서 epoll 대비 큰 지연 차이, Room sharding 효과\n\n\n\n초기 벤치마크 보고서에는 Integrated, Separated, Epoll 세 모델 비교가 들어 있습니다. 즉 단순 구현 소개가 아니라 같은 게임 로직을 서로 다른 I/O 구조로 비교한 결과가 남아 있습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "8. 초기 저장소와 ServerCore 전환"
+    ]
+  },
+  {
+    "objectID": "docs/8.servercore-start.html#factionclash-클라이언트에서-증명되는-내용",
+    "href": "docs/8.servercore-start.html#factionclash-클라이언트에서-증명되는-내용",
+    "title": "8. 초기 저장소와 ServerCore 전환",
+    "section": "",
+    "text": "초기 FactionClash 문서는 ServerCore 기반 GameServer와 연동되는 DirectX 11 클라이언트를 설명합니다.\n\n\n\n\n\n\n\n근거\n내용\n\n\n\n\n기술 스택\nC++, DirectX 11, Protobuf 3, Dear ImGui, WinSock2\n\n\n네트워크\nTcpClient, PacketFramer, PacketHandler, PacketBuilder, Binary Header + Protobuf payload\n\n\n씬 구조\nLoginScene, CharSelectScene, LobbyScene, GameScene\n\n\n렌더링\nInstanceRenderer, StructuredBuffer 인스턴싱, DrawIndexedInstanced, 프로시저럴 이펙트 셰이더\n\n\n서버 연동\nC_SCENE_READY, Room broadcast 준비 상태, MapData 기반 dungeon build, 서버 권위 판정\n\n\n\n이 부분은 현재 저장소에서 삭제되었지만, 최초 커밋에는 03_FactionClash_Client/proto/battle.proto와 C++ 소스 파일이 함께 들어 있었으므로 “문서만 작성했다”보다 강한 증거로 볼 수 있습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "8. 초기 저장소와 ServerCore 전환"
+    ]
+  },
+  {
+    "objectID": "docs/8.servercore-start.html#swarmdominion에서-증명되는-내용",
+    "href": "docs/8.servercore-start.html#swarmdominion에서-증명되는-내용",
+    "title": "8. 초기 저장소와 ServerCore 전환",
+    "section": "",
+    "text": "SwarmDominion은 구현 완료 프로젝트라기보다 DirectX 학습과 DX12/SVO 확장 설계 자료로 보는 것이 정확합니다.\n\n\n\n\n\n\n\n근거\n내용\n\n\n\n\nDX11 구조 학습\nWinMain, D3D11CreateDeviceAndSwapChain, RTV/DSV, ImGui DX11 backend, terrain/unit/particle layer\n\n\nGPU 렌더링 개념\nStructuredBuffer, ShaderResourceView, instanced draw, particle billboard\n\n\nDX12/SVO 확장 설계\nSparse Voxel Octree, GPU voxelization, traversal shader, chunk dirty update, partial rebuild\n\n\n레퍼런스 분석\nSparseVoxelOctree, voxel-rs, unity-svo-demo, voxel-raycaster, Teardown, Atomontage, CryEngine SVOGI\n\n\n\n따라서 이력상 SwarmDominion은 “그래픽스 구현 능력”보다는 “렌더링 파이프라인을 학습하고 DX12/SVO 구현 계획을 세운 자료”로 표현하는 것이 안전합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "8. 초기 저장소와 ServerCore 전환"
+    ]
+  },
+  {
+    "objectID": "docs/8.servercore-start.html#무엇이-바뀌었는가",
+    "href": "docs/8.servercore-start.html#무엇이-바뀌었는가",
+    "title": "8. 초기 저장소와 ServerCore 전환",
+    "section": "",
+    "text": "처음에는 세 프로젝트가 한 포트폴리오 저장소에 함께 있었습니다. 이후 저장소는 GitHub Pages 배포와 문서 공개에 맞춰 산출물 중심으로 정리되었고, 서버 런타임은 별도 구현 저장소와 연결되는 방향으로 재구성되었습니다.\n이후 ServerCore 설명은 게임 서버 기능 자체보다 아래에 있는 네트워크 I/O 실행 기반으로 이동합니다. 현재 문서의 1장은 이 전환을 명시합니다.\n\n처음에는 게임 서버를 만들기 위한 기반 코드로 시작했지만, TCP 연결 수락, 수신/송신, 시간 초과와 취소, 버퍼 소유권, 세션 수명주기, 스레드 간 작업 전달이 특정 게임 로직에만 종속되는 기능이 아니라고 정리했습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "8. 초기 저장소와 ServerCore 전환"
+    ]
+  },
+  {
+    "objectID": "docs/8.servercore-start.html#확인-명령",
+    "href": "docs/8.servercore-start.html#확인-명령",
+    "title": "8. 초기 저장소와 ServerCore 전환",
+    "section": "",
+    "text": "git show --stat 85c8f49\ngit show --stat 13f2411\ngit show 85c8f49:README.md\ngit show 85c8f49:01_ServerCore_v4/ServerCorePortfolio.qmd\ngit show 85c8f49:01_ServerCore_v4/Benchmarks/v4-benchmark-report.md\ngit show 85c8f49:03_FactionClash_Client/ClientPortfolio.qmd\ngit show 85c8f49:03_FactionClash_Client/proto/battle.proto\ngit show 85c8f49:02_SwarmDominion_DX11/SwarmDominion_DX11_Architecture.md",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "8. 초기 저장소와 ServerCore 전환"
+    ]
+  },
+  {
+    "objectID": "docs/6.summary.html",
+    "href": "docs/6.summary.html",
+    "title": "6. 선택 모듈로 확장한 결과",
+    "section": "",
+    "text": "최종 구조에서 Core 런타임은 특정 서버 제품이 아니라 프로토콜에 종속되지 않는 전송 계층입니다. Core는 소켓 연결 수락, 수신/송신, 제공 버퍼, 송신 큐, 시간 초과, 수명주기, owner ring 같은 공통 I/O 책임을 맡습니다. HTTP 요청 해석, 프록시 라우팅, 게임 패킷과 Room 실행 모델은 Core 밖 선택 모듈이 담당합니다.\n\n\n\nfig servercore module boundary\n\n\n\n\n\n\n\n\n\n\n\n모듈\nCore에서 받는 것\n모듈이 추가하는 의미\nCore에 넣지 않은 것\n\n\n\n\nRuntimeWeb\n세션 I/O, 제공 버퍼 뷰, 송신 큐\nHttpSession, HTTP 파서, Router, 응답 생성\n라우팅 정책, 인증, 파일 정책\n\n\nRuntimeProxy\n스트림 I/O, 송신 큐, 시간 초과\ndownstream/upstream 중계\n프록시 라우팅 정책, peer별 종료 정책\n\n\nRuntimeGame\n세션 I/O, owner callback, 송신 큐\nPacketSession, PacketBuilder, Room, RoomManager\n전투, 던전, DB, 인증 같은 게임 도메인",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "6. 선택 모듈로 확장한 결과"
+    ]
+  },
+  {
+    "objectID": "docs/6.summary.html#선택-모듈로-확장한-결과",
+    "href": "docs/6.summary.html#선택-모듈로-확장한-결과",
+    "title": "6. 선택 모듈로 확장한 결과",
+    "section": "",
+    "text": "최종 구조에서 Core 런타임은 특정 서버 제품이 아니라 프로토콜에 종속되지 않는 전송 계층입니다. Core는 소켓 연결 수락, 수신/송신, 제공 버퍼, 송신 큐, 시간 초과, 수명주기, owner ring 같은 공통 I/O 책임을 맡습니다. HTTP 요청 해석, 프록시 라우팅, 게임 패킷과 Room 실행 모델은 Core 밖 선택 모듈이 담당합니다.\n\n\n\nfig servercore module boundary\n\n\n\n\n\n\n\n\n\n\n\n모듈\nCore에서 받는 것\n모듈이 추가하는 의미\nCore에 넣지 않은 것\n\n\n\n\nRuntimeWeb\n세션 I/O, 제공 버퍼 뷰, 송신 큐\nHttpSession, HTTP 파서, Router, 응답 생성\n라우팅 정책, 인증, 파일 정책\n\n\nRuntimeProxy\n스트림 I/O, 송신 큐, 시간 초과\ndownstream/upstream 중계\n프록시 라우팅 정책, peer별 종료 정책\n\n\nRuntimeGame\n세션 I/O, owner callback, 송신 큐\nPacketSession, PacketBuilder, Room, RoomManager\n전투, 던전, DB, 인증 같은 게임 도메인",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "6. 선택 모듈로 확장한 결과"
+    ]
+  },
+  {
+    "objectID": "docs/6.summary.html#모듈별-검증",
+    "href": "docs/6.summary.html#모듈별-검증",
+    "title": "6. 선택 모듈로 확장한 결과",
+    "section": "2 모듈별 검증",
+    "text": "2 모듈별 검증\n\n2.1 RuntimeWeb\nRuntimeWeb은 Core Session::OnRecv()로 올라온 바이트를 HTTP/1.1 요청으로 해석합니다. 요청 헤더와 본문을 파싱하고, Router를 통해 handler를 찾은 뒤, 응답을 Core 송신 큐로 넘깁니다.\n\n\n\n\n\n\n\n검증 항목\n확인한 것\n\n\n\n\nHTTP 파서와 요청 수명주기\nTCP 스트림을 HTTP 요청 단위로 해석\n\n\nRouter / RadixTree\nmethod, 정적 경로, parameter, wildcard route 분리\n\n\n파일/스트리밍 응답\n큰 본문을 앱 메모리에 한 번에 누적하지 않음\n\n\ntimeout/backpressure 연결\nHTTP 의미의 요청 시간 초과와 출력 흐름 제어를 Core 경로에 연결\n\n\n\n\n\n2.2 RuntimeProxy\nRuntimeProxy는 downstream 세션과 upstream 세션을 중계 경로로 묶습니다. HTTP 요청/응답 객체를 만들지 않고, 한쪽 peer에서 받은 바이트를 반대편 peer의 송신 큐로 전달합니다.\n\n\n\n검증 항목\n확인한 것\n\n\n\n\ndownstream/upstream 중계\n두 TCP 세션 사이의 바이트 전달\n\n\n논블로킹 연결기\nupstream 연결 시간 초과와 실패 처리\n\n\nTLS/SNI 라우팅\nTLS 종료와 라우팅 선택을 Proxy 경계에 격리\n\n\n느린 peer 처리\nwrite pressure를 반대편 recv pause/resume으로 전파\n\n\n\n\n\n2.3 RuntimeGame\nRuntimeGame은 게임 도메인 전체가 아니라 바이너리 패킷 프레이밍과 Room 실행 모델을 제공하고, PacketSession은 [size:uint16][msgId:uint16][payload] 형식의 패킷 경계를 복원 및 완전한 패킷이 만들어졌을 때만 게임 핸들러로 넘깁니다.\n\n\n\n\n\n\n\n검증 항목\n확인한 것\n\n\n\n\nPacketSession\nTCP 스트림 위 바이너리 패킷 경계 복원\n\n\nPacketBuilder\n페이로드 앞에 패킷 헤더를 붙여 Core 송신 큐로 전달\n\n\nRoom / JobQueue\nRoom 상태 변경을 직렬 실행하고 Room 간 분산 허용\n\n\nRoomManager / PlayerRegistry\n플레이어-Room 관계와 Room 수명주기 관리",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "6. 선택 모듈로 확장한 결과"
+    ]
+  },
+  {
+    "objectID": "docs/6.summary.html#결론",
+    "href": "docs/6.summary.html#결론",
+    "title": "6. 선택 모듈로 확장한 결과",
+    "section": "3 결론",
+    "text": "3 결론\nWeb, Proxy, Game을 각각 만들었다는 데 있지 않고, 서로 다른 프로토콜 모듈을 같은 Core 위에 올려도 내부의 수명, 버퍼, 송신 순서, 흐름 제어 문제는 바뀌지 않았습니다.\n처음에는 서버의 연결 수락, 수신, 송신, 연결 종료 흐름을 직접 구현하는 문제로 시작했습니다. 하지만 구현이 진행될수록 핵심은 빠르게 I/O를 제출하는 코드가 아니라, 완료 통지가 늦게 도착하고, 버퍼 수명이 엇갈리고, 연결 종료 중 새 작업이 들어오고, 여러 워커가 같은 세션이나 Room을 건드리는 상황을 끝까지 안전하게 마무리하는 데 있다는 점이 드러났습니다.\n그래서 최종 구조에서 Core는 프로토콜을 모르는 상태로 남겨 두었습니다. HTTP 요청, 프록시 라우팅, 게임 패킷의 의미는 각 모듈이 해석하고, Core는 세션 I/O 상태를 owner ring에서 직렬화합니다. 제출된 I/O는 CQE가 돌아올 때까지 생존하고, 연결 종료는 즉시 해제가 아니라 비우기 이후에 확정되는 상태 전환으로 처리됩니다. 송신 큐 역시 무제한 버퍼가 아니라 watermark, 수신 일시 정지, 연결 종료 정책을 판단하는 기준으로 사용됩니다.\n결과적으로 이 구현은 단순히 빠른 서버를 만드는 작업이 아닌 완료 통지 기반 전송 런타임을 세우는 작업에 가까웠습니다. Core는 수명, 버퍼, 흐름, 동시성의 규칙을 고정하고, Web/Proxy/Game은 그 위에서 각자 프로토콜을 해석합니다. 이 경계가 유지되기 때문에 같은 런타임을 HTTP 서버, , 패킷 게임 서버로 확장할 수 있었습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "6. 선택 모듈로 확장한 결과"
+    ]
+  },
+  {
+    "objectID": "docs/4.concurrency-management.html",
+    "href": "docs/4.concurrency-management.html",
+    "title": "4. Room과 Session 직렬화",
+    "section": "",
+    "text": "게임 서버에서는 실시간으로 상태가 변하고, 여러 플레이어가 그 상태를 공유합니다. 하지만 각 플레이어의 입력은 서로 다른 네트워크 레이턴시를 거쳐 서버에 도착하므로, 서버는 도착한 입력들을 어떤 순서로 처리할지 결정해야 합니다.\n게임 서버에서 Room은 같은 공간, 채널, 전투 인스턴스처럼 함께 상태를 공유하는 최소 단위입니다. 플레이어 입장, 퇴장, 이동, 공격, 포탈 이동, 브로드캐스트 대상 결정처럼 “누가 같은 공간에 있고, 어떤 순서로 상태가 바뀌었는지”를 판단해야 하는 작업은 Room의 상태를 기준으로 처리됩니다.\nRoom은 다음 정보를 하나의 상태 단위로 묶습니다.\n\n\n\n\n\n\n\n항목\n의미\n\n\n\n\n멤버 목록\n현재 Room에 들어와 있는 플레이어와 세션\n\n\n도메인 상태\n위치, 이동, 전투 상태처럼 Room 안에서 공유되는 값\n\n\n입력 작업\n입장, 퇴장, 이동, 공격, 포탈 이동처럼 순서가 필요한 요청\n\n\n출력 결정\n어떤 플레이어에게 어떤 패킷을 보낼지에 대한 브로드캐스트 결정\n\n\n\nRoom이 직접 관리하는 것은 Room 내부 상태입니다. 예를 들면 현재 Room에 들어온 플레이어 목록, Room 안에서 처리할 작업 순서, 그리고 어떤 세션에게 어떤 패킷을 보내야 하는지에 대한 결정, 즉 “게임 상태를 어떤 순서로 바꿀지”를 정해야 합니다.\nSession은 하나의 클라이언트 연결을 나타냅니다. Session의 책임은 Room 상태를 판단하는 것이 아니라, 해당 연결에 대해 패킷 바이트를 어떤 순서로 쓸지 보장하는 것입니다.\nRoom이 브로드캐스트 대상을 결정하더라도, 실제 Send()가 어느 스레드에서 어떤 순서로 실행될지는 별도의 문제입니다. 같은 Session에는 Room에서 발생한 이동/전투 패킷뿐 아니라 채팅, 인벤토리, 로그인, 시스템 알림처럼 다른 경로의 패킷도 들어올 수 있습니다.\n따라서 Room과 Session은 서로 다른 순서를 보장합니다.\n\n\n\n단위\n보장하는 순서\n\n\n\n\nRoom\n공유 게임 상태의 변경 순서\n\n\nSession\n하나의 TCP 연결에 쓰이는 바이트 순서\n\n\n\nRoom은 “게임 상태를 순서대로 바꾸는 곳”이고, Session은 “한 연결에 바이트를 순서대로 쓰는 곳”입니다. Room의 브로드캐스트 결과는 Session 송신 큐에 들어가는 입력일 뿐이며, 실제 커널 송신 제출과 부분 송신 복구는 Session의 책임입니다.\n\n\n\niouring-runtime의 게임 서버는 여러 IoWorker가 각자의 io_uring 루프를 가지고 병렬로 실행됩니다. 이 구조에서는 같은 Room이나 같은 Session에 대한 요청이 서로 다른 스레드에서 동시에 발생할 수 있습니다.\n단순하게 모든 상태를 뮤텍스로 보호할 수도 있습니다. 하지만 그렇게 하면 게임 로직, 소켓 I/O, Room 브로드캐스트, Session 송신 경로 전체에 락이 퍼집니다. 락 범위가 넓어질수록 어떤 상태를 누가 소유하는지 불명확해지고, 교착이나 락 순서 문제도 생기기 쉬웠습니다.\n여기에서는 전역 락 대신 상태의 소유자를 명확히 나누고, 스레드 간 작업을 해당 상태의 소유자 실행 context로 모으는 방식을 선택했습니다.\n\n\n\n\n\n\n\n\n\n경계\n소유자\n통과하는 데이터\n보장하는 것\n\n\n\n\nRoom JobQueue\nRoom을 실행 중인 워커\njoin, leave, move, attack, portal, 브로드캐스트 결정\nRoom 상태는 한 번에 하나의 job만 변경\n\n\nWorkerOutbox\n대상 IoWorker\n세션별 Room 출력\n같은 세션으로 가는 Room 출력은 FIFO로 비워짐\n\n\nSession owner ring\n해당 세션의 IoRing 스레드\nSend(), send_queue_, SendOp\n한 연결의 쓰기 상태는 소유자 ring에서만 변경\n\n\n\nRoom의 JobQueue는 여러 세션에서 들어온 요청은 큐에 쌓이지만, Room owner는 그 큐를 한 번에 하나씩만 비우며 Room 상태를 변경합니다. Room이 만든 출력은 바로 세션에 쓰지 않고 WorkerOutbox라는 출력 메일박스에 세션별로 들어갑니다. 마지막으로 각 세션 owner ring에서 그 큐를 Session::SendQueue로 옮기기 때문에, Room 결정 순서가 같은 세션의 송신 큐 삽입 순서로 이어집니다.\n *** ### Room 출력 순서 보장\nRoom이 만든 패킷을 곧바로 각 Session 소유자 ring 으로 흩어 보내면, 클라이언트가 보는 순서가 Room의 처리 순서와 달라질 수 있습니다.\n기존 RunOnRing() 방식은 대상 ring이 현재 ring이면 즉시 실행하고, 다른 ring이면 비동기로 전달했습니다. 이 차이 때문에 Room 내부의 논리 순서와 실제 Session::SendQueue 삽입 순서가 달라질 수 있습니다.\n예를 들어 Room이 같은 세션에 대해 Packet #1, Packet #2를 순서대로 만들었다고 하더라도, 하나는 현재 ring에서 즉시 Send()되고 다른 하나는 다른 ring으로 비동기 전달되면 실제 Session 송신 큐에 들어가는 순서가 Room의 출력 순서와 달라질 수 있습니다.\nRoom은 순서대로 처리했지만, 출력 경로가 즉시 실행 경로와 비동기 실행 경로로 갈라지면서 실제 송신 큐 삽입 순서가 뒤집힐 수 있었습니다.\n이를 해결하기 위해 Room에서 나온 출력은 세션에 바로 Send()하지 않고, 대상 쓰레드의 발신 메일박스인 WorkerOutbox에 먼저 넣습니다.\nRoom::SendTo(), BroadcastAll(), BroadcastExcept()는 모두 worker-&gt;EnqueueOutbound(...)를 호출합니다.\nWorkerOutbox는 세션 id별 큐를 가지고, IoWorker::Run()의 drain 단계에서 소유 스레드가 직접 비웁니다. 즉시 Send()하지 않고 반드시 outbox를 거치기 때문에, 같은 세션으로 가는 Room 출력은 하나의 FIFO 경로를 통과합니다.\n서로 다른 세션으로 가는 메시지는 각 세션 큐에서 독립적으로 처리됩니다. 여기서 보장하는 것은 Room이 만든 출력이 같은 대상 Session으로 전달될 때, 그 Room 출력의 상대 순서가 유지된다는 것입니다.\n각 Session은 자신을 소유한 IoWorker 스레드가 정해져 있습니다. 예를 들어 1번 세션은 1번 스레드, 2번 세션은 2번 스레드, 3번 세션은 3번 스레드가 소유합니다. Room은 여러 Session에서 들어온 입력을 하나의 Room 입력 큐로 모아 처리하지만, Room이 만든 출력은 다시 각 Session을 소유한 스레드의 outbox[session]으로 돌아갑니다.\n따라서 같은 Session의 출력은 항상 같은 소유 스레드 큐를 통과합니다. Room이 전체 입력을 #1 -&gt; #2 -&gt; #3 -&gt; #4 -&gt; #5 -&gt; #6 순서로 처리하더라도, 출력 단계에서는 대상 Session별 큐로 다시 나뉩니다.\n\n\n\n대상 Session\n소유 스레드\n유지되는 출력 순서\n\n\n\n\nSession 1\nThread 1\n#1 -&gt; #4\n\n\nSession 2\nThread 2\n#2 -&gt; #5\n\n\nSession 3\nThread 3\n#3 -&gt; #6\n\n\n\nRoom이 ChatMessage #1, ChatMessage #2를 순서대로 처리하면 Room JobQueue는 두 메시지의 브로드캐스트 결정 순서를 보장합니다. 그 결과는 대상 워커의 outbox[session]에 같은 순서로 들어가고, DrainOutbox()가 이를 Session::SendQueue로 순서대로 밀어 넣습니다. 마지막으로 실제 TCP 바이트 스트림의 순서는 Session의 SendQueue와 활성 SendOp이 유지합니다.\n전체 흐름은 다음과 같습니다.\nRoom JobQueue\n  -&gt; Room 상태 변경\n  -&gt; 브로드캐스트 대상 결정\n  -&gt; WorkerOutbox[session] enqueue\n  -&gt; IoWorker::DrainOutbox()\n  -&gt; Session::SendQueue enqueue\n  -&gt; active SendOp\n  -&gt; io_uring send\n이 경로를 통해 Room의 상태 변경 순서, Room 출력의 세션별 전달 순서, 그리고 Session의 실제 송신 바이트 순서가 각각의 소유자 실행 문맥에서 분리되어 보장됩니다.\n핵심은 Room의 논리 순서와 Session의 실제 송신 순서를 하나의 락으로 묶지 않았다는 점입니다. Room JobQueue는 Room 상태 변경과 브로드캐스트 결정을 한 번에 하나씩 처리하고, WorkerOutbox는 Room 출력이 대상 워커로 이동할 때 세션별 FIFO를 유지하며, Session owner ring은 같은 세션의 SendQueue 삽입과 SendOp 진행을 한 실행 문맥에서 처리합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "4. Room과 Session 직렬화"
+    ]
+  },
+  {
+    "objectID": "docs/4.concurrency-management.html#room과-session-직렬화",
+    "href": "docs/4.concurrency-management.html#room과-session-직렬화",
+    "title": "4. Room과 Session 직렬화",
+    "section": "",
+    "text": "게임 서버에서는 실시간으로 상태가 변하고, 여러 플레이어가 그 상태를 공유합니다. 하지만 각 플레이어의 입력은 서로 다른 네트워크 레이턴시를 거쳐 서버에 도착하므로, 서버는 도착한 입력들을 어떤 순서로 처리할지 결정해야 합니다.\n게임 서버에서 Room은 같은 공간, 채널, 전투 인스턴스처럼 함께 상태를 공유하는 최소 단위입니다. 플레이어 입장, 퇴장, 이동, 공격, 포탈 이동, 브로드캐스트 대상 결정처럼 “누가 같은 공간에 있고, 어떤 순서로 상태가 바뀌었는지”를 판단해야 하는 작업은 Room의 상태를 기준으로 처리됩니다.\nRoom은 다음 정보를 하나의 상태 단위로 묶습니다.\n\n\n\n\n\n\n\n항목\n의미\n\n\n\n\n멤버 목록\n현재 Room에 들어와 있는 플레이어와 세션\n\n\n도메인 상태\n위치, 이동, 전투 상태처럼 Room 안에서 공유되는 값\n\n\n입력 작업\n입장, 퇴장, 이동, 공격, 포탈 이동처럼 순서가 필요한 요청\n\n\n출력 결정\n어떤 플레이어에게 어떤 패킷을 보낼지에 대한 브로드캐스트 결정\n\n\n\nRoom이 직접 관리하는 것은 Room 내부 상태입니다. 예를 들면 현재 Room에 들어온 플레이어 목록, Room 안에서 처리할 작업 순서, 그리고 어떤 세션에게 어떤 패킷을 보내야 하는지에 대한 결정, 즉 “게임 상태를 어떤 순서로 바꿀지”를 정해야 합니다.\nSession은 하나의 클라이언트 연결을 나타냅니다. Session의 책임은 Room 상태를 판단하는 것이 아니라, 해당 연결에 대해 패킷 바이트를 어떤 순서로 쓸지 보장하는 것입니다.\nRoom이 브로드캐스트 대상을 결정하더라도, 실제 Send()가 어느 스레드에서 어떤 순서로 실행될지는 별도의 문제입니다. 같은 Session에는 Room에서 발생한 이동/전투 패킷뿐 아니라 채팅, 인벤토리, 로그인, 시스템 알림처럼 다른 경로의 패킷도 들어올 수 있습니다.\n따라서 Room과 Session은 서로 다른 순서를 보장합니다.\n\n\n\n단위\n보장하는 순서\n\n\n\n\nRoom\n공유 게임 상태의 변경 순서\n\n\nSession\n하나의 TCP 연결에 쓰이는 바이트 순서\n\n\n\nRoom은 “게임 상태를 순서대로 바꾸는 곳”이고, Session은 “한 연결에 바이트를 순서대로 쓰는 곳”입니다. Room의 브로드캐스트 결과는 Session 송신 큐에 들어가는 입력일 뿐이며, 실제 커널 송신 제출과 부분 송신 복구는 Session의 책임입니다.\n\n\n\niouring-runtime의 게임 서버는 여러 IoWorker가 각자의 io_uring 루프를 가지고 병렬로 실행됩니다. 이 구조에서는 같은 Room이나 같은 Session에 대한 요청이 서로 다른 스레드에서 동시에 발생할 수 있습니다.\n단순하게 모든 상태를 뮤텍스로 보호할 수도 있습니다. 하지만 그렇게 하면 게임 로직, 소켓 I/O, Room 브로드캐스트, Session 송신 경로 전체에 락이 퍼집니다. 락 범위가 넓어질수록 어떤 상태를 누가 소유하는지 불명확해지고, 교착이나 락 순서 문제도 생기기 쉬웠습니다.\n여기에서는 전역 락 대신 상태의 소유자를 명확히 나누고, 스레드 간 작업을 해당 상태의 소유자 실행 context로 모으는 방식을 선택했습니다.\n\n\n\n\n\n\n\n\n\n경계\n소유자\n통과하는 데이터\n보장하는 것\n\n\n\n\nRoom JobQueue\nRoom을 실행 중인 워커\njoin, leave, move, attack, portal, 브로드캐스트 결정\nRoom 상태는 한 번에 하나의 job만 변경\n\n\nWorkerOutbox\n대상 IoWorker\n세션별 Room 출력\n같은 세션으로 가는 Room 출력은 FIFO로 비워짐\n\n\nSession owner ring\n해당 세션의 IoRing 스레드\nSend(), send_queue_, SendOp\n한 연결의 쓰기 상태는 소유자 ring에서만 변경\n\n\n\nRoom의 JobQueue는 여러 세션에서 들어온 요청은 큐에 쌓이지만, Room owner는 그 큐를 한 번에 하나씩만 비우며 Room 상태를 변경합니다. Room이 만든 출력은 바로 세션에 쓰지 않고 WorkerOutbox라는 출력 메일박스에 세션별로 들어갑니다. 마지막으로 각 세션 owner ring에서 그 큐를 Session::SendQueue로 옮기기 때문에, Room 결정 순서가 같은 세션의 송신 큐 삽입 순서로 이어집니다.\n *** ### Room 출력 순서 보장\nRoom이 만든 패킷을 곧바로 각 Session 소유자 ring 으로 흩어 보내면, 클라이언트가 보는 순서가 Room의 처리 순서와 달라질 수 있습니다.\n기존 RunOnRing() 방식은 대상 ring이 현재 ring이면 즉시 실행하고, 다른 ring이면 비동기로 전달했습니다. 이 차이 때문에 Room 내부의 논리 순서와 실제 Session::SendQueue 삽입 순서가 달라질 수 있습니다.\n예를 들어 Room이 같은 세션에 대해 Packet #1, Packet #2를 순서대로 만들었다고 하더라도, 하나는 현재 ring에서 즉시 Send()되고 다른 하나는 다른 ring으로 비동기 전달되면 실제 Session 송신 큐에 들어가는 순서가 Room의 출력 순서와 달라질 수 있습니다.\nRoom은 순서대로 처리했지만, 출력 경로가 즉시 실행 경로와 비동기 실행 경로로 갈라지면서 실제 송신 큐 삽입 순서가 뒤집힐 수 있었습니다.\n이를 해결하기 위해 Room에서 나온 출력은 세션에 바로 Send()하지 않고, 대상 쓰레드의 발신 메일박스인 WorkerOutbox에 먼저 넣습니다.\nRoom::SendTo(), BroadcastAll(), BroadcastExcept()는 모두 worker-&gt;EnqueueOutbound(...)를 호출합니다.\nWorkerOutbox는 세션 id별 큐를 가지고, IoWorker::Run()의 drain 단계에서 소유 스레드가 직접 비웁니다. 즉시 Send()하지 않고 반드시 outbox를 거치기 때문에, 같은 세션으로 가는 Room 출력은 하나의 FIFO 경로를 통과합니다.\n서로 다른 세션으로 가는 메시지는 각 세션 큐에서 독립적으로 처리됩니다. 여기서 보장하는 것은 Room이 만든 출력이 같은 대상 Session으로 전달될 때, 그 Room 출력의 상대 순서가 유지된다는 것입니다.\n각 Session은 자신을 소유한 IoWorker 스레드가 정해져 있습니다. 예를 들어 1번 세션은 1번 스레드, 2번 세션은 2번 스레드, 3번 세션은 3번 스레드가 소유합니다. Room은 여러 Session에서 들어온 입력을 하나의 Room 입력 큐로 모아 처리하지만, Room이 만든 출력은 다시 각 Session을 소유한 스레드의 outbox[session]으로 돌아갑니다.\n따라서 같은 Session의 출력은 항상 같은 소유 스레드 큐를 통과합니다. Room이 전체 입력을 #1 -&gt; #2 -&gt; #3 -&gt; #4 -&gt; #5 -&gt; #6 순서로 처리하더라도, 출력 단계에서는 대상 Session별 큐로 다시 나뉩니다.\n\n\n\n대상 Session\n소유 스레드\n유지되는 출력 순서\n\n\n\n\nSession 1\nThread 1\n#1 -&gt; #4\n\n\nSession 2\nThread 2\n#2 -&gt; #5\n\n\nSession 3\nThread 3\n#3 -&gt; #6\n\n\n\nRoom이 ChatMessage #1, ChatMessage #2를 순서대로 처리하면 Room JobQueue는 두 메시지의 브로드캐스트 결정 순서를 보장합니다. 그 결과는 대상 워커의 outbox[session]에 같은 순서로 들어가고, DrainOutbox()가 이를 Session::SendQueue로 순서대로 밀어 넣습니다. 마지막으로 실제 TCP 바이트 스트림의 순서는 Session의 SendQueue와 활성 SendOp이 유지합니다.\n전체 흐름은 다음과 같습니다.\nRoom JobQueue\n  -&gt; Room 상태 변경\n  -&gt; 브로드캐스트 대상 결정\n  -&gt; WorkerOutbox[session] enqueue\n  -&gt; IoWorker::DrainOutbox()\n  -&gt; Session::SendQueue enqueue\n  -&gt; active SendOp\n  -&gt; io_uring send\n이 경로를 통해 Room의 상태 변경 순서, Room 출력의 세션별 전달 순서, 그리고 Session의 실제 송신 바이트 순서가 각각의 소유자 실행 문맥에서 분리되어 보장됩니다.\n핵심은 Room의 논리 순서와 Session의 실제 송신 순서를 하나의 락으로 묶지 않았다는 점입니다. Room JobQueue는 Room 상태 변경과 브로드캐스트 결정을 한 번에 하나씩 처리하고, WorkerOutbox는 Room 출력이 대상 워커로 이동할 때 세션별 FIFO를 유지하며, Session owner ring은 같은 세션의 SendQueue 삽입과 SendOp 진행을 한 실행 문맥에서 처리합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "4. Room과 Session 직렬화"
+    ]
+  },
+  {
+    "objectID": "docs/2.lifecycle-management.html",
+    "href": "docs/2.lifecycle-management.html",
+    "title": "2. 제출된 I/O와 콜백 대상 생존",
+    "section": "",
+    "text": "클라이언트와 서버 간의 연결을 Session으로 관리하려고 하니 세션의 생존과 해제 조건이 명확하지 않다는 문제가 생겼습니다. 세션이 살아 있다는 말이 “세션이 연결 목록에 남아 있다”는 뜻인지, “이미 제출된 I/O의 CQE가 아직 돌아올 수 있다”는 뜻인지, “CQE 콜백을 실행하는 동안 콜백 대상이 파괴되지 않아야 한다”는 뜻인지가 서로 다르기 때문입니다. 그래서 세션 수명 관리 장치를 하나의 소유권 이야기로 합치는 것이 아니라, 각 장치가 보장하는 방식으로 수명 관리를 설계했습니다. *** ## 제출된 I/O와 콜백 대상 생존\nSessionManager는 외부에서 세션을 “현재 연결된 세션”으로 취급하는 동안의 소유자입니다. 하지만 이것만으로는 이미 io_uring에 제출된 I/O의 CQE 콜백 대상 생존을 보장할 수 없습니다.\nio_uring의 SQE user_data에는 제출된 I/O 하나를 대표하는 IoEvent*가 들어갑니다. CQE가 도착하면 IoRing은 그 포인터를 복원하고, 이벤트 객체의 Complete()를 호출합니다.\nIoRing은 이 이벤트가 Session 작업인지, Listener 작업인지 알 필요가 없습니다. IoEvent::Complete() 안에서 operation 타입별 Dispatch()가 실행되고, RecvOp, SendOp, DisconnectOp, AcceptOp 같은 제출 이벤트가 자기 owner의 handler로 완료를 넘깁니다.\n따라서 콜백 대상 생존은 SessionManager가 아니라 제출된 operation 객체가 보장합니다. SessionManager는 “현재 연결 목록”을 관리하고, 제출 이벤트는 “이미 커널에 제출된 I/O가 완료될 때까지 콜백 대상을 살려두는 책임”을 가집니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "2. 제출된 I/O와 콜백 대상 생존"
+    ]
+  },
+  {
+    "objectID": "docs/2.lifecycle-management.html#dispatchresult와-pending_io_",
+    "href": "docs/2.lifecycle-management.html#dispatchresult와-pending_io_",
+    "title": "2. 제출된 I/O와 콜백 대상 생존",
+    "section": "1 DispatchResult와 pending_io_",
+    "text": "1 DispatchResult와 pending_io_\nCQE를 처리한 뒤에는 두 가지를 따로 판단해야 합니다.\n\n이번 CQE를 받은 IoEvent 객체를 끝내도 되는지\n세션 전체에서 아직 돌아오지 않은 제출 I/O가 남아 있는지\n\n\n\n\nioevent lifetime\n\n\nmultishot 수신에서는 하나의 SQE가 여러 CQE를 만들 수 있습니다. 중간 CQE는 데이터를 하나 전달하지만, 같은 수신 제출은 계속 살아 있을 수 있습니다. 따라서 CQE 하나를 받았다고 해서 항상 제출 I/O 하나가 끝났다고 볼 수 없습니다.\n이를 분리하기 위해 이벤트 콜백은 DispatchResult를 반환하고, 세션은 제출 I/O 단위로 pending_io_를 관리합니다.\n\n\n\n\n\n\n\n\n\n경로\nCQE 의미\nDispatchResult\npending_io_ 처리\n\n\n\n\n단일 송신 완료\n제출한 send 하나가 끝남\nkComplete\n감소\n\n\n짧은 쓰기\n같은 SendOp를 남은 바이트로 재제출\nkPending\n재제출 성공 시 유지\n\n\nmultishot 수신 중간 CQE\n같은 수신 제출이 계속 살아 있음\nkPending\n유지\n\n\nmultishot 수신 최종 CQE\nmultishot 제출이 종료됨\nkComplete\n감소\n\n\ncancel/shutdown 완료\n종료용 제출이 완료됨\nkComplete\n감소\n\n\n\nkPending은 이벤트 객체가 아직 끝나지 않았다는 뜻입니다. multishot receive에서 IORING_CQE_F_MORE가 붙은 CQE가 대표적입니다. 같은 수신 SQE에서 CQE가 더 올 수 있으므로 이벤트 객체를 유지하고, pending_io_도 감소시키지 않습니다.\n부분 send도 같은 이유로 kPending이 될 수 있습니다. CQE를 받은 뒤 같은 SendOp를 남은 바이트 범위의 새 send SQE에 다시 연결해야 하므로 이벤트 객체를 삭제하지 않습니다. 재제출이 성공하면 기존 제출 흐름을 유지하고, 재제출이 실패한 경우에만 CompletePendingIo()로 기존 제출분을 정리합니다.\nkComplete는 이번 CQE 처리 뒤 이벤트 객체를 완료 처리할 수 있다는 뜻입니다. 단일 send 완료, cancel 완료, shutdown 완료, 또는 IORING_CQE_F_MORE가 없는 multishot 최종 CQE가 여기에 해당합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "2. 제출된 I/O와 콜백 대상 생존"
+    ]
+  },
+  {
+    "objectID": "docs/2.lifecycle-management.html#종료-상태와-해제-조건",
+    "href": "docs/2.lifecycle-management.html#종료-상태와-해제-조건",
+    "title": "2. 제출된 I/O와 콜백 대상 생존",
+    "section": "2 종료 상태와 해제 조건",
+    "text": "2 종료 상태와 해제 조건\npending_io_는 이미 제출된 I/O가 남았는지만 셉니다. 하지만 종료가 시작된 세션이 새 수신, 송신, 등록 작업을 받아도 되는지는 별도의 상태 판단입니다.\n\n\n\nSessionState\n의미\n\n\n\n\nkOpen\n정상 송수신 가능\n\n\nkClosing\n종료 시작, 새 일반 작업 차단\n\n\nkDraining\n종료 관련 제출 이후 남은 CQE를 비우는 중\n\n\nkClosed\n연결 종료 통지와 manager 해제 완료\n\n\n\n종료 흐름은 “새 작업 차단 → 종료 관련 작업 제출 → 남은 CQE 비우기 → 한 번만 해제” 순서로 진행됩니다.\n\n\n\nsession close flow timeline\n\n\n\nDisconnect()가 호출되면 SessionState를 kClosing으로 전환합니다.\nkOpen이 아니면 새 수신, 새 송신, 새 등록 작업을 차단합니다.\n이미 큐에 들어간 송신 데이터는 정책에 따라 폐기하거나, 종료 전에 drain할지 결정합니다.\n취소, shutdown, close 관련 정리처럼 커널 제출이 필요한 종료 작업을 등록합니다.\n제출에 성공한 종료 작업은 pending_io_에 반영합니다.\nCQE가 도착할 때마다 이벤트 dispatch가 DispatchResult를 반환합니다.\n최종 완료 CQE는 pending_io_를 감소시킵니다.\nClosingStarted() && pending_io_ == 0 && !disconnected_notified_ 조건을 통과하면 TryRelease()가 OnDisconnected()와 manager 해제를 한 번만 실행합니다.\n해제가 끝나면 상태를 kClosed로 전환합니다.\n\nSessionState가 없으면 이미 종료가 시작된 세션에 새 작업이 다시 들어갈 수 있습니다. 예를 들어 수신 CQE에서 res == 0을 보고 peer close를 감지해 종료를 시작했는데, 다른 경로의 Send()나 RegisterRecv()가 아직 세션을 정상 상태로 보고 새 SQE를 제출할 수 있습니다.\n이 경우 닫히는 세션에 multishot recv가 다시 걸리거나, 이미 닫히는 소켓에 새 송신이 들어가거나, drain 중이던 pending_io_가 다시 증가할 수 있습니다. 더 나쁘게는 서로 다른 CQE 경로가 동시에 종료 조건을 만족해 OnDisconnected()가 중복 호출될 수도 있습니다.\n따라서 pending_io_는 “이미 제출한 I/O가 모두 끝났는가?”를 판단하고, SessionState는 “지금 새 I/O를 받아도 되는가?”를 판단합니다. 둘 중 하나만으로는 안전한 종료 조건을 만들 수 없습니다.\n세션 해제는 다음 조건이 모두 만족될 때만 가능합니다.\n1. 세션이 종료를 시작한 상태.\n2. 새 일반 작업이 차단되어 있음.\n3. 이미 제출된 I/O의 최종 CQE가 모두 돌아왔음.\n4. 종료 통지가 아직 실행되지 않았음.\n이를 코드 관점으로 표현하면 다음과 같습니다.\nbool Session::CanRelease() const {\n    return ClosingStarted()\n        && pending_io_ == 0\n        && !disconnected_notified_;\n}\nTryRelease()는 이 조건을 통과한 경우에만 OnDisconnected()와 SessionManager 해제를 수행합니다. 또한 disconnected_notified_를 통해 동일 세션의 종료 통지가 한 번만 실행되도록 막습니다.\nvoid Session::TryRelease() {\n    if (!CanRelease()) {\n        return;\n    }\n\n    disconnected_notified_ = true;\n    state_ = SessionState::kClosed;\n\n    OnDisconnected();\n    manager_-&gt;Remove(session_id_);\n\n    // 세션 소유자 실행 문맥에서 호출되어야 순서가 보장됨\n}\n수명 관리는 하나의 세션 소유자를 관리하는것이 아니라, 각 장치가 보장하는 방식으로 설계되었습니다. SessionManager는 외부에 노출되는 연결 목록을 관리하고, OwnerBoundEvent는 CQE 콜백 대상의 생존을 보장하며, DispatchResult는 이벤트를 완료할지 유지할지 재사용할지 결정합니다. 여기에 pending_io_가 최종 CQE 대기 수를 추적하고, SessionState가 새 작업 허용 여부와 종료 단계를 막아 줍니다.\n결국 세션은 새 작업이 차단되고, 제출된 I/O의 최종 CQE가 모두 돌아오고, 종료 통지가 아직 실행되지 않았을 때만 해제될 수 있습니다. 이 경계가 닫혀야 이후 장에서 다루는 버퍼와 송신 큐도 반환된 세션이나 버퍼를 다시 참조하지 않습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "2. 제출된 I/O와 콜백 대상 생존"
+    ]
+  },
+  {
+    "objectID": "docs/12.publishing-pipeline.html",
+    "href": "docs/12.publishing-pipeline.html",
+    "title": "12. 포트폴리오 출판과 재현 가능한 산출물",
+    "section": "",
+    "text": "마지막 단계는 구현과 운영 이력을 문서로 출판하는 과정입니다. 2026년 6월부터는 ServerCore 문서를 Quarto 기반으로 다시 정리하고, GitHub Pages와 PDF 산출물까지 연결했습니다.\n\n\n\n\n\n\n\n\n날짜\n커밋\n증명할 수 있는 내용\n\n\n\n\n2026-06-06\n275c1c4 Build portfolio docs from Markdown sources\nMarkdown 원본에서 Quarto 문서를 생성하는 파이프라인 구성\n\n\n2026-06-06\nde2770f Publish Quarto site to gh-pages\nQuarto 렌더 결과를 gh-pages로 출판\n\n\n2026-06-06\nad23bde Deploy Quarto publish output to Pages\nGitHub Pages 배포 흐름 정리\n\n\n2026-06-06\na9b59de Use Quarto listing for document index\n문서 목록을 Quarto listing으로 관리\n\n\n2026-06-07\n492a453 Publish printable ServerCore portfolio PDF\n출력용 PDF 산출물 추가\n\n\n2026-06-08\n75ccc83 Number portfolio document titles\n문서 제목과 장 번호를 정리\n\n\n\n\n\n\n\n\n\n\n\n\n파일\n역할\n\n\n\n\ncontent/docs/*.md\nServerCore와 증명 장의 Markdown 원본\n\n\ncontent/diagrams/*\n문서에서 참조하는 다이어그램 원본 자산\n\n\ncontent/downloads/ServerCore-Portfolio-jinhoo.pdf\n공개 페이지에서 링크하는 PDF 산출물\n\n\nscripts/prepare-servercore-docs.js\nMarkdown 원본을 Quarto 문서로 변환하고 index, _quarto.yml을 생성\n\n\nscripts/render-docs.sh\nQuarto 렌더와 docs/ 산출물 검증\n\n\nscripts/build-pages-site.sh\nGitHub Pages 배포용 _site 구성 검증\n\n\n\n\n\n\n서버 런타임 구현은 코드만으로 끝나지 않았습니다. 면접관이나 리뷰어가 읽을 수 있는 형태로 구조를 나누고, 각 장마다 실행 모델, 수명주기, 버퍼, 동시성, backpressure, 모듈 검증을 분리했습니다.\n이 문서 묶음은 그 위에 추가된 증명 장입니다. Git 이력을 따라가면 포트폴리오의 주장과 실제 작업 시점이 연결됩니다.\n\n\n\ngit show --stat 275c1c4\ngit show --stat 492a453\ngit show --stat 75ccc83\n$env:QUARTO_OUTPUT_DIR='../_tmp-docs'\nnode scripts/prepare-servercore-docs.js\nquarto render generated-quarto\nPDF 산출물까지 확인하려면 다음 명령을 사용합니다.\nGet-ChildItem content/downloads",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "12. 포트폴리오 출판과 재현 가능한 산출물"
+    ]
+  },
+  {
+    "objectID": "docs/12.publishing-pipeline.html#현재-파일-근거",
+    "href": "docs/12.publishing-pipeline.html#현재-파일-근거",
+    "title": "12. 포트폴리오 출판과 재현 가능한 산출물",
+    "section": "",
+    "text": "파일\n역할\n\n\n\n\ncontent/docs/*.md\nServerCore와 증명 장의 Markdown 원본\n\n\ncontent/diagrams/*\n문서에서 참조하는 다이어그램 원본 자산\n\n\ncontent/downloads/ServerCore-Portfolio-jinhoo.pdf\n공개 페이지에서 링크하는 PDF 산출물\n\n\nscripts/prepare-servercore-docs.js\nMarkdown 원본을 Quarto 문서로 변환하고 index, _quarto.yml을 생성\n\n\nscripts/render-docs.sh\nQuarto 렌더와 docs/ 산출물 검증\n\n\nscripts/build-pages-site.sh\nGitHub Pages 배포용 _site 구성 검증",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "12. 포트폴리오 출판과 재현 가능한 산출물"
+    ]
+  },
+  {
+    "objectID": "docs/12.publishing-pipeline.html#이-단계의-의미",
+    "href": "docs/12.publishing-pipeline.html#이-단계의-의미",
+    "title": "12. 포트폴리오 출판과 재현 가능한 산출물",
+    "section": "",
+    "text": "서버 런타임 구현은 코드만으로 끝나지 않았습니다. 면접관이나 리뷰어가 읽을 수 있는 형태로 구조를 나누고, 각 장마다 실행 모델, 수명주기, 버퍼, 동시성, backpressure, 모듈 검증을 분리했습니다.\n이 문서 묶음은 그 위에 추가된 증명 장입니다. Git 이력을 따라가면 포트폴리오의 주장과 실제 작업 시점이 연결됩니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "12. 포트폴리오 출판과 재현 가능한 산출물"
+    ]
+  },
+  {
+    "objectID": "docs/12.publishing-pipeline.html#확인-명령",
+    "href": "docs/12.publishing-pipeline.html#확인-명령",
+    "title": "12. 포트폴리오 출판과 재현 가능한 산출물",
+    "section": "",
+    "text": "git show --stat 275c1c4\ngit show --stat 492a453\ngit show --stat 75ccc83\n$env:QUARTO_OUTPUT_DIR='../_tmp-docs'\nnode scripts/prepare-servercore-docs.js\nquarto render generated-quarto\nPDF 산출물까지 확인하려면 다음 명령을 사용합니다.\nGet-ChildItem content/downloads",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "12. 포트폴리오 출판과 재현 가능한 산출물"
+    ]
+  },
+  {
+    "objectID": "docs/10.live-ops-dashboard.html",
+    "href": "docs/10.live-ops-dashboard.html",
+    "title": "10. 홈랩 운영 대시보드와 관측 가능한 증거",
+    "section": "",
+    "text": "실제 운영 환경을 설명하려면 “구축했다”보다 “어떤 상태를 읽고, 어떤 지표로 검증했는가”가 중요합니다. 이 문서의 운영 대시보드는 이전부터 Linux 서버, Docker 서비스, 게임 서버, NAS, VPN, DNS, proxy를 직접 다루던 흐름을 관측 가능한 형태로 정리한 것입니다.\n개인 서버에서는 서비스가 단일 프로세스만으로 끝나지 않습니다. Proxmox 위 VM, NAS 스토리지, Docker 또는 Kubernetes workload, 외부 접근용 VPN, 개인 도메인과 Cloudflare DNS, proxy/ingress 경로가 함께 얽힙니다. 따라서 프레임워크를 실제 앱으로 검증하려면 런타임 내부뿐 아니라 그 앱이 올라가는 운영 경로도 함께 봐야 했습니다.\n2026년 4월 26일부터 27일까지의 커밋은 이 부분을 보여줍니다.\n\n\n\n\n\n\n\n\n날짜\n커밋\n증명할 수 있는 내용\n\n\n\n\n2026-04-26\n10e7869 add live ops dashboard\nPrometheus, Proxmox, Cloudflare tunnel, ingress, 운영 API 파일이 추가됨\n\n\n2026-04-27\n435e39c Add interactive ops API dashboard\n정적 문서가 아니라 API 기반 대시보드로 확장\n\n\n2026-04-27\n2cd9acc feat: OpsDashboard V2...\nReact/Vite 기반 OpsDashboard 구현\n\n\n2026-04-27\na2bcc17 Add realtime ops dashboard stream\n실시간 상태 스트림 추가\n\n\n2026-04-27\ncce030b feat(dashboard): OpsDashboard 아키텍처 다이어그램 개선\nProxmox VM 상태, Management Plane, GitOps Path, Storage Path를 구조화\n\n\n\n\n\n\n\n\n\n\n\n\n파일\n확인 가능한 내용\n\n\n\n\n.env.ops.example\nPrometheus와 Proxmox API 접속 환경 변수\n\n\nops_api/main.py\nPrometheus query, Proxmox resources, Kubernetes deployment, Argo CD 상태, deploy pipeline snapshot\n\n\ndashboard/src/components/ProxmoxWidget.jsx\nProxmox VM inventory 표시\n\n\ndashboard/src/components/KubernetesWidget.jsx\nKubernetes workload 지표 표시\n\n\ndashboard/src/components/GlobalStatusBar.jsx\nPrometheus와 Proxmox 상태 표시\n\n\ndeploy/prometheus-ingress.yaml\nPrometheus ingress 노출 구성\n\n\ndeploy/cloudflared-bongo-test.service\nCloudflare Tunnel systemd 서비스\n\n\n\n\n\n\n\n\n\n\n\n\n\n운영 배경\n대시보드에서 확인하려는 것\n\n\n\n\nProxmox 위 VM과 NAS 서비스를 함께 사용\nVM inventory, storage path, management plane 상태\n\n\nDocker/Kubernetes에 여러 서비스를 올림\nworkload, ingress, deployment, rollout 상태\n\n\n외부에서 개발 서버와 게임 서버에 접근\nroute, SNI host, tunnel/proxy 경로\n\n\n개인 도메인과 Cloudflare DNS를 사용\npublic entrypoint와 내부 upstream의 연결\n\n\n장애 시 우회 경로나 안정적인 프록싱이 필요\nproxy destination, upstream health, deploy pipeline\n\n\n\n\n\n\n\n\n\n\n\n\n\n주장\n근거\n\n\n\n\nProxmox 위 VM 상태를 운영 화면에 연결했다\nops_api/main.py의 Proxmox client와 /api/proxmox/* endpoint\n\n\nKubernetes 상태를 배포 검증에 사용했다\n_kubernetes_deployment_view()와 rollout step\n\n\nPrometheus를 운영 증거로 사용했다\n/api/prometheus/summary, /api/prometheus/targets\n\n\n외부 접근 경로를 별도 서비스로 관리했다\ndeploy/cloudflared-bongo-test.service\n\n\n\n\n\n\ngit show --stat 10e7869\ngit show --stat 435e39c\ngit show --stat cce030b\ngit grep -n -i \"Prometheus\\|Proxmox\\|Kubernetes\\|ArgoCD\\|deploy_pipeline\" HEAD -- ops_api/main.py",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "10. 홈랩 운영 대시보드와 관측 가능한 증거"
+    ]
+  },
+  {
+    "objectID": "docs/10.live-ops-dashboard.html#현재-남아-있는-구현-근거",
+    "href": "docs/10.live-ops-dashboard.html#현재-남아-있는-구현-근거",
+    "title": "10. 홈랩 운영 대시보드와 관측 가능한 증거",
+    "section": "",
+    "text": "파일\n확인 가능한 내용\n\n\n\n\n.env.ops.example\nPrometheus와 Proxmox API 접속 환경 변수\n\n\nops_api/main.py\nPrometheus query, Proxmox resources, Kubernetes deployment, Argo CD 상태, deploy pipeline snapshot\n\n\ndashboard/src/components/ProxmoxWidget.jsx\nProxmox VM inventory 표시\n\n\ndashboard/src/components/KubernetesWidget.jsx\nKubernetes workload 지표 표시\n\n\ndashboard/src/components/GlobalStatusBar.jsx\nPrometheus와 Proxmox 상태 표시\n\n\ndeploy/prometheus-ingress.yaml\nPrometheus ingress 노출 구성\n\n\ndeploy/cloudflared-bongo-test.service\nCloudflare Tunnel systemd 서비스",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "10. 홈랩 운영 대시보드와 관측 가능한 증거"
+    ]
+  },
+  {
+    "objectID": "docs/10.live-ops-dashboard.html#운영-배경과-연결",
+    "href": "docs/10.live-ops-dashboard.html#운영-배경과-연결",
+    "title": "10. 홈랩 운영 대시보드와 관측 가능한 증거",
+    "section": "",
+    "text": "운영 배경\n대시보드에서 확인하려는 것\n\n\n\n\nProxmox 위 VM과 NAS 서비스를 함께 사용\nVM inventory, storage path, management plane 상태\n\n\nDocker/Kubernetes에 여러 서비스를 올림\nworkload, ingress, deployment, rollout 상태\n\n\n외부에서 개발 서버와 게임 서버에 접근\nroute, SNI host, tunnel/proxy 경로\n\n\n개인 도메인과 Cloudflare DNS를 사용\npublic entrypoint와 내부 upstream의 연결\n\n\n장애 시 우회 경로나 안정적인 프록싱이 필요\nproxy destination, upstream health, deploy pipeline",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "10. 홈랩 운영 대시보드와 관측 가능한 증거"
+    ]
+  },
+  {
+    "objectID": "docs/10.live-ops-dashboard.html#증명-포인트",
+    "href": "docs/10.live-ops-dashboard.html#증명-포인트",
+    "title": "10. 홈랩 운영 대시보드와 관측 가능한 증거",
+    "section": "",
+    "text": "주장\n근거\n\n\n\n\nProxmox 위 VM 상태를 운영 화면에 연결했다\nops_api/main.py의 Proxmox client와 /api/proxmox/* endpoint\n\n\nKubernetes 상태를 배포 검증에 사용했다\n_kubernetes_deployment_view()와 rollout step\n\n\nPrometheus를 운영 증거로 사용했다\n/api/prometheus/summary, /api/prometheus/targets\n\n\n외부 접근 경로를 별도 서비스로 관리했다\ndeploy/cloudflared-bongo-test.service",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "10. 홈랩 운영 대시보드와 관측 가능한 증거"
+    ]
+  },
+  {
+    "objectID": "docs/10.live-ops-dashboard.html#확인-명령",
+    "href": "docs/10.live-ops-dashboard.html#확인-명령",
+    "title": "10. 홈랩 운영 대시보드와 관측 가능한 증거",
+    "section": "",
+    "text": "git show --stat 10e7869\ngit show --stat 435e39c\ngit show --stat cce030b\ngit grep -n -i \"Prometheus\\|Proxmox\\|Kubernetes\\|ArgoCD\\|deploy_pipeline\" HEAD -- ops_api/main.py",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "10. 홈랩 운영 대시보드와 관측 가능한 증거"
+    ]
+  },
+  {
+    "objectID": "docs/1.overview.html",
+    "href": "docs/1.overview.html",
+    "title": "1. 전체 구조",
+    "section": "",
+    "text": "0.1 전체 구조\nServerCore는 Linux io_uring을 기반으로 구현한 비동기 서버 런타임입니다.\n처음에는 게임 서버를 만들기 위한 기반 코드로 시작했지만, 구현을 진행하면서 TCP 연결 수락, 수신/송신, 시간 초과와 취소, 버퍼 소유권, 세션 수명주기, 스레드 간 작업 전달과 같은 요소들이 특정 게임 로직에만 종속되는 기능이 아니라는 점을 알게 되었습니다.\n이들은 여러 서버 애플리케이션에서 공통적으로 필요한 실행 기반에 가깝다고 판단했고, 해당 기능들을 게임 서버 코드에 직접 묶어두지 않고 여러 프로토콜과 서비스가 공유할 수 있는 Core 런타임으로 분리했습니다.\nCore의 역할은 바이트 스트림을 수신하고 송신하며, 비동기 I/O 완료 통지를 처리하는 것입니다. 다만 수신된 바이트가 HTTP 요청인지, 프록시 스트림인지, 게임 패킷인지는 Core가 해석하지 않고, HTTP, Proxy, Game은 Core 위에 올라가는 선택 모듈로 분리되며 각 모듈은 자신에게 필요한 파서, 라우팅, 패킷 프레이밍, Room 실행 모델과 같은 기능만 추가합니다.\n구현된 런타임은 io_uring 기반 TCP 비동기 I/O 처리와 그 수명주기를 관리합니다. 각 소켓은 Session 단위로 감싸지며, 연결 수락, 수신/송신, 버퍼 관리, 시간 초과, 취소, 동시성 제어, 세션 수명주기 처리는 Core에서 담당합니다.\n프로토콜 해석과 애플리케이션 정책은 상위 모듈로 분리됩니다. 예를 들어 Web 요청은 Core의 Session을 통해 수신된 뒤 HttpSession::OnRecv()로 전달되고, HTTP 파싱, 라우팅, 핸들러 실행은 Web 모듈에서 처리됩니다. 응답 데이터는 다시 Core의 Session::Send()를 통해 송신 경로로 내려갑니다.\nHttpSession과 PacketSession은 모두 Core의 Session을 기반으로 동작하지만, 수신된 TCP 바이트 스트림을 메시지 단위로 해석하는 방식이 다릅니다. PacketSession은 [size][id][payload] 형식의 고정 헤더를 기준으로 패킷 경계를 판단하고, HttpSession은 HTTP 파서 상태를 유지하며 헤더 종료, Content-Length, chunked 본문, 파이프라이닝 여부를 해석합니다.\nCore는 연결 수명주기와 비동기 I/O 처리, 버퍼 및 완료 이벤트 관리를 공통으로 담당하고, 스트림을 어떤 메시지 모델로 변환할지는 각 프로토콜 세션이 담당합니다. 이를 통해 게임 서버뿐 아니라 HTTP 서버, 프록시 서버, 패킷 기반 서비스 등 다양한 서버 모듈이 동일한 Core 런타임 위에서 동작할 수 있도록 설계했습니다.\n\n\n\nfig servercore eventloop group\n\n\n\n\n0.2 주요 클래스\n\n\n\nCore\n설명\n\n\n\n\nListener\n소켓 bind/listen, 다중 완료 연결 수락, 연결 분산\n\n\nSession\nfd 상태, 수신/송신 흐름, 닫힘 상태 전환\n\n\nIoRing\nSQE 제출, CQE 비우기, user_data 기반 이벤트 복원\n\n\nRingBuffer\n제공 버퍼 관리, 뷰 생성, 반환 정책\n\n\nSendQueue\n대기 중인 송신 관리, 부분 송신 재시도, watermark\n\n\nTimeout / Cancel\n비활성 시간, deadline, 취소 요청\n\n\nOwner Ring\n세션 I/O 상태 직렬화\n\n\n\n\n\n0.3 실행 루프\n실행 흐름의 중심은 IoRing입니다. IoRing은 사용자 객체를 IoEvent로 감싼 뒤 SQE에 연결해 커널에 제출하고, CQE가 도착하면 user_data에서 다시 IoEvent를 복원합니다. 복원된 이벤트는 해당 Session 또는 Listener로 dispatch됩니다.\n이때 IoRing은 완료 통지를 사용자 객체로 되돌리는 실행 장치이고, Session은 그 완료가 연결 상태, 수신/송신 큐, 버퍼 반환, 종료 절차에 어떤 의미를 갖는지 판단하는 소유 객체입니다.\n실행 루프는 다음 다섯 구간으로 나눌 수 있습니다.\n\n\n\n\n\n\n\n\n구간\n책임\n의미\n\n\n\n\nsubmit\nIoEvent를 SQE에 연결하고 커널에 제출\n사용자 객체와 커널 작업을 묶는 지점\n\n\nkernel\nio_uring이 비동기 작업을 수행하고 CQE 생성\n사용자 코드 밖에서 I/O가 진행되는 구간\n\n\ncqe restore\nIoRing이 CQE를 꺼내 user_data에서 이벤트 복원\n커널 완료가 런타임 객체로 돌아오는 경계\n\n\ndispatch\n복원된 이벤트를 Session 또는 Listener 콜백으로 전달\n완료 통지를 소유 객체에 넘기는 경계\n\n\ndisposition\n콜백 결과로 이벤트 처분 결정\n완료, 유지, 재제출 중 무엇을 할지 판단\n\n\n\n세션 콜백은 이번 CQE로 이벤트가 끝났는지, 같은 multishot 제출이 계속 살아 있는지, 또는 같은 이벤트 객체로 새 SQE를 재제출했는지를 반환합니다. 이 결과에 따라 IoRing은 이벤트를 정리하거나 유지하거나 다시 제출 상태로 둡니다.\n\n전체 흐름은 다음과 같습니다.\n상위 모듈\n  -&gt; Session::Send() / OnRecv()\n  -&gt; Core Session 상태 변경\n  -&gt; IoEvent 생성\n  -&gt; IoRing submit\n  -&gt; kernel io_uring 처리\n  -&gt; CQE 도착\n  -&gt; IoRing user_data 복원\n  -&gt; Session / Listener dispatch\n  -&gt; DispatchResult에 따라 완료, 유지, 재제출\n\n\n\nfig servercore execution timeline\n\n\n이 구조 덕분에 Core는 프로토콜을 해석하지 않으면서도, 비동기 I/O 완료, 버퍼 수명, 세션 종료, 재제출 여부를 일관된 실행 모델 안에서 처리할 수 있습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "1. 전체 구조"
+    ]
+  },
+  {
+    "objectID": "docs/11.cicd-gitops-infra.html",
+    "href": "docs/11.cicd-gitops-infra.html",
+    "title": "11. CI/CD, GitOps, Kubernetes, 인프라 자동화",
+    "section": "",
+    "text": "배포 흐름은 GitHub Actions에서 이미지를 만들고, GHCR에 올린 뒤, GitOps 저장소의 image tag를 갱신하고, Argo CD가 Kubernetes desired state로 수렴시키는 구조로 정리되어 있습니다. 인증된 GitHub 조회 기준으로 이 흐름은 공개 portfolio 저장소 안의 workflow뿐 아니라 비공개 home-k8s-gitops, ops-dashboard, mintcocoa-ops 저장소와도 연결됩니다.\n이 구조의 출발점은 여러 작업 환경에서 같은 방식으로 빌드하고 배포해야 한다는 문제였습니다. 개인 Linux 서버와 Docker 서비스, 게임 서버, 개발 서버를 다루다 보면 로컬에서만 맞는 실행 방법은 금방 한계가 드러납니다. 그래서 GitHub Actions로 빌드를 고정하고, container image를 GHCR에 남기고, Helm chart와 GitOps repo로 배포 상태를 관리하는 방향으로 정리했습니다.\n외부 접근 경로도 같은 흐름 안에 있습니다. 개발 서버를 외부에서 안전하게 열기 위해 Tailscale VPN을 사용하고, 개인 도메인은 Cloudflare DNS로 관리하며, Oracle Cloud VM은 홈 네트워크 앞단의 안전한 proxy/load balancing 경계로 둘 수 있습니다. 포트폴리오 문서에서는 이 운영 배경을 공개 가능한 GitOps, route tree, RuntimeProxy, 대시보드 증거로 설명합니다.\n\n\n\n\n\n\n\n\n날짜\n커밋\n증명할 수 있는 내용\n\n\n\n\n2026-04-27\n1e1d959 Improve React ops dashboard and CI build\nGitHub Actions workflow와 대시보드 빌드 개선\n\n\n2026-04-27\nd512265 Add interactive deploy pipeline dashboard\n배포 파이프라인을 대시보드에서 확인하는 기능 추가\n\n\n2026-04-28\n818587c Add homelab ops hardening scaffold\nTerraform, Ansible/Kubespray, GitOps secrets, NFS PV backup scaffold 추가\n\n\n2026-04-28\n3314fbd Update DevOps overview pipeline\nDevOps 개요에 배포 흐름을 반영\n\n\n2026-05-04\n18cf965 Clean up ops API and unused repo files\n일부 scaffold를 정리하면서 ops API 중심으로 구조 정돈\n\n\n2026-06-04\nmintcocoa-ops 저장소 생성\ncloud/home operations용 GitOps와 IaC를 별도 private 저장소로 분리\n\n\n\n\n\n.github/workflows/portfolio-image.yml에서 확인할 수 있는 흐름입니다.\n\n\n\n\n\n\n\n단계\n파일 근거\n\n\n\n\nGHCR 로그인\ndocker/login-action@v3\n\n\n컨테이너 이미지 빌드와 push\ndocker/build-push-action@v6, ghcr.io/mint-cocoa/portfolio:${{ github.sha }}\n\n\nGitOps 저장소 checkout\nmint-cocoa/home-k8s-gitops\n\n\nHelm values 또는 manifest 갱신\nGitOps repo 내부에서 image tag 변경\n\n\n배포 commit 생성\ngit commit -m \"deploy portfolio ${GITHUB_SHA}\"\n\n\nPages 산출물 배포\nactions/deploy-pages@v4\n\n\n\n\n\n\n운영 관련 근거는 공개 포트폴리오 저장소와 비공개 운영 저장소에 나뉘어 있습니다.\n\n\n\n\n\n\n\n\n저장소\n공개 여부\n역할\n\n\n\n\nmint-cocoa/portfolio\npublic\n문서, Pages/Quarto 출판, 공개 가능한 workflow와 대시보드 산출물\n\n\nmint-cocoa/home-k8s-gitops\nprivate\n홈랩 Kubernetes desired state와 image tag 갱신 대상\n\n\nmint-cocoa/ops-dashboard\nprivate\nReact/FastAPI 기반 운영 대시보드 원본\n\n\nmint-cocoa/mintcocoa-ops\nprivate\ncloud/home operations를 위한 GitOps와 IaC 저장소\n\n\n\n따라서 이 장에서 말하는 GitOps/운영 자동화는 공개 저장소 하나만으로 완전히 재현되는 구조가 아닙니다. 공개 문서에는 민감한 kubeconfig, secret, cluster endpoint를 싣지 않고, 대신 workflow, scaffold, API shape, 대시보드 화면, 배포 단계의 흔적을 증거로 남깁니다.\n\n\n\n818587c에는 현재는 정리된 다음 파일들이 있었습니다.\n\n\n\n\n\n\n\n파일\n의미\n\n\n\n\nterraform/README.md\nS3-compatible remote state, encryption, lockfile 기반 Terraform backend 계약\n\n\nansible/README.md\nKubespray checkout과 cluster.yml 실행 절차\n\n\nansible/kubespray.lock\nKubespray upstream ref 고정\n\n\nansible/inventory/home/hosts.yaml\n홈랩 Kubernetes inventory\n\n\ngitops/secrets/README.md\nSOPS/age 기반 GitOps secret 관리 convention\n\n\ndeploy/nfs-pv-backup-cronjob.yaml\nNFS-backed PV root를 restic으로 백업하는 CronJob\n\n\n\n이후 18cf965에서 Terraform/Ansible/GitOps scaffold 일부가 제거되었습니다. 따라서 이 부분은 “현재 운영 중인 모든 코드가 공개 portfolio 저장소에 남아 있다”가 아니라 “재현 가능한 인프라 자동화 단위로 정리했고, 이후 공개 포트폴리오 저장소에서는 민감하거나 불필요한 scaffold를 정리했으며, 운영 세부는 별도 private GitOps/IaC 저장소로 분리했다”라고 설명하는 편이 정확합니다.\n\n\n\n\n\n\n\n\n\n\n구성 요소\n역할\n\n\n\n\nProxmox\n홈랩 VM과 서비스 실행 기반\n\n\nNAS/OpenMediaVault 계열 서비스\n파일 관리, persistent storage, 백업 경로\n\n\nDocker\n빠르게 여러 웹 서비스와 개발 서버를 띄우는 실행 단위\n\n\nTailscale VPN\n외부에서 개발 서버와 내부 서비스에 안전하게 접근하는 경로\n\n\nCloudflare DNS\n개인 도메인과 public entrypoint 관리\n\n\nOracle Cloud VM\n홈 네트워크 앞단의 proxy/load balancing 또는 우회 경로\n\n\nGitHub Actions\n빌드와 배포 결과의 환경 차이를 줄이는 CI 경계\n\n\nTerraform / Helm / GitOps repo\n인프라와 앱 배포 상태를 일관된 코드 저장소로 관리\n\n\n\n\n\n\n배포는 GitHub Actions가 컨테이너 이미지를 GHCR에 push하고, GitOps 저장소의 image tag를 commit SHA로 갱신한 뒤,\nArgo CD가 Kubernetes 클러스터의 desired state로 수렴시키는 흐름으로 구성했습니다. 인프라 측면에서는\nProxmox VM 기반 Kubernetes, NAS/NFS persistent storage, Tailscale VPN, Cloudflare DNS, Oracle Cloud proxy 경계,\nTerraform backend 계약, Helm chart, Kubespray bootstrap, NFS PV backup CronJob을 함께 고려해 반복 가능한 운영 절차를 만들었습니다.\n\n\n\ngit show --stat 1e1d959\ngit show --stat d512265\ngit show --stat 818587c\ngit show 818587c:terraform/README.md\ngit show 818587c:ansible/README.md\ngit show 818587c:docs/ops-hardening-roadmap.md\ngit show --stat 18cf965",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "11. CI/CD, GitOps, Kubernetes, 인프라 자동화"
+    ]
+  },
+  {
+    "objectID": "docs/11.cicd-gitops-infra.html#현재-workflow-근거",
+    "href": "docs/11.cicd-gitops-infra.html#현재-workflow-근거",
+    "title": "11. CI/CD, GitOps, Kubernetes, 인프라 자동화",
+    "section": "",
+    "text": ".github/workflows/portfolio-image.yml에서 확인할 수 있는 흐름입니다.\n\n\n\n\n\n\n\n단계\n파일 근거\n\n\n\n\nGHCR 로그인\ndocker/login-action@v3\n\n\n컨테이너 이미지 빌드와 push\ndocker/build-push-action@v6, ghcr.io/mint-cocoa/portfolio:${{ github.sha }}\n\n\nGitOps 저장소 checkout\nmint-cocoa/home-k8s-gitops\n\n\nHelm values 또는 manifest 갱신\nGitOps repo 내부에서 image tag 변경\n\n\n배포 commit 생성\ngit commit -m \"deploy portfolio ${GITHUB_SHA}\"\n\n\nPages 산출물 배포\nactions/deploy-pages@v4",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "11. CI/CD, GitOps, Kubernetes, 인프라 자동화"
+    ]
+  },
+  {
+    "objectID": "docs/11.cicd-gitops-infra.html#github-저장소-경계",
+    "href": "docs/11.cicd-gitops-infra.html#github-저장소-경계",
+    "title": "11. CI/CD, GitOps, Kubernetes, 인프라 자동화",
+    "section": "",
+    "text": "운영 관련 근거는 공개 포트폴리오 저장소와 비공개 운영 저장소에 나뉘어 있습니다.\n\n\n\n\n\n\n\n\n저장소\n공개 여부\n역할\n\n\n\n\nmint-cocoa/portfolio\npublic\n문서, Pages/Quarto 출판, 공개 가능한 workflow와 대시보드 산출물\n\n\nmint-cocoa/home-k8s-gitops\nprivate\n홈랩 Kubernetes desired state와 image tag 갱신 대상\n\n\nmint-cocoa/ops-dashboard\nprivate\nReact/FastAPI 기반 운영 대시보드 원본\n\n\nmint-cocoa/mintcocoa-ops\nprivate\ncloud/home operations를 위한 GitOps와 IaC 저장소\n\n\n\n따라서 이 장에서 말하는 GitOps/운영 자동화는 공개 저장소 하나만으로 완전히 재현되는 구조가 아닙니다. 공개 문서에는 민감한 kubeconfig, secret, cluster endpoint를 싣지 않고, 대신 workflow, scaffold, API shape, 대시보드 화면, 배포 단계의 흔적을 증거로 남깁니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "11. CI/CD, GitOps, Kubernetes, 인프라 자동화"
+    ]
+  },
+  {
+    "objectID": "docs/11.cicd-gitops-infra.html#과거-scaffold-근거",
+    "href": "docs/11.cicd-gitops-infra.html#과거-scaffold-근거",
+    "title": "11. CI/CD, GitOps, Kubernetes, 인프라 자동화",
+    "section": "",
+    "text": "818587c에는 현재는 정리된 다음 파일들이 있었습니다.\n\n\n\n\n\n\n\n파일\n의미\n\n\n\n\nterraform/README.md\nS3-compatible remote state, encryption, lockfile 기반 Terraform backend 계약\n\n\nansible/README.md\nKubespray checkout과 cluster.yml 실행 절차\n\n\nansible/kubespray.lock\nKubespray upstream ref 고정\n\n\nansible/inventory/home/hosts.yaml\n홈랩 Kubernetes inventory\n\n\ngitops/secrets/README.md\nSOPS/age 기반 GitOps secret 관리 convention\n\n\ndeploy/nfs-pv-backup-cronjob.yaml\nNFS-backed PV root를 restic으로 백업하는 CronJob\n\n\n\n이후 18cf965에서 Terraform/Ansible/GitOps scaffold 일부가 제거되었습니다. 따라서 이 부분은 “현재 운영 중인 모든 코드가 공개 portfolio 저장소에 남아 있다”가 아니라 “재현 가능한 인프라 자동화 단위로 정리했고, 이후 공개 포트폴리오 저장소에서는 민감하거나 불필요한 scaffold를 정리했으며, 운영 세부는 별도 private GitOps/IaC 저장소로 분리했다”라고 설명하는 편이 정확합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "11. CI/CD, GitOps, Kubernetes, 인프라 자동화"
+    ]
+  },
+  {
+    "objectID": "docs/11.cicd-gitops-infra.html#운영-구성의-기본-전제",
+    "href": "docs/11.cicd-gitops-infra.html#운영-구성의-기본-전제",
+    "title": "11. CI/CD, GitOps, Kubernetes, 인프라 자동화",
+    "section": "",
+    "text": "구성 요소\n역할\n\n\n\n\nProxmox\n홈랩 VM과 서비스 실행 기반\n\n\nNAS/OpenMediaVault 계열 서비스\n파일 관리, persistent storage, 백업 경로\n\n\nDocker\n빠르게 여러 웹 서비스와 개발 서버를 띄우는 실행 단위\n\n\nTailscale VPN\n외부에서 개발 서버와 내부 서비스에 안전하게 접근하는 경로\n\n\nCloudflare DNS\n개인 도메인과 public entrypoint 관리\n\n\nOracle Cloud VM\n홈 네트워크 앞단의 proxy/load balancing 또는 우회 경로\n\n\nGitHub Actions\n빌드와 배포 결과의 환경 차이를 줄이는 CI 경계\n\n\nTerraform / Helm / GitOps repo\n인프라와 앱 배포 상태를 일관된 코드 저장소로 관리",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "11. CI/CD, GitOps, Kubernetes, 인프라 자동화"
+    ]
+  },
+  {
+    "objectID": "docs/11.cicd-gitops-infra.html#포트폴리오-문장으로-정리",
+    "href": "docs/11.cicd-gitops-infra.html#포트폴리오-문장으로-정리",
+    "title": "11. CI/CD, GitOps, Kubernetes, 인프라 자동화",
+    "section": "",
+    "text": "배포는 GitHub Actions가 컨테이너 이미지를 GHCR에 push하고, GitOps 저장소의 image tag를 commit SHA로 갱신한 뒤,\nArgo CD가 Kubernetes 클러스터의 desired state로 수렴시키는 흐름으로 구성했습니다. 인프라 측면에서는\nProxmox VM 기반 Kubernetes, NAS/NFS persistent storage, Tailscale VPN, Cloudflare DNS, Oracle Cloud proxy 경계,\nTerraform backend 계약, Helm chart, Kubespray bootstrap, NFS PV backup CronJob을 함께 고려해 반복 가능한 운영 절차를 만들었습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "11. CI/CD, GitOps, Kubernetes, 인프라 자동화"
+    ]
+  },
+  {
+    "objectID": "docs/11.cicd-gitops-infra.html#확인-명령",
+    "href": "docs/11.cicd-gitops-infra.html#확인-명령",
+    "title": "11. CI/CD, GitOps, Kubernetes, 인프라 자동화",
+    "section": "",
+    "text": "git show --stat 1e1d959\ngit show --stat d512265\ngit show --stat 818587c\ngit show 818587c:terraform/README.md\ngit show 818587c:ansible/README.md\ngit show 818587c:docs/ops-hardening-roadmap.md\ngit show --stat 18cf965",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "11. CI/CD, GitOps, Kubernetes, 인프라 자동화"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html",
+    "href": "docs/13.whole-repo-inventory.html",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "이 장은 특정 주제 하나가 아니라 첫 커밋부터 현재까지의 저장소 전체를 훑었을 때 드러나는 작업 축을 정리합니다. 인프라 경험은 분명히 남아 있지만, 전체 이력은 서버 런타임, 클라이언트, 그래픽스, 문서화, 공개 사이트, 운영 대시보드, 출판 자동화가 함께 진행된 흐름입니다.\n주의할 점은 portfolio-head 저장소 자체의 첫 커밋이 2026-04-09라는 것입니다. 2026년 이전 작업은 이 저장소의 Git history에는 없고, GitHub 계정의 다른 저장소와 일부 로컬 checkout에 남아 있습니다.\n\n\ngh repo list mint-cocoa --limit 200로 확인한 계정 전체 스냅샷은 다음과 같습니다.\n\n\n\n\n\n\n\n항목\n값\n\n\n\n\n전체 저장소\n124개\n\n\nfork가 아닌 저장소\n106개\n\n\narchived 저장소\n44개\n\n\narchive되지 않은 owner 저장소\n64개\n\n\nactive owner 저장소의 주요 언어\nC++ 19개, Python 15개, TypeScript 12개, JavaScript 6개, HCL 2개\n\n\n\n이 숫자는 “모든 저장소가 동일한 수준의 포트폴리오 증거”라는 뜻이 아닙니다. fork 저장소와 archived 저장소는 관심사, 학습 경로, 실험 흔적을 보여주지만, 구현 역량의 핵심 증거는 owner 저장소와 현재 남아 있는 파일/커밋을 기준으로 봐야 합니다.\n시기별로 묶으면 다음 흐름이 보입니다.\n\n\n\n\n\n\n\n\n시기\n대표 저장소\n의미\n\n\n\n\n2021-08 ~ 2023-12\nCALCDDAY, opensource_android23-1, my-nextjs-app, blog-starter-kit, argocd-example-apps\n웹, Android, Next.js, Kubernetes/GitOps 학습과 초기 프로젝트\n\n\n2024-03 ~ 2024-12\nticket-project, user-api, mint-cocoa.github.io, nest-project-root, api-userendpoint, msa_final, terraform, baseball_analysis\n웹/API/MSA, Python 백엔드, TypeScript 프론트엔드, IaC 실습\n\n\n2025-02 ~ 2025-12\ntcpechoserver, gameserver_example, new_gameserver, ruk_example, mmoserver, logameserver, newnew_server, youtube-backend, AI-cpp-debug\nC++ 서버/네트워크, 게임 서버 계열, 자동화 도구\n\n\n2026-01 ~ 2026-03\nnew_servercore, servercore_v3, servercore, servercore_v4\nServerCore 계열을 여러 버전으로 실험한 흔적\n\n\n2026-04 ~ 2026-06\nlibiouring-server, game-client, portfolio, iouring-runtime, home-k8s-gitops, ops-dashboard, mintcocoa-ops\n서버 런타임, 클라이언트, 운영 대시보드, GitOps/IaC, 문서 출판을 하나의 포트폴리오 흐름으로 연결\n\n\n\n\n\n\n로컬 홈 디렉터리의 checkout과 GitHub 저장소 목록을 함께 보면 2026년 이전 이력은 다음처럼 확인됩니다.\n\n\n\n\n\n\n\n\n\n저장소\nremote\n첫 커밋\n의미\n\n\n\n\nmint-cocoa.github.io\nhttps://github.com/mint-cocoa/mint-cocoa.github.io.git\n2024-04-04 b1d993c Initial commit\n개인 GitHub Pages 사이트 시작\n\n\nmsa_final\nhttps://github.com/mint-cocoa/msa_final.git\n2024-10-14 a8c3085 feat: Initialize project structure...\nMSA 구조, API gateway, user/park/facility service, Docker/Kubernetes manifest\n\n\ntcpechoserver / gameserver_example / new_gameserver\nhttps://github.com/mint-cocoa/*\n2025년 생성\nC++ 네트워크 서버와 게임 서버 계열 실험\n\n\nNAIA2.0 / cocoa-naia\nhttps://github.com/DNT-LAB/NAIA2.0.git, https://github.com/mint-cocoa/NAIA2.0.git\n2025-07-13 665783b Initial commit\nMac OS 지원, external module system, WEBUI API 지원\n\n\nruk_example\nhttps://github.com/mint-cocoa/ruk_example.git\n2025-07-29 6bf459e Initial commit\n이후 서버 I/O 구조 분석과 IoWorker 구현으로 이어지는 런타임 계열 이력\n\n\n\nPolyVGet-ffmpeg와 FreeRTOS처럼 더 오래된 커밋이 보이는 저장소도 있지만, 이는 upstream/vendor history 성격이 강해 개인 포트폴리오 증거로 바로 쓰기에는 부적절합니다.\n따라서 포트폴리오에서 2026년 이전까지 포함하려면 portfolio-head의 Git log만 볼 것이 아니라 위 저장소들의 log와 GitHub repo 생성 이력을 함께 근거로 묶어야 합니다.\n\n\n\n최초 커밋 85c8f49는 Initial commit: Game server portfolio documents라는 메시지를 갖지만, 실제 파일 목록은 ServerCore만이 아닙니다.\n\n\n\n\n\n\n\n\n초기 경로\n확인한 내용\n해석\n\n\n\n\n01_ServerCore_v4/\nio_uring 기반 C++20 게임 서버 프레임워크, 벤치마크, 포트폴리오 문서\n이후 서버 런타임 포트폴리오의 중심\n\n\n02_SwarmDominion_DX11/\nDX11 구조 학습, DX12/SVO 렌더러 설계, 레퍼런스 분석\n그래픽스 학습과 확장 설계의 근거\n\n\n03_FactionClash_Client/\nDirectX 11 클라이언트 문서, C++ 소스, Protobuf 스키마\n서버와 붙는 클라이언트 구조를 함께 다뤘다는 근거\n\n\n\n이 초기 원본은 2026-04-14 13f2411에서 Pages 중심 저장소로 정리되며 삭제되었습니다. 그래서 현재 파일 트리만 보면 초기 클라이언트와 그래픽스 자료가 사라진 것처럼 보입니다.\n\n\n\n2026-04-13 295be73은 단순 코드 커밋이 아니라 포트폴리오 산출물 정리 커밋입니다.\n\n\n\n\n\n\n\n파일/작업\n의미\n\n\n\n\n01_ServerCore_v4/ServerCorePortfolio.pdf\n서버 포트폴리오를 PDF 산출물로 생성\n\n\n03_FactionClash_Client/ClientPortfolio.pdf\n클라이언트 포트폴리오를 PDF 산출물로 생성\n\n\n_pdf-defaults.yml\nPDF 출력 기본값 관리\n\n\nhtml2pdf.py\nHTML 문서를 PDF로 변환하는 도구\n\n\n한국어 자기소개/지원 문서\n기술 설명을 지원 문서 형태로 다듬은 흔적\n\n\n\n따라서 이 저장소는 구현 코드만이 아니라 “기술 내용을 읽히는 문서로 포장하고 제출 가능한 형태로 만드는 과정”도 보여줍니다.\n\n\n\n2026-04-13 4469271부터 GitHub Pages 산출물이 추가되었고, 2026-04-26 6da88c6에서 문서 형식이 표준화되었습니다.\n\n\n\n\n\n\n\n커밋\n확인한 내용\n\n\n\n\n4469271\nrendered portfolio documents를 GitHub Pages 사이트로 추가\n\n\n13f2411\nPages용 docs/만 남기도록 저장소 정리\n\n\n6da88c6\n_quarto.yml, docs/index.qmd, docs/portfolio.css, scripts/render-docs.sh 추가\n\n\n\n이 단계의 의미는 포트폴리오가 로컬 문서 묶음에서 공개 가능한 웹 문서로 전환되었다는 점입니다.\n\n\n\n2026-04-25 b14ef51은 DevOps runtime site를 추가하면서 Dockerfile, CMakeLists.txt, src/main.cpp, GitHub Actions workflow를 함께 넣었습니다. 이후 5de6893에서 RuntimeGame, RuntimeProxy, RuntimeWeb 문서가 분리되었습니다.\n\n\n\n\n\n\n\n축\n근거\n\n\n\n\nC++ edge/runtime site\nsrc/main.cpp, Dockerfile, CMakeLists.txt\n\n\nRuntimeWeb\n정적 문서/웹 서버 경로 검증\n\n\nRuntimeProxy\nSNI와 route tree 기반 upstream 분기\n\n\nRuntimeGame\n게임 서버 런타임 관점의 모듈 검증\n\n\n\n이 흐름은 “프레임워크를 만들었다”에서 끝나지 않고, 웹 서버와 프록시 같은 실제 앱 형태로 런타임을 검증하려 한 것으로 볼 수 있습니다.\n\n\n\n2026-04-26 10e7869에서 live ops dashboard가 추가되었고, 2026-04-27 2cd9acc에서 React/Vite 기반 OpsDashboard V2가 추가되었습니다.\n\n\n\n\n\n\n\n파일\n확인한 내용\n\n\n\n\nops_api/main.py\nPrometheus, Proxmox, Kubernetes, Argo CD, deploy pipeline 상태 API\n\n\ndashboard/package.json\nVite/React 대시보드 앱\n\n\ndashboard/src/components/*\nProxmox, Kubernetes, ArchitectureView, GlobalStatusBar\n\n\ndashboard/public/icons.svg\n독립 UI 앱으로 구성한 흔적\n\n\n\n이 축은 개인 홈랩 운영 상태를 수동 명령어 캡처가 아니라 API와 UI로 관측하려 했다는 증거입니다.\n\n\n\n2026-05-10 aa333ae는 Move homepage into portfolio repo 커밋입니다.\n\n\n\n\n\n\n\n파일\n역할\n\n\n\n\nhomepage/src/main.tsx\n포트폴리오 진입점 UI\n\n\nhomepage/src/styles.css\n홈페이지 전용 스타일\n\n\nhomepage/public/thumbnails/*\nServerCore, runtime diagram, DevOps dashboard 썸네일\n\n\nhomepage/package.json\nVite 기반 별도 프론트엔드 앱\n\n\n\n이는 문서 목록만 노출하는 것이 아니라, 포트폴리오를 탐색 가능한 웹 앱 형태로 만들려는 작업입니다.\n\n\n\n2026-06-06 275c1c4는 기존 generated docs/ 산출물을 대량 정리하고, content/docs, content/diagrams, scripts/prepare-servercore-docs.js 중심으로 바꾼 커밋입니다.\n\n\n\n\n\n\n\n파일\n의미\n\n\n\n\ncontent/docs/1.overview.md ~ 6.summary.md\n문서 원본을 generated HTML이 아니라 Markdown source로 관리\n\n\ncontent/diagrams/*\n다이어그램 원본 자산을 source tree로 이동\n\n\nscripts/prepare-servercore-docs.js\nMarkdown을 Quarto QMD로 변환\n\n\nscripts/render-docs.sh\nQuarto 렌더와 Pages 산출물 검증\n\n\nscripts/build-pages-site.sh\nPages 배포용 _site 구성\n\n\n\n이 단계는 문서를 계속 고칠 수 있는 상태로 되돌린 작업입니다. generated HTML을 직접 관리하는 방식보다 원본 Markdown과 빌드 스크립트로 산출물을 재생성하는 구조가 포트폴리오 유지보수에 맞습니다.\n\n\n\ngit log --all --reverse --date=short --pretty=format:\"%h`t%ad`t%s\"\ngit log --all --reverse --date=short --pretty=format:\"COMMIT%x09%h%x09%ad%x09%s\" --name-status\ngit show --stat 85c8f49\ngit show --stat 295be73\ngit show --stat 6da88c6\ngit show --stat b14ef51\ngit show --stat 2cd9acc\ngit show --stat 5de6893\ngit show --stat aa333ae\ngit show --stat 275c1c4",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#github-계정-전체에서-보이는-범위",
+    "href": "docs/13.whole-repo-inventory.html#github-계정-전체에서-보이는-범위",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "gh repo list mint-cocoa --limit 200로 확인한 계정 전체 스냅샷은 다음과 같습니다.\n\n\n\n\n\n\n\n항목\n값\n\n\n\n\n전체 저장소\n124개\n\n\nfork가 아닌 저장소\n106개\n\n\narchived 저장소\n44개\n\n\narchive되지 않은 owner 저장소\n64개\n\n\nactive owner 저장소의 주요 언어\nC++ 19개, Python 15개, TypeScript 12개, JavaScript 6개, HCL 2개\n\n\n\n이 숫자는 “모든 저장소가 동일한 수준의 포트폴리오 증거”라는 뜻이 아닙니다. fork 저장소와 archived 저장소는 관심사, 학습 경로, 실험 흔적을 보여주지만, 구현 역량의 핵심 증거는 owner 저장소와 현재 남아 있는 파일/커밋을 기준으로 봐야 합니다.\n시기별로 묶으면 다음 흐름이 보입니다.\n\n\n\n\n\n\n\n\n시기\n대표 저장소\n의미\n\n\n\n\n2021-08 ~ 2023-12\nCALCDDAY, opensource_android23-1, my-nextjs-app, blog-starter-kit, argocd-example-apps\n웹, Android, Next.js, Kubernetes/GitOps 학습과 초기 프로젝트\n\n\n2024-03 ~ 2024-12\nticket-project, user-api, mint-cocoa.github.io, nest-project-root, api-userendpoint, msa_final, terraform, baseball_analysis\n웹/API/MSA, Python 백엔드, TypeScript 프론트엔드, IaC 실습\n\n\n2025-02 ~ 2025-12\ntcpechoserver, gameserver_example, new_gameserver, ruk_example, mmoserver, logameserver, newnew_server, youtube-backend, AI-cpp-debug\nC++ 서버/네트워크, 게임 서버 계열, 자동화 도구\n\n\n2026-01 ~ 2026-03\nnew_servercore, servercore_v3, servercore, servercore_v4\nServerCore 계열을 여러 버전으로 실험한 흔적\n\n\n2026-04 ~ 2026-06\nlibiouring-server, game-client, portfolio, iouring-runtime, home-k8s-gitops, ops-dashboard, mintcocoa-ops\n서버 런타임, 클라이언트, 운영 대시보드, GitOps/IaC, 문서 출판을 하나의 포트폴리오 흐름으로 연결",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#년-이전-이력은-별도-저장소에-있다",
+    "href": "docs/13.whole-repo-inventory.html#년-이전-이력은-별도-저장소에-있다",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "로컬 홈 디렉터리의 checkout과 GitHub 저장소 목록을 함께 보면 2026년 이전 이력은 다음처럼 확인됩니다.\n\n\n\n\n\n\n\n\n\n저장소\nremote\n첫 커밋\n의미\n\n\n\n\nmint-cocoa.github.io\nhttps://github.com/mint-cocoa/mint-cocoa.github.io.git\n2024-04-04 b1d993c Initial commit\n개인 GitHub Pages 사이트 시작\n\n\nmsa_final\nhttps://github.com/mint-cocoa/msa_final.git\n2024-10-14 a8c3085 feat: Initialize project structure...\nMSA 구조, API gateway, user/park/facility service, Docker/Kubernetes manifest\n\n\ntcpechoserver / gameserver_example / new_gameserver\nhttps://github.com/mint-cocoa/*\n2025년 생성\nC++ 네트워크 서버와 게임 서버 계열 실험\n\n\nNAIA2.0 / cocoa-naia\nhttps://github.com/DNT-LAB/NAIA2.0.git, https://github.com/mint-cocoa/NAIA2.0.git\n2025-07-13 665783b Initial commit\nMac OS 지원, external module system, WEBUI API 지원\n\n\nruk_example\nhttps://github.com/mint-cocoa/ruk_example.git\n2025-07-29 6bf459e Initial commit\n이후 서버 I/O 구조 분석과 IoWorker 구현으로 이어지는 런타임 계열 이력\n\n\n\nPolyVGet-ffmpeg와 FreeRTOS처럼 더 오래된 커밋이 보이는 저장소도 있지만, 이는 upstream/vendor history 성격이 강해 개인 포트폴리오 증거로 바로 쓰기에는 부적절합니다.\n따라서 포트폴리오에서 2026년 이전까지 포함하려면 portfolio-head의 Git log만 볼 것이 아니라 위 저장소들의 log와 GitHub repo 생성 이력을 함께 근거로 묶어야 합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#초기에는-세-프로젝트가-같이-있었다",
+    "href": "docs/13.whole-repo-inventory.html#초기에는-세-프로젝트가-같이-있었다",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "최초 커밋 85c8f49는 Initial commit: Game server portfolio documents라는 메시지를 갖지만, 실제 파일 목록은 ServerCore만이 아닙니다.\n\n\n\n\n\n\n\n\n초기 경로\n확인한 내용\n해석\n\n\n\n\n01_ServerCore_v4/\nio_uring 기반 C++20 게임 서버 프레임워크, 벤치마크, 포트폴리오 문서\n이후 서버 런타임 포트폴리오의 중심\n\n\n02_SwarmDominion_DX11/\nDX11 구조 학습, DX12/SVO 렌더러 설계, 레퍼런스 분석\n그래픽스 학습과 확장 설계의 근거\n\n\n03_FactionClash_Client/\nDirectX 11 클라이언트 문서, C++ 소스, Protobuf 스키마\n서버와 붙는 클라이언트 구조를 함께 다뤘다는 근거\n\n\n\n이 초기 원본은 2026-04-14 13f2411에서 Pages 중심 저장소로 정리되며 삭제되었습니다. 그래서 현재 파일 트리만 보면 초기 클라이언트와 그래픽스 자료가 사라진 것처럼 보입니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#기술-문서를-제출-가능한-산출물로-바꿨다",
+    "href": "docs/13.whole-repo-inventory.html#기술-문서를-제출-가능한-산출물로-바꿨다",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "2026-04-13 295be73은 단순 코드 커밋이 아니라 포트폴리오 산출물 정리 커밋입니다.\n\n\n\n\n\n\n\n파일/작업\n의미\n\n\n\n\n01_ServerCore_v4/ServerCorePortfolio.pdf\n서버 포트폴리오를 PDF 산출물로 생성\n\n\n03_FactionClash_Client/ClientPortfolio.pdf\n클라이언트 포트폴리오를 PDF 산출물로 생성\n\n\n_pdf-defaults.yml\nPDF 출력 기본값 관리\n\n\nhtml2pdf.py\nHTML 문서를 PDF로 변환하는 도구\n\n\n한국어 자기소개/지원 문서\n기술 설명을 지원 문서 형태로 다듬은 흔적\n\n\n\n따라서 이 저장소는 구현 코드만이 아니라 “기술 내용을 읽히는 문서로 포장하고 제출 가능한 형태로 만드는 과정”도 보여줍니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#공개-사이트와-문서-형식을-계속-정리했다",
+    "href": "docs/13.whole-repo-inventory.html#공개-사이트와-문서-형식을-계속-정리했다",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "2026-04-13 4469271부터 GitHub Pages 산출물이 추가되었고, 2026-04-26 6da88c6에서 문서 형식이 표준화되었습니다.\n\n\n\n\n\n\n\n커밋\n확인한 내용\n\n\n\n\n4469271\nrendered portfolio documents를 GitHub Pages 사이트로 추가\n\n\n13f2411\nPages용 docs/만 남기도록 저장소 정리\n\n\n6da88c6\n_quarto.yml, docs/index.qmd, docs/portfolio.css, scripts/render-docs.sh 추가\n\n\n\n이 단계의 의미는 포트폴리오가 로컬 문서 묶음에서 공개 가능한 웹 문서로 전환되었다는 점입니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#서버-런타임은-실제-앱과-운영-경로로-확장됐다",
+    "href": "docs/13.whole-repo-inventory.html#서버-런타임은-실제-앱과-운영-경로로-확장됐다",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "2026-04-25 b14ef51은 DevOps runtime site를 추가하면서 Dockerfile, CMakeLists.txt, src/main.cpp, GitHub Actions workflow를 함께 넣었습니다. 이후 5de6893에서 RuntimeGame, RuntimeProxy, RuntimeWeb 문서가 분리되었습니다.\n\n\n\n\n\n\n\n축\n근거\n\n\n\n\nC++ edge/runtime site\nsrc/main.cpp, Dockerfile, CMakeLists.txt\n\n\nRuntimeWeb\n정적 문서/웹 서버 경로 검증\n\n\nRuntimeProxy\nSNI와 route tree 기반 upstream 분기\n\n\nRuntimeGame\n게임 서버 런타임 관점의 모듈 검증\n\n\n\n이 흐름은 “프레임워크를 만들었다”에서 끝나지 않고, 웹 서버와 프록시 같은 실제 앱 형태로 런타임을 검증하려 한 것으로 볼 수 있습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#운영-대시보드는-별도-reactvite-앱으로-커졌다",
+    "href": "docs/13.whole-repo-inventory.html#운영-대시보드는-별도-reactvite-앱으로-커졌다",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "2026-04-26 10e7869에서 live ops dashboard가 추가되었고, 2026-04-27 2cd9acc에서 React/Vite 기반 OpsDashboard V2가 추가되었습니다.\n\n\n\n\n\n\n\n파일\n확인한 내용\n\n\n\n\nops_api/main.py\nPrometheus, Proxmox, Kubernetes, Argo CD, deploy pipeline 상태 API\n\n\ndashboard/package.json\nVite/React 대시보드 앱\n\n\ndashboard/src/components/*\nProxmox, Kubernetes, ArchitectureView, GlobalStatusBar\n\n\ndashboard/public/icons.svg\n독립 UI 앱으로 구성한 흔적\n\n\n\n이 축은 개인 홈랩 운영 상태를 수동 명령어 캡처가 아니라 API와 UI로 관측하려 했다는 증거입니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#홈페이지-앱도-별도로-만들었다",
+    "href": "docs/13.whole-repo-inventory.html#홈페이지-앱도-별도로-만들었다",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "2026-05-10 aa333ae는 Move homepage into portfolio repo 커밋입니다.\n\n\n\n\n\n\n\n파일\n역할\n\n\n\n\nhomepage/src/main.tsx\n포트폴리오 진입점 UI\n\n\nhomepage/src/styles.css\n홈페이지 전용 스타일\n\n\nhomepage/public/thumbnails/*\nServerCore, runtime diagram, DevOps dashboard 썸네일\n\n\nhomepage/package.json\nVite 기반 별도 프론트엔드 앱\n\n\n\n이는 문서 목록만 노출하는 것이 아니라, 포트폴리오를 탐색 가능한 웹 앱 형태로 만들려는 작업입니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#월에는-원본-중심-출판-파이프라인으로-재구성했다",
+    "href": "docs/13.whole-repo-inventory.html#월에는-원본-중심-출판-파이프라인으로-재구성했다",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "2026-06-06 275c1c4는 기존 generated docs/ 산출물을 대량 정리하고, content/docs, content/diagrams, scripts/prepare-servercore-docs.js 중심으로 바꾼 커밋입니다.\n\n\n\n\n\n\n\n파일\n의미\n\n\n\n\ncontent/docs/1.overview.md ~ 6.summary.md\n문서 원본을 generated HTML이 아니라 Markdown source로 관리\n\n\ncontent/diagrams/*\n다이어그램 원본 자산을 source tree로 이동\n\n\nscripts/prepare-servercore-docs.js\nMarkdown을 Quarto QMD로 변환\n\n\nscripts/render-docs.sh\nQuarto 렌더와 Pages 산출물 검증\n\n\nscripts/build-pages-site.sh\nPages 배포용 _site 구성\n\n\n\n이 단계는 문서를 계속 고칠 수 있는 상태로 되돌린 작업입니다. generated HTML을 직접 관리하는 방식보다 원본 Markdown과 빌드 스크립트로 산출물을 재생성하는 구조가 포트폴리오 유지보수에 맞습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/13.whole-repo-inventory.html#전체-확인-명령",
+    "href": "docs/13.whole-repo-inventory.html#전체-확인-명령",
+    "title": "13. 전체 저장소 훑기 결과",
+    "section": "",
+    "text": "git log --all --reverse --date=short --pretty=format:\"%h`t%ad`t%s\"\ngit log --all --reverse --date=short --pretty=format:\"COMMIT%x09%h%x09%ad%x09%s\" --name-status\ngit show --stat 85c8f49\ngit show --stat 295be73\ngit show --stat 6da88c6\ngit show --stat b14ef51\ngit show --stat 2cd9acc\ngit show --stat 5de6893\ngit show --stat aa333ae\ngit show --stat 275c1c4",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "13. 전체 저장소 훑기 결과"
+    ]
+  },
+  {
+    "objectID": "docs/3.buffer-management.html",
+    "href": "docs/3.buffer-management.html",
+    "title": "3. 수신 버퍼",
+    "section": "",
+    "text": "기존 수신 경로에서는 매 수신마다 임시 버퍼의 데이터를 세션별 수신 버퍼로 복사했습니다. 이 방식은 구현은 단순하지만, 대부분의 패킷이 한 번의 수신으로 완성되는 상황에서도 불필요한 복사 비용이 발생합니다.\n그렇다고 커널이 채운 수신 버퍼의 뷰만 그대로 전달할 수도 없습니다. TCP는 바이트 스트림이기 때문에 애플리케이션이 정의한 패킷 경계를 보존하지 않습니다. 하나의 패킷이 여러 번의 수신으로 나뉘어 도착할 수 있고, 반대로 여러 패킷이 한 번의 수신에 합쳐져 들어올 수도 있습니다.\n따라서 수신 버퍼는 단순히 “이번에 받은 데이터”를 담는 공간이 아니라, 다음 역할을 수행할 수 있어야 합니다.\n\n\n\n\n\n\n\n역할\n의미\n\n\n\n\n완전한 프레임 파싱\n이번 수신 데이터 안에서 완성된 패킷을 바로 해석\n\n\n조각난 프레임 보존\n아직 완성되지 않은 패킷의 앞부분을 다음 수신까지 보관\n\n\n소비한 데이터 제거\n이미 파싱한 앞부분을 버리고 남은 데이터만 유지\n\n\n경계 누적\n다음 패킷 경계가 완성될 때까지 데이터를 이어 붙임\n\n\n\n\n\n\n수신 경로는 빠른 경로와 느린 경로로 분리했습니다.\n완전한 프레임이 이번 수신 데이터 안에 모두 들어 있는 경우에는 제공 버퍼의 뷰를 그대로 사용해 파싱합니다. 이때 별도의 세션 수신 버퍼로 복사하지 않습니다. 반대로 프레임이 조각나 있거나, 이전 수신에서 남은 조각과 이어 붙여야 하는 경우에만 프로토콜 RecvBuffer에 복사해 누적합니다.\n\n\n\nfig servercore recv buffer fast slow path\n\n\n\n\n\n\n\n\n\n상황\n처리\n\n\n\n\n완전한 프레임\nprovided 버퍼의 span 또는 뷰에서 직접 파싱\n\n\n여러 완전한 프레임\nprovided 버퍼 뷰를 순차적으로 소비하며 반복 파싱\n\n\n조각난 프레임\n세션 소유 RecvBuffer에 복사해 다음 수신까지 보존\n\n\n이전 조각 + 새 데이터\nRecvBuffer에 이어 붙인 뒤 완성 여부 확인\n\n\n\n이 구조에서 Session은 수신 작업의 상태와 제공 버퍼의 반환 타이밍을 관리합니다. 원본 수신 메모리는 iouring 가 관리하고, 프로토콜 프레임 재조립은 RecvBuffer가 담당합니다.\n여러 클라이언트가 동시에 연결되어도 이 경계는 세션별로 독립적입니다. IoRing과 provided buffer pool은 공유되지만, 조각난 프레임을 보관하는 RecvBuffer, 아직 커널에 제출되지 않은 SendQueue, 현재 진행 중인 SendOp은 각 Session 내부 상태로 분리됩니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "3. 수신 버퍼"
+    ]
+  },
+  {
+    "objectID": "docs/3.buffer-management.html#수신-버퍼",
+    "href": "docs/3.buffer-management.html#수신-버퍼",
+    "title": "3. 수신 버퍼",
+    "section": "",
+    "text": "기존 수신 경로에서는 매 수신마다 임시 버퍼의 데이터를 세션별 수신 버퍼로 복사했습니다. 이 방식은 구현은 단순하지만, 대부분의 패킷이 한 번의 수신으로 완성되는 상황에서도 불필요한 복사 비용이 발생합니다.\n그렇다고 커널이 채운 수신 버퍼의 뷰만 그대로 전달할 수도 없습니다. TCP는 바이트 스트림이기 때문에 애플리케이션이 정의한 패킷 경계를 보존하지 않습니다. 하나의 패킷이 여러 번의 수신으로 나뉘어 도착할 수 있고, 반대로 여러 패킷이 한 번의 수신에 합쳐져 들어올 수도 있습니다.\n따라서 수신 버퍼는 단순히 “이번에 받은 데이터”를 담는 공간이 아니라, 다음 역할을 수행할 수 있어야 합니다.\n\n\n\n\n\n\n\n역할\n의미\n\n\n\n\n완전한 프레임 파싱\n이번 수신 데이터 안에서 완성된 패킷을 바로 해석\n\n\n조각난 프레임 보존\n아직 완성되지 않은 패킷의 앞부분을 다음 수신까지 보관\n\n\n소비한 데이터 제거\n이미 파싱한 앞부분을 버리고 남은 데이터만 유지\n\n\n경계 누적\n다음 패킷 경계가 완성될 때까지 데이터를 이어 붙임\n\n\n\n\n\n\n수신 경로는 빠른 경로와 느린 경로로 분리했습니다.\n완전한 프레임이 이번 수신 데이터 안에 모두 들어 있는 경우에는 제공 버퍼의 뷰를 그대로 사용해 파싱합니다. 이때 별도의 세션 수신 버퍼로 복사하지 않습니다. 반대로 프레임이 조각나 있거나, 이전 수신에서 남은 조각과 이어 붙여야 하는 경우에만 프로토콜 RecvBuffer에 복사해 누적합니다.\n\n\n\nfig servercore recv buffer fast slow path\n\n\n\n\n\n\n\n\n\n상황\n처리\n\n\n\n\n완전한 프레임\nprovided 버퍼의 span 또는 뷰에서 직접 파싱\n\n\n여러 완전한 프레임\nprovided 버퍼 뷰를 순차적으로 소비하며 반복 파싱\n\n\n조각난 프레임\n세션 소유 RecvBuffer에 복사해 다음 수신까지 보존\n\n\n이전 조각 + 새 데이터\nRecvBuffer에 이어 붙인 뒤 완성 여부 확인\n\n\n\n이 구조에서 Session은 수신 작업의 상태와 제공 버퍼의 반환 타이밍을 관리합니다. 원본 수신 메모리는 iouring 가 관리하고, 프로토콜 프레임 재조립은 RecvBuffer가 담당합니다.\n여러 클라이언트가 동시에 연결되어도 이 경계는 세션별로 독립적입니다. IoRing과 provided buffer pool은 공유되지만, 조각난 프레임을 보관하는 RecvBuffer, 아직 커널에 제출되지 않은 SendQueue, 현재 진행 중인 SendOp은 각 Session 내부 상태로 분리됩니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "3. 수신 버퍼"
+    ]
+  },
+  {
+    "objectID": "docs/3.buffer-management.html#송신-버퍼",
+    "href": "docs/3.buffer-management.html#송신-버퍼",
+    "title": "3. 수신 버퍼",
+    "section": "2 송신 버퍼",
+    "text": "2 송신 버퍼\n\n2.1 요청한 길이와 실제 처리된 길이의 불일치\n송신 경로에서는 애플리케이션이 넘긴 페이로드의 수명이 송신 완료까지 보장되어야 합니다. 스택 버퍼, 임시 문자열, 임시 string_view를 그대로 커널 송신 요청에 넘기면, 커널이 아직 해당 메모리를 참조하고 있는 동안 원본 데이터가 먼저 해제되거나 덮어써질 수 있습니다.\n또한 송신 완료 통지는 “요청한 버퍼 전체가 전송되었다”는 뜻이 아닙니다. sendmsg나 io_uring send는 성공 완료에서도 요청한 바이트 수보다 작은 값을 반환할 수 있습니다. 이 경우 반환된 값은 실제로 처리된 바이트 수이며, 애플리케이션은 그 바이트 수만큼 현재 페이로드의 송신 커서를 전진시켜야 합니다.\n\n\n\nfig servercore send byte count cursor\n\n\n남은 바이트 범위를 기억하지 못하면 두 가지 문제가 생깁니다.\n\n\n\n\n\n\n\n문제\n설명\n\n\n\n\n데이터 누락\n부분 완료된 뒤 남은 바이트를 다시 보내지 않으면 페이로드 뒷부분이 사라짐\n\n\n순서 훼손\n앞 페이로드가 끝나기 전에 다음 페이로드를 보내면 애플리케이션이 의도한 메시지 순서가 깨짐\n\n\n\n따라서 송신 버퍼는 페이로드 수명, 송신 커서, 부분 완료 이후의 재제출 순서를 함께 관리해야 합니다.\n\n\n\n2.2 애플리케이션이 의도한 순서 보장 불가\nTCP는 네트워크상에서 바이트의 순서를 보존하지만, 애플리케이션이 호출한 Send(A), Send(B) 같은 요청 단위나 프로토콜 메시지 경계를 보존하지 않습니다. TCP가 보장하는 것은 소켓 송신 버퍼에 들어간 바이트의 순서이지, 애플리케이션이 의도한 “A 전체가 끝난 뒤 B 전체”라는 의미적 순서가 아닙니다.\n따라서 같은 세션 소켓에 대해 둘 이상의 송신 작업을 동시에 커널에 제출하면, 부분 전송이 발생했을 때 애플리케이션이 의도한 순서가 깨질 수 있습니다.\n예를 들어 A를 먼저 보내고 B를 그 다음 보냈더라도, A 송신이 일부 바이트만 성공한 상태에서 이미 제출된 B 송신이 처리될 수 있습니다. 이 경우 TCP 스트림에는 다음과 같은 순서로 바이트가 들어갈 수 있습니다.\nA의 앞부분 + B 전체 + A의 뒷부분\nTCP는 이 순서를 잘못된 것으로 보지 않습니다. 실제로 소켓 송신 버퍼에 들어간 순서가 그렇기 때문입니다. TCP는 이 바이트열을 다시 A 전체 + B 전체로 복구해주지 않으며, 애플리케이션 프로토콜의 메시지 경계도 알지 못합니다.\n따라서 애플리케이션이 의도한 송신 순서는 Session의 송신 큐가 직접 보장해야 합니다.\n\n\n\nfig servercore sendop order timeline\n\n\n\n\n2.3 세션당 단일 활성 송신 작업\n\n\n\nfig servercore single active sendop timeline\n\n\n송신 경로는 세션별 큐와 활성 송신 작업 하나로 구성됩니다. 이를 통해 아직 커널에 제출되지 않은 데이터와, 이미 커널에 제출되어 완료를 기다리는 데이터를 분리합니다.\n\n\n\n\n\n\n\n구성 요소\n책임\n\n\n\n\nSendQueue\n아직 커널에 제출되지 않은 SendBufferRef 대기열과 등록 필요 여부 관리\n\n\nSendOp\n진행 중인 msghdr, iovec, 페이로드 참조, 송신 커서 유지\n\n\nactive_send_ev_\n현재 세션에서 커널에 맡긴 단 하나의 활성 송신 작업\n\n\n\n소유자 실행 문맥에 들어온 Send()는 페이로드를 send_queue_에 FIFO로 추가합니다. SendQueue::Push()는 첫 추가 주기에서만 needs_register를 반환하고, RegisterSend()는 이미 active_send_ev_가 있으면 즉시 반환합니다. 따라서 현재 송신 작업이 진행 중일 때 새 페이로드가 들어와도, 그 페이로드는 큐에 남아 있을 뿐 커널에는 제출되지 않습니다.\n이 구조에서 커널이 알고 있는 현재 세션의 송신 작업은 항상 논리적 FIFO의 맨 앞 조각 하나뿐입니다. 그 앞쪽 조각이 완전히 처리되기 전에는 다음 큐 항목이 커널에 보이지 않습니다.\nsendmsg의 iovec은 하나의 바이트 스트림 앞부분으로 해석되고, CQE의 결과 바이트 수는 그 앞부분에서 몇 바이트가 처리되었는지를 의미합니다. 따라서 짧은 쓰기가 발생하더라도 완료된 바이트 수만큼 현재 SendOp의 커서를 전진시키면 남은 뒷부분을 정확히 계산할 수 있습니다.\n부분 완료가 발생하면 큐를 재구성하지 않습니다. 현재 SendOp의 커서만 전진시키고, 같은 페이로드의 남은 범위를 다시 제출합니다. 현재 SendOp이 완전히 끝나기 전까지는 다음 페이로드를 큐에서 꺼내지 않습니다.\n즉 송신 경로에서 항상 성립해야 하는 조건은 다음과 같습니다.\n\n세션당 활성 송신 작업은 0개 또는 1개\n\n같은 세션 소켓에 동시에 둘 이상의 send를 제출하지 않음\n\n활성 SendOp은 논리적 FIFO의 맨 앞 항목\n\n뒤의 페이로드가 앞의 페이로드를 추월할 수 없음.\n\nCQE의 성공 결과는 커서 전진으로 처리\n\n요청한 길이가 아니라 실제 처리된 바이트 수를 기준으로 진행.\n\n현재 SendOp 완료 후 다음 항목으로 이동\n\n부분 전송된 페이로드의 남은 범위를 먼저 처리.\n\n\n결과적으로 수신과 송신은 모두 “메모리 범위가 언제까지 유효한가”를 기준으로 설계됩니다. 수신은 한 번에 완성된 패킷이면 제공 버퍼 뷰를 바로 해석해 불필요한 복사를 피하고, 조각난 프레임이나 합쳐진 패킷은 RecvBuffer가 세션별로 보존합니다. 송신은 커널 완료 전까지 SendBufferRef와 SendOp이 원본 바이트를 붙잡고, CQE의 실제 처리 바이트 수만큼 커서를 전진시켜 남은 범위를 재제출합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "3. 수신 버퍼"
+    ]
+  },
+  {
+    "objectID": "docs/5.producer-consumer-backpressure.html",
+    "href": "docs/5.producer-consumer-backpressure.html",
+    "title": "5. SendQueue를 메모리 압력 측정 단위로",
+    "section": "",
+    "text": "애플리케이션 단위의 레이어에서 HTTP handler, proxy upstream, TLS 암복호화 단계, Room worker처럼 데이터를 만드는 생산자는 계속 다음 출력을 만들 수 있습니다. 반면 실제 소비자는 소켓 송신 완료 CQE를 받아 SendQueue를 비우는 쪽입니다. 생산 속도가 소비 속도보다 빨라지면 한쪽이 넘치게 됩니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "5. SendQueue를 메모리 압력 측정 단위로"
+    ]
+  },
+  {
+    "objectID": "docs/5.producer-consumer-backpressure.html#sendqueue를-메모리-압력-측정-단위로",
+    "href": "docs/5.producer-consumer-backpressure.html#sendqueue를-메모리-압력-측정-단위로",
+    "title": "5. SendQueue를 메모리 압력 측정 단위로",
+    "section": "1 SendQueue를 메모리 압력 측정 단위로",
+    "text": "1 SendQueue를 메모리 압력 측정 단위로\n초기 송신 큐 방어는 주로 몇 개의 버퍼가 쌓였는지를 기준으로 삼았습니다. 하지만 큐 항목 수만으로는 실제 메모리 압력을 알 수 없습니다. 같은 10개라도 작은 패킷 10개와 256 KiB body chunk 10개는 다른 상황이었습니다.\n그래서 SendQueue 는 depth와 byte를 함께 관측합니다.\n\n\n\n값\n의미\n\n\n\n\ncurrent_depth\n현재 대기 중인 buffer 개수\n\n\npending_bytes\n현재 대기 중인 총 byte 수\n\n\npeak_depth\n관측된 최대 queue depth\n\n\npeak_pending_bytes\n관측된 최대 pending bytes\n\n\noverflow_count\n한도 초과 횟수\n\n\n\nmax_pending 같은 hard limit은 마지막 방어선입니다. 한도를 넘은 연결은 더 이상 큐잉하지 않고 정리합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "5. SendQueue를 메모리 압력 측정 단위로"
+    ]
+  },
+  {
+    "objectID": "docs/5.producer-consumer-backpressure.html#write-backpressure를-read-쪽으로-되돌리기",
+    "href": "docs/5.producer-consumer-backpressure.html#write-backpressure를-read-쪽으로-되돌리기",
+    "title": "5. SendQueue를 메모리 압력 측정 단위로",
+    "section": "2 write backpressure를 read 쪽으로 되돌리기",
+    "text": "2 write backpressure를 read 쪽으로 되돌리기\n프록시는 한쪽 peer에서 받은 데이터를 반대편 peer로 전달합니다. 이때 downstream은 빠르게 읽히는데 upstream write가 느리면, 단순 중계 구조에서는 downstream recv가 계속 새로운 데이터를 만들고 반대편 send queue만 커집니다.\n그래서 proxy bridge는 write-side backpressure를 read-side pause로 전파합니다.\n\n\n\nfig servercore proxy backpressure example\n\n\n이 그림은 백프레셔의 시간 흐름과 pause 중 recv 데이터의 보존 경계를 함께 보여줍니다. B 쪽 SendQueue가 high watermark를 넘으면 A 쪽 새 recv 등록을 멈추고, 이미 완료되어 들어온 recv CQE의 데이터는 PausedRecvQueue로 복사합니다. B 쪽 write가 low watermark 아래로 내려가면 보류된 데이터를 FIFO 순서로 먼저 OnRecv()에 다시 전달한 뒤 recv 등록을 재개합니다.\n여기서 RecvBuffer와 PausedRecvQueue는 다른 책임을 가집니다. RecvBuffer는 프로토콜 프레임이 조각났을 때 패킷을 조립하기 위한 세션 내부 버퍼이고, PausedRecvQueue는 백프레셔 때문에 OnRecv() 전달을 늦추는 queue-owned bounded FIFO입니다.\n\n\n\n\n\n\n\n상황\n처리\n\n\n\n\n반대편 write가 정상적으로 drain됨\nrecv를 계속 등록하고 즉시 중계\n\n\n반대편 send queue가 pressure 상태\n현재 peer의 recv를 pause\n\n\nsocket drain 신호 도착\n보류 데이터를 먼저 비우고 recv resume\n\n\n보류 queue 한도 초과\npeer 쌍을 정리",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "5. SendQueue를 메모리 압력 측정 단위로"
+    ]
+  },
+  {
+    "objectID": "docs/5.producer-consumer-backpressure.html#paused-recv-queue-pause-이후-이미-도착한-데이터-보존",
+    "href": "docs/5.producer-consumer-backpressure.html#paused-recv-queue-pause-이후-이미-도착한-데이터-보존",
+    "title": "5. SendQueue를 메모리 압력 측정 단위로",
+    "section": "3 Paused recv queue: pause 이후 이미 도착한 데이터 보존",
+    "text": "3 Paused recv queue: pause 이후 이미 도착한 데이터 보존\nread를 pause한다고 해서 이미 완료된 recv CQE까지 사라지는 것은 아닙니다. PauseRecv()를 호출했더라도 커널이나 ring에서 이미 넘어온 데이터가 있을 수 있습니다.\n이 데이터를 버리면 TCP 바이트 스트림이 깨집니다. 반대로 무제한으로 보관하면 pause 자체가 백프레셔 역할을 하지 못합니다. 그래서 pause 중 도착한 데이터는 PausedRecvQueue에 제한적으로 보존합니다.\n\n\n\n상황\n처리\n\n\n\n\nrecv가 pause되지 않음\n즉시 OnRecv()로 전달\n\n\nrecv가 pause됨\n도착한 chunk를 paused recv queue에 복사\n\n\nqueue 한도 내\nresume 때 FIFO로 다시 OnRecv()\n\n\nqueue 한도 초과\noverflow로 disconnect\n\n\n\n이 경계의 목적은 성능 최적화가 아니라 스트림 보존입니다. write-side 압력이 read-side pause로 전파되더라도, 이미 도착한 바이트는 순서를 유지한 채 제한된 범위에서만 살아남습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "5. SendQueue를 메모리 압력 측정 단위로"
+    ]
+  },
+  {
+    "objectID": "docs/5.producer-consumer-backpressure.html#큰-응답을-drain-속도에-맞춰-생산",
+    "href": "docs/5.producer-consumer-backpressure.html#큰-응답을-drain-속도에-맞춰-생산",
+    "title": "5. SendQueue를 메모리 압력 측정 단위로",
+    "section": "4 큰 응답을 drain 속도에 맞춰 생산",
+    "text": "4 큰 응답을 drain 속도에 맞춰 생산\nHTTP handler는 큰 JSON, 큰 text, 파일 body를 만들 수 있습니다. 이 body를 한 번에 SendBuffer로 만들면 두 문제가 생깁니다.\n\n\n\n\n\n\n\n문제\n이유\n\n\n\n\nbuild 실패\nbody가 buffer pool chunk보다 클 수 있음\n\n\nslow client 앞 메모리 증가\n큰 응답 전체가 send queue에 한 번에 들어감\n\n\n\n\n\n\n기준\n값\n\n\n\n\ninline response 한계\n256 KiB\n\n\nbody stream chunk 크기\n256 KiB\n\n\n한 번에 pump하는 최대 chunk 수\n4\n\n\n\n\n\n\nfig servercore http body stream\n\n\nHttpResponse::Send()는 전체 크기가 inline 한계 이하일 때만 단일 buffer를 만듭니다. 더 큰 응답은 header를 먼저 보내고 StartBodyStream()으로 body를 넘깁니다.\n작은 응답은 header와 body를 하나의 send buffer로 만들어 바로 Send()할 수 있지만, 큰 응답을 한 번에 만들면 느린 클라이언트 앞에서 send queue와 buffer pool에 큰 압력이 생깁니다. 그래서 큰 body는 먼저 header만 전송하고, body는 BodyStreamState에 보관한 뒤 일정 크기의 chunk로 나누어 pump합니다.\n동작 흐름은 다음과 같습니다.\n\n이미 file stream이나 body stream이 진행 중이면 시작하지 않습니다.\nbody shared pointer, offset, chunk size, 한 번에 보낼 최대 chunk 수를 body_stream_에 저장합니다.\n먼저 HTTP header buffer를 Send()합니다.\nheader 전송 등록에 성공하면 PumpBodyStream()을 호출해 첫 body chunk 묶음을 큐에 넣습니다.\n이후 socket send가 drain될 때 OnSocketDrained()에서 다시 PumpBodyStream()을 호출해 다음 chunk를 이어 보냅니다.\n\n이 구조로 큰 body 전체를 한 번에 SendQueue에 넣지 않고, chunk_size * max_chunks_per_write 단위로만 생산합니다. 즉 생산자인 HTTP response body stream이 소비자인 socket send 완료 속도에 맞춰 천천히 진행됩니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "5. SendQueue를 메모리 압력 측정 단위로"
+    ]
+  },
+  {
+    "objectID": "docs/7.git-history-timeline.html",
+    "href": "docs/7.git-history-timeline.html",
+    "title": "7. Git 이력으로 보는 전체 개발 흐름",
+    "section": "",
+    "text": "이 장들은 구현 포트폴리오를 보조하는 증명용 문서입니다. 단순히 어떤 기술을 사용했다고 나열하기보다, 저장소의 커밋 이력과 현재 남아 있는 파일을 기준으로 어떤 흐름으로 작업 범위가 확장되었는지 정리합니다.\n초기 저장소는 인프라 포트폴리오가 아니라 게임 서버, 게임 클라이언트, 그래픽스 설계, 자기소개/지원 문서, 공개 페이지 산출물을 함께 담은 포트폴리오 저장소였습니다. 다만 개발 흐름의 배경에는 이전부터 Linux와 웹 서비스 운영에 관심을 두고 Docker 위에 여러 서비스를 띄우거나, 친구들과 함께 사용할 게임 서버를 직접 구성해 본 경험이 있었습니다. 이후 포트폴리오 저장소는 GitHub Pages 중심으로 정리되고, 서버 런타임 검증 앱, 운영 대시보드, CI/CD, GitOps, 홈랩 인프라, 홈페이지, Quarto 출판 파이프라인으로 확장되었습니다.\n단, 아래 타임라인의 상세 커밋은 portfolio-head 저장소 안의 Git 이력입니다. 인증된 GitHub 조회 기준으로 mint-cocoa 계정에는 2026-06-08 현재 124개 저장소가 보이며, 이 중 fork가 아닌 저장소는 106개, archive되지 않은 owner 저장소는 64개입니다. 따라서 2026년 4월 이후의 포트폴리오 커밋만으로 전체 개발 이력을 설명하면 범위가 좁아집니다. 이 문서는 GitHub 계정 전체의 저장소 생성 흐름과 현재 portfolio 저장소의 파일/커밋 증거를 함께 묶습니다.\n\n\n초기 작업은 웹 프레임워크와 API를 익히는 단계에 가까웠습니다. 동시에 개인 Linux 환경에서 Docker 서비스들을 띄우고, 게임 서버나 개발 서버를 외부에서 안정적으로 접근할 수 있게 만드는 운영 문제에도 관심이 있었습니다. 이 과정에서 단순히 애플리케이션을 작성하는 것만으로는 충분하지 않고, 네트워크 경로, 배포 일관성, 저장소와 파일 관리, 장애 시 우회 경로까지 함께 설계해야 한다는 점을 경험했습니다.\n이후 MSA와 Kubernetes를 다루면서 서비스가 배포되고 관측되는 방식을 고민하기 시작했고, 2025년부터는 TCP 서버와 게임 서버 구현으로 관심사가 네트워크 런타임 내부로 내려갔습니다.\n2026년의 핵심 변화는 문제의 단위가 기능 구현에서 실행 모델 설계로 바뀌었다는 점입니다. 단순히 요청을 처리하는 서버가 아니라, 비동기 I/O 완료가 늦게 돌아오고, 세션 종료와 송신 재시도가 겹치며, 버퍼와 이벤트의 수명이 서로 다른 상황을 어떻게 안전하게 정리할 것인지가 중심 문제가 되었습니다. 즉, 예전부터 직접 운영하던 웹 서비스와 게임 서버의 요구가 C++ 서버 런타임 구현으로 내려갔고, 다시 그 런타임을 실제 Web/Proxy/Game 앱과 홈랩 배포 경로로 검증하는 흐름이 되었습니다.\n따라서 현재 포트폴리오의 주력 서사는 다음과 같이 정리됩니다.\n웹/백엔드 기초\n-&gt; Linux/Docker 기반 개인 서비스 운영\n-&gt; Python API와 MSA/Kubernetes\n-&gt; TCP 서버와 게임 서버 실험\n-&gt; C++ ServerCore와 io_uring 런타임\n-&gt; Web/Proxy/Game 실제 앱 검증\n-&gt; Proxmox/NAS/VPN/DNS/Proxy/GitOps 운영 구조\n-&gt; Quarto/PDF 출판\n이 흐름은 여러 기술을 흩어서 사용했다는 의미가 아닙니다. 점점 더 낮은 레벨의 서버 실행 기반으로 내려간 뒤, 다시 그 결과를 운영과 문서 출판까지 끌어올린 과정입니다.\n현재 개발자 정체성은 C++ 기반 고성능 게임 서버/runtime 개발을 중심으로, Linux 네트워크 I/O, Kubernetes/GitOps 운영, 문서화된 포트폴리오 출판까지 연결하는 시스템 지향 백엔드 개발자에 가깝습니다.\n\n\n\n이 포트폴리오의 운영 축은 나중에 붙인 장식이 아니라 프레임워크 개발의 검증 요구에서 출발합니다. 이전부터 Linux 위에서 Docker 서비스들을 실행하고, 친구들과 함께 사용할 게임 서버를 구성하면서 다음과 같은 문제가 반복되었습니다.\n\n\n\n\n\n\n\n\n운영 문제\n해결 방향\n포트폴리오에서 이어진 작업\n\n\n\n\n여러 개발 환경에서 빌드와 배포 결과가 달라짐\nGitHub Actions 기반 CI와 container image 빌드\n.github/workflows/portfolio-image.yml, GHCR image, GitOps image tag 갱신\n\n\n개인 서버의 파일과 상태를 안정적으로 관리해야 함\nProxmox 위 VM과 NAS 서비스, NFS/PV 백업 scaffold\nProxmox/Prometheus 운영 API, NFS PV backup CronJob\n\n\n외부에서 개발 서버나 게임 서버에 안전하게 접근해야 함\nTailscale VPN, 개인 도메인, Cloudflare DNS\n외부 접근 경로와 route tree를 런타임 문서에 반영\n\n\n홈 네트워크 장애나 단일 진입점 장애를 줄여야 함\nOracle Cloud VM을 프록시/로드밸런싱 경계로 사용\nRuntimeProxy, SNI route, upstream 분기 모델\n\n\n인프라 설정을 수동 기록으로만 남기기 어려움\nTerraform, Helm chart, GitOps repo로 desired state 관리\nhome-k8s-gitops, mintcocoa-ops, Terraform/Ansible/Kubespray scaffold\n\n\n\n따라서 ServerCore는 추상적인 프레임워크 실험으로만 작성된 것이 아닙니다. 직접 운영하던 웹 서비스와 게임 서버에서 필요했던 연결 수락, 프록시, 정적 파일 서빙, route 분기, 배포 일관성, 관측 가능성을 실제 검증 대상으로 삼기 위해 RuntimeWeb, RuntimeProxy, RuntimeGame, 운영 대시보드, GitOps 배포 흐름으로 확장되었습니다.\n핵심 흐름은 다음과 같습니다.\n\n\n\n\n\n\n\n\n시기\n단계\n증명할 수 있는 내용\n\n\n\n\n2021-08 ~ 2023-12\n초기 웹, Android, Next.js, Kubernetes 학습 저장소\nCALCDDAY, opensource_android23-1, my-nextjs-app, kubernetes-the-hard-way, flannel, metallb, argocd-example-apps 같은 저장소가 계정 이력의 초기 축을 이룹니다. fork 저장소는 개인 구현 증거가 아니라 학습/참조 흔적으로 분리합니다.\n\n\n2024-03 ~ 2024-12\n웹/API/MSA/인프라 실습 축\nticket-project, user-api, mint-cocoa.github.io, nest-project-root, api-userendpoint, msa_final, terraform, baseball_analysis 등으로 프론트엔드, Python API, MSA, IaC 실습이 이어집니다.\n\n\n2025-02 ~ 2025-12\nC++ 서버와 자동화 도구 축\ntcpechoserver, gameserver_example, new_gameserver, ruk_example, mmoserver, logameserver, newnew_server, youtube-backend, AI-cpp-debug 등으로 C++ 서버/네트워크와 Python/TypeScript 자동화 작업이 쌓입니다.\n\n\n2026-04-09 ~ 2026-04-14\n초기 포트폴리오 저장소 정리\nServerCore v4, SwarmDominion DX11/DX12 SVO 설계, FactionClash DX11 클라이언트가 한 저장소에 함께 있었습니다.\n\n\n2026-04-13\nPDF, HTML, 자기소개/지원 문서 정리\nServerCore와 FactionClash 문서를 PDF로 만들고, 자기소개서/지원 문서 변형과 HTML-to-PDF 도구를 추가했습니다.\n\n\n2026-04-13 ~ 2026-04-18\nGitHub Pages와 저장소 링크 정리\n초기 원본을 공개 문서 산출물 중심으로 정리하고, 이후 분리된 서버/클라이언트 저장소 링크를 포트폴리오에 연결했습니다.\n\n\n2026-04-09 ~ 2026-04-23\nServerCore 저장소 분리와 런타임 재구성\nlibiouring-server, game-client, libiouringweb, libiouring-core, multiplayer-dungeon-rpg-server, iouring-runtime으로 서버/클라이언트/런타임 저장소가 분리됩니다.\n\n\n2026-04-25 ~ 2026-04-27\nDevOps runtime site와 RuntimeWeb/RuntimeProxy 검증\n서버 런타임을 문서 설명에 머무르게 하지 않고 웹 서버, HTTPS 프록시, 운영 경로로 확장했습니다.\n\n\n2026-04-26 ~ 2026-04-29\n실시간 운영 대시보드와 Ops API\nProxmox, Prometheus, Kubernetes, C++ edge runtime 상태를 읽는 운영 API와 대시보드를 만들었습니다.\n\n\n2026-04-25 ~ 2026-06-04\nCI/CD, GitOps, route tree, 외부 접근 경로\nhome-k8s-gitops, ops-dashboard, mintcocoa-ops와 portfolio 이력에서 GitHub Actions, GHCR, GitOps repo, Argo CD, Kubernetes rollout을 하나의 배포 증거 흐름으로 묶었습니다.\n\n\n2026-04-28 ~ 2026-05-04\nTerraform, Ansible/Kubespray, NFS PV backup scaffold\n홈랩 인프라를 수동 설정 경험이 아니라 재현 가능한 자동화 단위로 정리하려고 했습니다.\n\n\n2026-05-10\nRuntimeGame/Proxy/Web 문서 분리와 홈페이지 이동\n서버 런타임 모듈별 문서를 분리하고, 별도 homepage 앱을 포트폴리오 저장소에 넣었습니다.\n\n\n2026-06-06 ~ 2026-06-08\nQuarto 기반 문서 출판과 PDF\n포트폴리오 문서를 GitHub Pages와 PDF 산출물로 반복 출판할 수 있는 구조를 만들었습니다.\n\n\n\n\n\n\n이 문서에서 사용하는 증거는 세 종류입니다.\n\n\n\n\n\n\n\n\n증거\n의미\n예시\n\n\n\n\n커밋 메시지\n그 시점에 어떤 문제를 다뤘는지 보여주는 작업 단위\ngit show --stat 818587c\n\n\n현재 파일\n지금도 유지되는 구현 또는 문서 근거\n.github/workflows/portfolio-image.yml, ops_api/main.py\n\n\n과거 파일\n추가했다가 정리한 원본/자동화 scaffold의 흔적\ngit show 85c8f49:03_FactionClash_Client/ClientPortfolio.qmd, git show 818587c:terraform/README.md\n\n\n\n초기 원본 파일은 2026-04-14 13f2411에서 Pages용 docs/ 중심으로 정리되며 삭제되었습니다. 따라서 최초 저장소의 범위를 확인할 때는 현재 파일 트리만 보지 말고 git show 85c8f49:&lt;path&gt; 형태로 과거 파일을 열어야 합니다.\n\n\n\n먼저 GitHub 계정 전체에서 확인되는 범위를 요약합니다. 이 표는 gh repo list mint-cocoa --limit 200으로 확인한 저장소 생성 이력 기준이며, fork나 archived 저장소는 구현 완료 증거가 아니라 관심사와 학습 이력의 보조 증거로만 취급합니다.\n\n\n\n\n\n\n\n\n축\n대표 저장소\n확인한 내용\n\n\n\n\n계정 전체 규모\n124개 저장소, owner 저장소 106개, active owner 저장소 64개\n포트폴리오 저장소 하나가 아니라 여러 해에 걸친 저장소 이력 위에 현재 문서를 얹고 있음을 보여줌\n\n\n언어 분포\nC++ 19개, Python 15개, TypeScript 12개, JavaScript 6개, HCL 2개\n서버/시스템 구현, API/자동화, 프론트엔드, IaC가 반복적으로 등장함\n\n\n2024 웹/API/MSA\nmint-cocoa.github.io, ticket-project, user-api, nest-project-root, api-userendpoint, msa_final\n웹 포트폴리오, API 서비스, MSA 구조, Python/TypeScript 백엔드 실습\n\n\n2025 C++ 서버\ntcpechoserver, gameserver_example, new_gameserver, ruk_example, mmoserver, logameserver, newnew_server\n2026년 ServerCore 문서 이전에도 C++ 네트워크/게임 서버 계열 저장소가 반복됨\n\n\n2026 서버 런타임\nlibiouring-server, libiouringweb, libiouring-core, multiplayer-dungeon-rpg-server, iouring-runtime\nio_uring 기반 서버 런타임을 별도 저장소로 분리하고 재구성한 흐름\n\n\n2026 운영/GitOps\nhome-k8s-gitops, ops-dashboard, mintcocoa-ops, portfolio\n홈랩 GitOps/IaC, 운영 대시보드, Pages/Quarto 출판 흐름\n\n\n\nportfolio-head 저장소 자체의 현재 이력은 merge를 제외해도 121개 커밋이며, 첫 커밋은 2026-04-09 85c8f49 Initial commit: Game server portfolio documents입니다. 이 저장소 안에서 확인되는 축은 다음입니다.\n\n\n\n\n\n\n\n\n축\n근거\n포트폴리오 표현\n\n\n\n\n게임 서버 런타임\n01_ServerCore_v4/, 이후 content/docs/1~6.*\nio_uring 기반 C++ 서버 런타임을 설계하고 성능/수명주기/버퍼/동시성 관점으로 문서화\n\n\n게임 클라이언트\n03_FactionClash_Client/ClientPortfolio.qmd, proto/battle.proto, src/*.cpp\nDirectX 11, Protobuf, WinSock2 기반 멀티플레이 클라이언트 구조를 설계/구현\n\n\n그래픽스 학습/설계\n02_SwarmDominion_DX11/SwarmDominion_DX11_Architecture.md\nDX11 렌더링 구조를 정리하고 DX12/SVO 확장 설계를 조사\n\n\n지원/자기소개 문서\n295be73, _pdf-defaults.yml, html2pdf.py, 한국어 자기소개/지원 문서\n기술 포트폴리오를 제출 가능한 문서 산출물로 다듬는 작업\n\n\n공개 페이지\n4469271, 6da88c6, docs/index.qmd, docs/portfolio.css\nGitHub Pages와 Quarto 문서 형식으로 포트폴리오 공개\n\n\n런타임 앱 검증\nb14ef51, 5de6893, src/main.cpp, RuntimeGame/Proxy/Web 문서\n서버 런타임을 웹/프록시/게임 앱 형태로 검증\n\n\n운영 대시보드\n10e7869, 2cd9acc, ops_api/main.py, dashboard/src/*\n홈랩 운영 상태를 API와 React/Vite 대시보드로 관측\n\n\n배포와 인프라\n.github/workflows/portfolio-image.yml, 818587c, deploy/*\nGitHub Actions, GHCR, GitOps, Kubernetes, Proxmox, NAS/NFS, Terraform/Ansible scaffold\n\n\n홈페이지 앱\naa333ae, homepage/src/main.tsx, homepage/public/thumbnails/*\n문서 목록만이 아니라 별도 Vite 홈페이지로 포트폴리오 진입점 구성\n\n\n출판 파이프라인\n275c1c4, scripts/prepare-servercore-docs.js, scripts/render-docs.sh\nMarkdown 원본에서 Quarto, Pages, PDF 산출물까지 재현 가능한 빌드\n\n\n\n\n\n\ngit log --all --reverse --date=short --pretty=format:\"%h`t%ad`t%s\"\n파일 단위 변화까지 함께 보려면 다음 명령을 사용합니다.\ngit log --all --reverse --date=short --pretty=format:\"COMMIT%x09%h%x09%ad%x09%s\" --name-status\nDevOps, 배포, 인프라 관련 이력만 좁혀 보려면 다음 명령을 사용할 수 있습니다.\ngit log --all --reverse --date=short --pretty=format:\"%h`t%ad`t%s\" -- `\n  .github Dockerfile src dashboard deploy ops_api scripts terraform ansible gitops docs/devops |\n  Select-String -Pattern \"devops|ops|proxmox|kubernetes|ci|deploy|gitops|argocd|terraform|ansible|proxy|route|dashboard\"\n\n\n\n\n\n\n\n\n\n\n주장\n근거 수준\n\n\n\n\n초기 저장소에는 ServerCore, SwarmDominion, FactionClash 자료가 함께 있었다\n강함\n\n\nFactionClash 클라이언트에는 DirectX 11, Protobuf, WinSock2, 씬 전환, 패킷 처리, 인스턴싱 렌더링 근거가 있었다\n강함. 다만 현재 파일 트리에서는 삭제되어 과거 커밋으로 확인해야 함\n\n\nSwarmDominion은 DX11 학습 문서와 DX12/SVO 렌더러 설계 자료로 정리되어 있었다\n강함. 구현 완료보다 조사/설계 성격이 강함\n\n\n자기소개/지원 문서와 PDF 변환 도구를 별도로 다듬었다\n강함\n\n\n게임 서버 기반에서 공통 네트워크 런타임으로 확장했다\n강함\n\n\nRuntimeWeb, RuntimeProxy, RuntimeGame 같은 앱 모듈로 검증했다\n강함\n\n\n개인 홈랩에서 Kubernetes, Proxmox, NAS, Prometheus 기반 운영 경로를 구성했다\n강함\n\n\nGitHub Actions, GHCR, GitOps, Argo CD, Kubernetes rollout을 배포 흐름으로 연결했다\n강함\n\n\nTerraform, Ansible/Kubespray, NFS PV backup을 자동화 scaffold로 정리했다\n강함. 다만 일부 파일은 이후 정리 커밋에서 제거됨\n\n\nVite 기반 홈페이지와 포트폴리오 썸네일 진입점을 만들었다\n강함\n\n\nMarkdown 원본, Quarto, Pages, PDF로 이어지는 출판 체계를 만들었다\n강함\n\n\nTailscale, Oracle Cloud, 친구들과 운영한 게임 서버 경험\n개발 배경으로 서술하고, 공개 문서에서는 외부 접근 경로, RuntimeProxy, route tree, GitOps, 운영 대시보드 증거와 연결해 설명\n\n\n\n\n\n\ngit show --stat 85c8f49\ngit ls-tree -r --name-only 85c8f49\ngit show 85c8f49:README.md\ngit show 85c8f49:01_ServerCore_v4/Benchmarks/v4-benchmark-report.md\ngit show 85c8f49:03_FactionClash_Client/ClientPortfolio.qmd\ngit show 85c8f49:02_SwarmDominion_DX11/SwarmDominion_DX11_Architecture.md",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "7. Git 이력으로 보는 전체 개발 흐름"
+    ]
+  },
+  {
+    "objectID": "docs/7.git-history-timeline.html#개발자로서의-변화",
+    "href": "docs/7.git-history-timeline.html#개발자로서의-변화",
+    "title": "7. Git 이력으로 보는 전체 개발 흐름",
+    "section": "",
+    "text": "초기 작업은 웹 프레임워크와 API를 익히는 단계에 가까웠습니다. 동시에 개인 Linux 환경에서 Docker 서비스들을 띄우고, 게임 서버나 개발 서버를 외부에서 안정적으로 접근할 수 있게 만드는 운영 문제에도 관심이 있었습니다. 이 과정에서 단순히 애플리케이션을 작성하는 것만으로는 충분하지 않고, 네트워크 경로, 배포 일관성, 저장소와 파일 관리, 장애 시 우회 경로까지 함께 설계해야 한다는 점을 경험했습니다.\n이후 MSA와 Kubernetes를 다루면서 서비스가 배포되고 관측되는 방식을 고민하기 시작했고, 2025년부터는 TCP 서버와 게임 서버 구현으로 관심사가 네트워크 런타임 내부로 내려갔습니다.\n2026년의 핵심 변화는 문제의 단위가 기능 구현에서 실행 모델 설계로 바뀌었다는 점입니다. 단순히 요청을 처리하는 서버가 아니라, 비동기 I/O 완료가 늦게 돌아오고, 세션 종료와 송신 재시도가 겹치며, 버퍼와 이벤트의 수명이 서로 다른 상황을 어떻게 안전하게 정리할 것인지가 중심 문제가 되었습니다. 즉, 예전부터 직접 운영하던 웹 서비스와 게임 서버의 요구가 C++ 서버 런타임 구현으로 내려갔고, 다시 그 런타임을 실제 Web/Proxy/Game 앱과 홈랩 배포 경로로 검증하는 흐름이 되었습니다.\n따라서 현재 포트폴리오의 주력 서사는 다음과 같이 정리됩니다.\n웹/백엔드 기초\n-&gt; Linux/Docker 기반 개인 서비스 운영\n-&gt; Python API와 MSA/Kubernetes\n-&gt; TCP 서버와 게임 서버 실험\n-&gt; C++ ServerCore와 io_uring 런타임\n-&gt; Web/Proxy/Game 실제 앱 검증\n-&gt; Proxmox/NAS/VPN/DNS/Proxy/GitOps 운영 구조\n-&gt; Quarto/PDF 출판\n이 흐름은 여러 기술을 흩어서 사용했다는 의미가 아닙니다. 점점 더 낮은 레벨의 서버 실행 기반으로 내려간 뒤, 다시 그 결과를 운영과 문서 출판까지 끌어올린 과정입니다.\n현재 개발자 정체성은 C++ 기반 고성능 게임 서버/runtime 개발을 중심으로, Linux 네트워크 I/O, Kubernetes/GitOps 운영, 문서화된 포트폴리오 출판까지 연결하는 시스템 지향 백엔드 개발자에 가깝습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "7. Git 이력으로 보는 전체 개발 흐름"
+    ]
+  },
+  {
+    "objectID": "docs/7.git-history-timeline.html#운영-경험을-전제로-한-재구성",
+    "href": "docs/7.git-history-timeline.html#운영-경험을-전제로-한-재구성",
+    "title": "7. Git 이력으로 보는 전체 개발 흐름",
+    "section": "",
+    "text": "이 포트폴리오의 운영 축은 나중에 붙인 장식이 아니라 프레임워크 개발의 검증 요구에서 출발합니다. 이전부터 Linux 위에서 Docker 서비스들을 실행하고, 친구들과 함께 사용할 게임 서버를 구성하면서 다음과 같은 문제가 반복되었습니다.\n\n\n\n\n\n\n\n\n운영 문제\n해결 방향\n포트폴리오에서 이어진 작업\n\n\n\n\n여러 개발 환경에서 빌드와 배포 결과가 달라짐\nGitHub Actions 기반 CI와 container image 빌드\n.github/workflows/portfolio-image.yml, GHCR image, GitOps image tag 갱신\n\n\n개인 서버의 파일과 상태를 안정적으로 관리해야 함\nProxmox 위 VM과 NAS 서비스, NFS/PV 백업 scaffold\nProxmox/Prometheus 운영 API, NFS PV backup CronJob\n\n\n외부에서 개발 서버나 게임 서버에 안전하게 접근해야 함\nTailscale VPN, 개인 도메인, Cloudflare DNS\n외부 접근 경로와 route tree를 런타임 문서에 반영\n\n\n홈 네트워크 장애나 단일 진입점 장애를 줄여야 함\nOracle Cloud VM을 프록시/로드밸런싱 경계로 사용\nRuntimeProxy, SNI route, upstream 분기 모델\n\n\n인프라 설정을 수동 기록으로만 남기기 어려움\nTerraform, Helm chart, GitOps repo로 desired state 관리\nhome-k8s-gitops, mintcocoa-ops, Terraform/Ansible/Kubespray scaffold\n\n\n\n따라서 ServerCore는 추상적인 프레임워크 실험으로만 작성된 것이 아닙니다. 직접 운영하던 웹 서비스와 게임 서버에서 필요했던 연결 수락, 프록시, 정적 파일 서빙, route 분기, 배포 일관성, 관측 가능성을 실제 검증 대상으로 삼기 위해 RuntimeWeb, RuntimeProxy, RuntimeGame, 운영 대시보드, GitOps 배포 흐름으로 확장되었습니다.\n핵심 흐름은 다음과 같습니다.\n\n\n\n\n\n\n\n\n시기\n단계\n증명할 수 있는 내용\n\n\n\n\n2021-08 ~ 2023-12\n초기 웹, Android, Next.js, Kubernetes 학습 저장소\nCALCDDAY, opensource_android23-1, my-nextjs-app, kubernetes-the-hard-way, flannel, metallb, argocd-example-apps 같은 저장소가 계정 이력의 초기 축을 이룹니다. fork 저장소는 개인 구현 증거가 아니라 학습/참조 흔적으로 분리합니다.\n\n\n2024-03 ~ 2024-12\n웹/API/MSA/인프라 실습 축\nticket-project, user-api, mint-cocoa.github.io, nest-project-root, api-userendpoint, msa_final, terraform, baseball_analysis 등으로 프론트엔드, Python API, MSA, IaC 실습이 이어집니다.\n\n\n2025-02 ~ 2025-12\nC++ 서버와 자동화 도구 축\ntcpechoserver, gameserver_example, new_gameserver, ruk_example, mmoserver, logameserver, newnew_server, youtube-backend, AI-cpp-debug 등으로 C++ 서버/네트워크와 Python/TypeScript 자동화 작업이 쌓입니다.\n\n\n2026-04-09 ~ 2026-04-14\n초기 포트폴리오 저장소 정리\nServerCore v4, SwarmDominion DX11/DX12 SVO 설계, FactionClash DX11 클라이언트가 한 저장소에 함께 있었습니다.\n\n\n2026-04-13\nPDF, HTML, 자기소개/지원 문서 정리\nServerCore와 FactionClash 문서를 PDF로 만들고, 자기소개서/지원 문서 변형과 HTML-to-PDF 도구를 추가했습니다.\n\n\n2026-04-13 ~ 2026-04-18\nGitHub Pages와 저장소 링크 정리\n초기 원본을 공개 문서 산출물 중심으로 정리하고, 이후 분리된 서버/클라이언트 저장소 링크를 포트폴리오에 연결했습니다.\n\n\n2026-04-09 ~ 2026-04-23\nServerCore 저장소 분리와 런타임 재구성\nlibiouring-server, game-client, libiouringweb, libiouring-core, multiplayer-dungeon-rpg-server, iouring-runtime으로 서버/클라이언트/런타임 저장소가 분리됩니다.\n\n\n2026-04-25 ~ 2026-04-27\nDevOps runtime site와 RuntimeWeb/RuntimeProxy 검증\n서버 런타임을 문서 설명에 머무르게 하지 않고 웹 서버, HTTPS 프록시, 운영 경로로 확장했습니다.\n\n\n2026-04-26 ~ 2026-04-29\n실시간 운영 대시보드와 Ops API\nProxmox, Prometheus, Kubernetes, C++ edge runtime 상태를 읽는 운영 API와 대시보드를 만들었습니다.\n\n\n2026-04-25 ~ 2026-06-04\nCI/CD, GitOps, route tree, 외부 접근 경로\nhome-k8s-gitops, ops-dashboard, mintcocoa-ops와 portfolio 이력에서 GitHub Actions, GHCR, GitOps repo, Argo CD, Kubernetes rollout을 하나의 배포 증거 흐름으로 묶었습니다.\n\n\n2026-04-28 ~ 2026-05-04\nTerraform, Ansible/Kubespray, NFS PV backup scaffold\n홈랩 인프라를 수동 설정 경험이 아니라 재현 가능한 자동화 단위로 정리하려고 했습니다.\n\n\n2026-05-10\nRuntimeGame/Proxy/Web 문서 분리와 홈페이지 이동\n서버 런타임 모듈별 문서를 분리하고, 별도 homepage 앱을 포트폴리오 저장소에 넣었습니다.\n\n\n2026-06-06 ~ 2026-06-08\nQuarto 기반 문서 출판과 PDF\n포트폴리오 문서를 GitHub Pages와 PDF 산출물로 반복 출판할 수 있는 구조를 만들었습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "7. Git 이력으로 보는 전체 개발 흐름"
+    ]
+  },
+  {
+    "objectID": "docs/7.git-history-timeline.html#확인-기준",
+    "href": "docs/7.git-history-timeline.html#확인-기준",
+    "title": "7. Git 이력으로 보는 전체 개발 흐름",
+    "section": "",
+    "text": "이 문서에서 사용하는 증거는 세 종류입니다.\n\n\n\n\n\n\n\n\n증거\n의미\n예시\n\n\n\n\n커밋 메시지\n그 시점에 어떤 문제를 다뤘는지 보여주는 작업 단위\ngit show --stat 818587c\n\n\n현재 파일\n지금도 유지되는 구현 또는 문서 근거\n.github/workflows/portfolio-image.yml, ops_api/main.py\n\n\n과거 파일\n추가했다가 정리한 원본/자동화 scaffold의 흔적\ngit show 85c8f49:03_FactionClash_Client/ClientPortfolio.qmd, git show 818587c:terraform/README.md\n\n\n\n초기 원본 파일은 2026-04-14 13f2411에서 Pages용 docs/ 중심으로 정리되며 삭제되었습니다. 따라서 최초 저장소의 범위를 확인할 때는 현재 파일 트리만 보지 말고 git show 85c8f49:&lt;path&gt; 형태로 과거 파일을 열어야 합니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "7. Git 이력으로 보는 전체 개발 흐름"
+    ]
+  },
+  {
+    "objectID": "docs/7.git-history-timeline.html#전체-저장소에서-확인한-큰-축",
+    "href": "docs/7.git-history-timeline.html#전체-저장소에서-확인한-큰-축",
+    "title": "7. Git 이력으로 보는 전체 개발 흐름",
+    "section": "",
+    "text": "먼저 GitHub 계정 전체에서 확인되는 범위를 요약합니다. 이 표는 gh repo list mint-cocoa --limit 200으로 확인한 저장소 생성 이력 기준이며, fork나 archived 저장소는 구현 완료 증거가 아니라 관심사와 학습 이력의 보조 증거로만 취급합니다.\n\n\n\n\n\n\n\n\n축\n대표 저장소\n확인한 내용\n\n\n\n\n계정 전체 규모\n124개 저장소, owner 저장소 106개, active owner 저장소 64개\n포트폴리오 저장소 하나가 아니라 여러 해에 걸친 저장소 이력 위에 현재 문서를 얹고 있음을 보여줌\n\n\n언어 분포\nC++ 19개, Python 15개, TypeScript 12개, JavaScript 6개, HCL 2개\n서버/시스템 구현, API/자동화, 프론트엔드, IaC가 반복적으로 등장함\n\n\n2024 웹/API/MSA\nmint-cocoa.github.io, ticket-project, user-api, nest-project-root, api-userendpoint, msa_final\n웹 포트폴리오, API 서비스, MSA 구조, Python/TypeScript 백엔드 실습\n\n\n2025 C++ 서버\ntcpechoserver, gameserver_example, new_gameserver, ruk_example, mmoserver, logameserver, newnew_server\n2026년 ServerCore 문서 이전에도 C++ 네트워크/게임 서버 계열 저장소가 반복됨\n\n\n2026 서버 런타임\nlibiouring-server, libiouringweb, libiouring-core, multiplayer-dungeon-rpg-server, iouring-runtime\nio_uring 기반 서버 런타임을 별도 저장소로 분리하고 재구성한 흐름\n\n\n2026 운영/GitOps\nhome-k8s-gitops, ops-dashboard, mintcocoa-ops, portfolio\n홈랩 GitOps/IaC, 운영 대시보드, Pages/Quarto 출판 흐름\n\n\n\nportfolio-head 저장소 자체의 현재 이력은 merge를 제외해도 121개 커밋이며, 첫 커밋은 2026-04-09 85c8f49 Initial commit: Game server portfolio documents입니다. 이 저장소 안에서 확인되는 축은 다음입니다.\n\n\n\n\n\n\n\n\n축\n근거\n포트폴리오 표현\n\n\n\n\n게임 서버 런타임\n01_ServerCore_v4/, 이후 content/docs/1~6.*\nio_uring 기반 C++ 서버 런타임을 설계하고 성능/수명주기/버퍼/동시성 관점으로 문서화\n\n\n게임 클라이언트\n03_FactionClash_Client/ClientPortfolio.qmd, proto/battle.proto, src/*.cpp\nDirectX 11, Protobuf, WinSock2 기반 멀티플레이 클라이언트 구조를 설계/구현\n\n\n그래픽스 학습/설계\n02_SwarmDominion_DX11/SwarmDominion_DX11_Architecture.md\nDX11 렌더링 구조를 정리하고 DX12/SVO 확장 설계를 조사\n\n\n지원/자기소개 문서\n295be73, _pdf-defaults.yml, html2pdf.py, 한국어 자기소개/지원 문서\n기술 포트폴리오를 제출 가능한 문서 산출물로 다듬는 작업\n\n\n공개 페이지\n4469271, 6da88c6, docs/index.qmd, docs/portfolio.css\nGitHub Pages와 Quarto 문서 형식으로 포트폴리오 공개\n\n\n런타임 앱 검증\nb14ef51, 5de6893, src/main.cpp, RuntimeGame/Proxy/Web 문서\n서버 런타임을 웹/프록시/게임 앱 형태로 검증\n\n\n운영 대시보드\n10e7869, 2cd9acc, ops_api/main.py, dashboard/src/*\n홈랩 운영 상태를 API와 React/Vite 대시보드로 관측\n\n\n배포와 인프라\n.github/workflows/portfolio-image.yml, 818587c, deploy/*\nGitHub Actions, GHCR, GitOps, Kubernetes, Proxmox, NAS/NFS, Terraform/Ansible scaffold\n\n\n홈페이지 앱\naa333ae, homepage/src/main.tsx, homepage/public/thumbnails/*\n문서 목록만이 아니라 별도 Vite 홈페이지로 포트폴리오 진입점 구성\n\n\n출판 파이프라인\n275c1c4, scripts/prepare-servercore-docs.js, scripts/render-docs.sh\nMarkdown 원본에서 Quarto, Pages, PDF 산출물까지 재현 가능한 빌드",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "7. Git 이력으로 보는 전체 개발 흐름"
+    ]
+  },
+  {
+    "objectID": "docs/7.git-history-timeline.html#전체-이력-확인-명령",
+    "href": "docs/7.git-history-timeline.html#전체-이력-확인-명령",
+    "title": "7. Git 이력으로 보는 전체 개발 흐름",
+    "section": "",
+    "text": "git log --all --reverse --date=short --pretty=format:\"%h`t%ad`t%s\"\n파일 단위 변화까지 함께 보려면 다음 명령을 사용합니다.\ngit log --all --reverse --date=short --pretty=format:\"COMMIT%x09%h%x09%ad%x09%s\" --name-status\nDevOps, 배포, 인프라 관련 이력만 좁혀 보려면 다음 명령을 사용할 수 있습니다.\ngit log --all --reverse --date=short --pretty=format:\"%h`t%ad`t%s\" -- `\n  .github Dockerfile src dashboard deploy ops_api scripts terraform ansible gitops docs/devops |\n  Select-String -Pattern \"devops|ops|proxmox|kubernetes|ci|deploy|gitops|argocd|terraform|ansible|proxy|route|dashboard\"",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "7. Git 이력으로 보는 전체 개발 흐름"
+    ]
+  },
+  {
+    "objectID": "docs/7.git-history-timeline.html#이-포트폴리오가-주장하는-범위",
+    "href": "docs/7.git-history-timeline.html#이-포트폴리오가-주장하는-범위",
+    "title": "7. Git 이력으로 보는 전체 개발 흐름",
+    "section": "",
+    "text": "주장\n근거 수준\n\n\n\n\n초기 저장소에는 ServerCore, SwarmDominion, FactionClash 자료가 함께 있었다\n강함\n\n\nFactionClash 클라이언트에는 DirectX 11, Protobuf, WinSock2, 씬 전환, 패킷 처리, 인스턴싱 렌더링 근거가 있었다\n강함. 다만 현재 파일 트리에서는 삭제되어 과거 커밋으로 확인해야 함\n\n\nSwarmDominion은 DX11 학습 문서와 DX12/SVO 렌더러 설계 자료로 정리되어 있었다\n강함. 구현 완료보다 조사/설계 성격이 강함\n\n\n자기소개/지원 문서와 PDF 변환 도구를 별도로 다듬었다\n강함\n\n\n게임 서버 기반에서 공통 네트워크 런타임으로 확장했다\n강함\n\n\nRuntimeWeb, RuntimeProxy, RuntimeGame 같은 앱 모듈로 검증했다\n강함\n\n\n개인 홈랩에서 Kubernetes, Proxmox, NAS, Prometheus 기반 운영 경로를 구성했다\n강함\n\n\nGitHub Actions, GHCR, GitOps, Argo CD, Kubernetes rollout을 배포 흐름으로 연결했다\n강함\n\n\nTerraform, Ansible/Kubespray, NFS PV backup을 자동화 scaffold로 정리했다\n강함. 다만 일부 파일은 이후 정리 커밋에서 제거됨\n\n\nVite 기반 홈페이지와 포트폴리오 썸네일 진입점을 만들었다\n강함\n\n\nMarkdown 원본, Quarto, Pages, PDF로 이어지는 출판 체계를 만들었다\n강함\n\n\nTailscale, Oracle Cloud, 친구들과 운영한 게임 서버 경험\n개발 배경으로 서술하고, 공개 문서에서는 외부 접근 경로, RuntimeProxy, route tree, GitOps, 운영 대시보드 증거와 연결해 설명",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "7. Git 이력으로 보는 전체 개발 흐름"
+    ]
+  },
+  {
+    "objectID": "docs/7.git-history-timeline.html#최초-커밋-인벤토리-확인-명령",
+    "href": "docs/7.git-history-timeline.html#최초-커밋-인벤토리-확인-명령",
+    "title": "7. Git 이력으로 보는 전체 개발 흐름",
+    "section": "",
+    "text": "git show --stat 85c8f49\ngit ls-tree -r --name-only 85c8f49\ngit show 85c8f49:README.md\ngit show 85c8f49:01_ServerCore_v4/Benchmarks/v4-benchmark-report.md\ngit show 85c8f49:03_FactionClash_Client/ClientPortfolio.qmd\ngit show 85c8f49:02_SwarmDominion_DX11/SwarmDominion_DX11_Architecture.md",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "7. Git 이력으로 보는 전체 개발 흐름"
+    ]
+  },
+  {
+    "objectID": "docs/9.runtime-app-validation.html",
+    "href": "docs/9.runtime-app-validation.html",
+    "title": "9. 프레임워크를 실제 앱으로 검증",
+    "section": "",
+    "text": "프레임워크 개발이 문서 설명에 머물지 않도록 웹 서버, 프록시 서버, 게임 서버 형태의 실제 앱으로 확장한 흔적은 2026년 4월 말부터 집중적으로 나타납니다.\n이 검증은 새로 만든 데모 앱을 억지로 붙인 것이 아니라, 이전부터 운영하던 Linux/Docker 기반 개인 서비스와 게임 서버 운영 경험에서 이어졌습니다. 여러 서비스를 Docker로 띄우고, 외부에서 개발 서버와 게임 서버에 접근하고, 개인 도메인과 DNS, VPN, proxy, Kubernetes ingress를 함께 다루다 보면 공통적으로 필요한 경계가 드러납니다.\n\n\n\n\n\n\n\n운영에서 반복된 요구\n런타임 검증 앱에서 확인한 것\n\n\n\n\n정적 문서와 웹 서비스를 직접 제공해야 함\nRuntimeWeb으로 HTTP 정적 파일 서빙과 Router를 검증\n\n\n외부 요청을 안전하게 내부 서비스로 분기해야 함\nRuntimeProxy로 SNI route, upstream 선택, timeout을 검증\n\n\n친구들과 사용할 게임 서버처럼 상태 있는 세션을 다뤄야 함\nRuntimeGame으로 패킷 프레이밍과 Room/JobQueue를 검증\n\n\n느린 peer나 장애 upstream이 전체 서버를 막으면 안 됨\nCore 송신 큐, backpressure, recv pause/resume 경계를 검증\n\n\n\n\n\n\n\n\n\n\n\n날짜\n커밋\n증명할 수 있는 내용\n\n\n\n\n2026-04-25\nb14ef51 add devops portfolio runtime site\nDevOps 포트폴리오를 런타임 사이트로 제공하는 실험이 시작됨\n\n\n2026-04-27\n3a7bf67 Clarify server runtime layering\nCore, Web, Proxy, Game의 계층 경계를 문서화\n\n\n2026-04-27\n18f6802 Reflect runtime module split in portfolio\n런타임 모듈 분리를 포트폴리오에 반영\n\n\n2026-04-27\n77d37fe Split server portfolio by runtime apps\nRuntimeWeb, RuntimeProxy, RuntimeGame을 별도 앱 관점으로 나누기 시작\n\n\n2026-04-27\n6f538fc Expose C++ edge runtime in ops dashboard\nC++ edge runtime을 운영 대시보드에 노출\n\n\n2026-04-27\n9891a94 Open runtime routes and link SNI hosts\nSNI host와 runtime route를 연결\n\n\n\n\n\nRuntimeWeb은 정적 문서와 포트폴리오 페이지를 제공하는 웹 서버 경로로 검증되었습니다. RuntimeProxy는 외부 HTTPS 요청이 들어왔을 때 SNI와 route tree를 기준으로 upstream을 선택하는 프록시 경로로 검증되었습니다. RuntimeGame은 TCP stream 위에서 패킷 경계를 복원하고 Room 단위로 상태 변경을 직렬화하는 게임 서버 경로로 검증되었습니다.\n현재 dashboard/src/DevOpsInlinePortfolio.jsx에는 다음 근거가 남아 있습니다.\n\n\n\n\n\n\n\n파일 위치\n근거\n\n\n\n\ndestinationLabels\nDocker / local, Kubernetes ingress, Kubernetes API HA 같은 upstream 분류\n\n\nRouteTopologyFlow\nedge proxy에서 destination별 route를 시각화\n\n\ntraffic path rows\nClient, Home Router, Edge Mini PC, Runtime Proxy, SNI Route, Ingress, Workload 순서\n\n\nsummary copy\nC++ io_uring 서버 런타임 위에 웹 서버와 HTTPS reverse proxy를 구현했다는 설명\n\n\n\n\n\n\n게임 서버용으로 시작한 io_uring 기반 Core 런타임을 HTTP 정적 파일 서빙과 HTTPS reverse proxy 경로로 확장했습니다.\n외부 요청은 개인 도메인과 SNI route를 통해 RuntimeProxy에 들어오고, RuntimeProxy는 Docker/local service,\nRuntimeWeb, Kubernetes ingress 중 실제 upstream으로 분기하도록 구성했습니다.\n\n이 구조는 이전부터 Docker 서비스와 게임 서버를 직접 운영하면서 겪은 요구를 프레임워크 검증 대상으로 바꾼 것입니다.\n웹 서비스는 RuntimeWeb으로, 외부 진입 경로와 장애 격리는 RuntimeProxy로, 상태 있는 게임 세션은 RuntimeGame으로 나누어\nCore 런타임의 수명주기, 버퍼, 송신 순서, backpressure 규칙을 실제 사용 경로에서 확인했습니다.\n\n\n\ngit show --stat b14ef51\ngit show --stat 6f538fc\ngit show --stat 9891a94\ngit grep -n -i \"RuntimeProxy\\|SNI\\|edge proxy\\|Kubernetes ingress\" HEAD -- dashboard/src/DevOpsInlinePortfolio.jsx dashboard/src/components/EdgeRuntimePanel.jsx",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "9. 프레임워크를 실제 앱으로 검증"
+    ]
+  },
+  {
+    "objectID": "docs/9.runtime-app-validation.html#검증-방식",
+    "href": "docs/9.runtime-app-validation.html#검증-방식",
+    "title": "9. 프레임워크를 실제 앱으로 검증",
+    "section": "",
+    "text": "RuntimeWeb은 정적 문서와 포트폴리오 페이지를 제공하는 웹 서버 경로로 검증되었습니다. RuntimeProxy는 외부 HTTPS 요청이 들어왔을 때 SNI와 route tree를 기준으로 upstream을 선택하는 프록시 경로로 검증되었습니다. RuntimeGame은 TCP stream 위에서 패킷 경계를 복원하고 Room 단위로 상태 변경을 직렬화하는 게임 서버 경로로 검증되었습니다.\n현재 dashboard/src/DevOpsInlinePortfolio.jsx에는 다음 근거가 남아 있습니다.\n\n\n\n\n\n\n\n파일 위치\n근거\n\n\n\n\ndestinationLabels\nDocker / local, Kubernetes ingress, Kubernetes API HA 같은 upstream 분류\n\n\nRouteTopologyFlow\nedge proxy에서 destination별 route를 시각화\n\n\ntraffic path rows\nClient, Home Router, Edge Mini PC, Runtime Proxy, SNI Route, Ingress, Workload 순서\n\n\nsummary copy\nC++ io_uring 서버 런타임 위에 웹 서버와 HTTPS reverse proxy를 구현했다는 설명",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "9. 프레임워크를 실제 앱으로 검증"
+    ]
+  },
+  {
+    "objectID": "docs/9.runtime-app-validation.html#포트폴리오-문장으로-정리",
+    "href": "docs/9.runtime-app-validation.html#포트폴리오-문장으로-정리",
+    "title": "9. 프레임워크를 실제 앱으로 검증",
+    "section": "",
+    "text": "게임 서버용으로 시작한 io_uring 기반 Core 런타임을 HTTP 정적 파일 서빙과 HTTPS reverse proxy 경로로 확장했습니다.\n외부 요청은 개인 도메인과 SNI route를 통해 RuntimeProxy에 들어오고, RuntimeProxy는 Docker/local service,\nRuntimeWeb, Kubernetes ingress 중 실제 upstream으로 분기하도록 구성했습니다.\n\n이 구조는 이전부터 Docker 서비스와 게임 서버를 직접 운영하면서 겪은 요구를 프레임워크 검증 대상으로 바꾼 것입니다.\n웹 서비스는 RuntimeWeb으로, 외부 진입 경로와 장애 격리는 RuntimeProxy로, 상태 있는 게임 세션은 RuntimeGame으로 나누어\nCore 런타임의 수명주기, 버퍼, 송신 순서, backpressure 규칙을 실제 사용 경로에서 확인했습니다.",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "9. 프레임워크를 실제 앱으로 검증"
+    ]
+  },
+  {
+    "objectID": "docs/9.runtime-app-validation.html#확인-명령",
+    "href": "docs/9.runtime-app-validation.html#확인-명령",
+    "title": "9. 프레임워크를 실제 앱으로 검증",
+    "section": "",
+    "text": "git show --stat b14ef51\ngit show --stat 6f538fc\ngit show --stat 9891a94\ngit grep -n -i \"RuntimeProxy\\|SNI\\|edge proxy\\|Kubernetes ingress\" HEAD -- dashboard/src/DevOpsInlinePortfolio.jsx dashboard/src/components/EdgeRuntimePanel.jsx",
+    "crumbs": [
+      "문서",
+      "Docs",
+      "9. 프레임워크를 실제 앱으로 검증"
+    ]
+  }
+]

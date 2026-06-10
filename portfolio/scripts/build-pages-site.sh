@@ -14,6 +14,9 @@ touch "$site_dir/.nojekyll"
 
 test -f "$site_dir/index.html"
 test -f "$site_dir/server/ServerCorePortfolio.html"
+test -f "$site_dir/servercore/index.html"
+test -f "$site_dir/servercore/docs/1.overview.html"
+test -f "$site_dir/servercore/docs/11.cicd-gitops-infra.html"
 test -f "$site_dir/server/SessionLifecycleVisualizer.html"
 test -f "$site_dir/server/RuntimeWebPortfolio.html"
 test -f "$site_dir/server/RuntimeProxyPortfolio.html"
@@ -27,7 +30,7 @@ if find "$site_dir" -type f \( -name '*.qmd' -o -name '*.md' \) | grep -q .; the
   exit 1
 fi
 
-if find "$site_dir" -type d \( -name '.venv' -o -name '_servercore' \) | grep -q .; then
+if find "$site_dir" -type d \( -name '.venv' -o -name '_servercore' -o -name 'generated-quarto' \) | grep -q .; then
   echo "authoring-only directories leaked into _site" >&2
   exit 1
 fi

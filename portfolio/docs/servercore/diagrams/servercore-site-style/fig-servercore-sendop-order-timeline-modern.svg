@@ -1,0 +1,835 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1200"
+   height="760"
+   viewBox="0 0 1200 760"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg63"
+   sodipodi:docname="fig-servercore-sendop-order-timeline-modern.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview63"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.3368421"
+     inkscape:cx="600.16892"
+     inkscape:cy="380"
+     inkscape:window-width="3840"
+     inkscape:window-height="2036"
+     inkscape:window-x="3572"
+     inkscape:window-y="-12"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg63" />
+  <title
+     id="title">Modern single active SendOp timeline</title>
+  <desc
+     id="desc">A modernized comparison diagram showing that multiple active SendOps can split payload FIFO order from completion order, while a single active SendOp keeps partial cursor progress and FIFO order on one timeline.</desc>
+  <defs
+     id="defs2">
+    <marker markerUnits="userSpaceOnUse"
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="7"
+       markerHeight="7"
+       orient="auto">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#334155"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path1" />
+    </marker>
+    <marker markerUnits="userSpaceOnUse"
+       id="redArrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="7"
+       markerHeight="7"
+       orient="auto">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#dc2626"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path2" />
+    </marker>
+    <style
+       id="style2">
+      .bg{fill:#f8fafc}.card{fill:#fff;stroke:#d8e1ec;stroke-width:1.2}.surface{fill:#f1f5f9;stroke:#d8e1ec;stroke-width:1}.good{fill:#ecfdf5;stroke:#0f766e;stroke-width:1.6}.bad{fill:#fff1f2;stroke:#dc2626;stroke-width:1.6}.lane{fill:#f8fafc;stroke:#d8e1ec;stroke-width:1}.a{fill:#dbeafe;stroke:#2563eb}.b{fill:#ccfbf1;stroke:#0f766e}.c{fill:#fef3c7;stroke:#d97706}.ok{fill:#dcfce7;stroke:#16a34a}.warn{fill:#fee2e2;stroke:#dc2626}.ghost{fill:#fff;stroke:#cbd5e1}.h{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:700}.s{font-family:Segoe UI,Arial,sans-serif;fill:#475569;font-size:15px}.t{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:18px;font-weight:700}.label{font-family:Segoe UI,Arial,sans-serif;fill:#334155;font-size:14px}.xs{font-family:Segoe UI,Arial,sans-serif;fill:#64748b;font-size:12px}.mini{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:12px;font-weight:700}.flow{stroke:#334155;stroke-width:2.2;fill:none;marker-end:url(#arrow)}.badFlow{stroke:#dc2626;stroke-width:2.2;fill:none;marker-end:url(#redArrow)}.tick{stroke:#cbd5e1;stroke-width:1.4;stroke-dasharray:5 7}.soft{stroke:#94a3b8;stroke-width:1.4;fill:none;stroke-dasharray:6 7}.rule{stroke:#cbd5e1;stroke-width:1.2}
+    </style>
+  </defs>
+  <rect
+     class="bg"
+     width="1200"
+     height="760"
+     id="rect2" />
+  <text
+     class="h"
+     x="48"
+     y="58"
+     id="text2">SendOp 순서는 하나의 active cursor로 묶는다</text>
+  <text
+     class="s"
+     x="50"
+     y="90"
+     id="text3">여러 payload가 대기해도 socket에 제출되는 SendOp는 하나만 두어, partial 완료와 FIFO 순서가 같은 기준을 보게함.</text>
+  <path
+     class="flow"
+     d="M 170 126 L 1110 126"
+     id="path3" />
+  <text
+     class="xs"
+     x="1042"
+     y="112"
+     id="text4">time</text>
+  <line
+     class="tick"
+     x1="324"
+     y1="116"
+     x2="324"
+     y2="690"
+     id="line4" />
+  <line
+     class="tick"
+     x1="520"
+     y1="116"
+     x2="520"
+     y2="690"
+     id="line5" />
+  <line
+     class="tick"
+     x1="716"
+     y1="116"
+     x2="716"
+     y2="690"
+     id="line6" />
+  <line
+     class="tick"
+     x1="912"
+     y1="116"
+     x2="912"
+     y2="690"
+     id="line7" />
+  <rect
+     class="card"
+     x="42.015919"
+     y="154.01591"
+     width="1115.9681"
+     height="250.806"
+     rx="9.9997149"
+     id="rect7" />
+  <rect
+     class="bad"
+     x="64"
+     y="174"
+     width="244"
+     height="44"
+     rx="8"
+     id="rect8" />
+  <text
+     class="t"
+     x="84"
+     y="202"
+     id="text8">여러 active SendOp</text>
+  <text
+     class="s"
+     x="328"
+     y="201"
+     id="text9">A가 끝나기 전에 B/C가 커널 write 경로로 들어가면 완료 순서와 FIFO 기준이 분리.</text>
+  <text
+     class="label"
+     x="78"
+     y="258"
+     id="text10">payload FIFO</text>
+  <rect
+     class="lane"
+     x="172"
+     y="234"
+     width="958"
+     height="44"
+     rx="7"
+     id="rect10" />
+  <rect
+     class="a"
+     x="210"
+     y="244"
+     width="70"
+     height="24"
+     rx="4"
+     id="rect11" />
+  <text
+     class="mini"
+     x="236"
+     y="261"
+     id="text11">A</text>
+  <rect
+     class="b"
+     x="296"
+     y="244"
+     width="70"
+     height="24"
+     rx="4"
+     id="rect12" />
+  <text
+     class="mini"
+     x="322"
+     y="261"
+     id="text12">B</text>
+  <rect
+     class="c"
+     x="382"
+     y="244"
+     width="70"
+     height="24"
+     rx="4"
+     id="rect13" />
+  <text
+     class="mini"
+     x="408"
+     y="261"
+     id="text13">C</text>
+  <text
+     class="xs"
+     x="480"
+     y="260"
+     id="text14">대기열은 A -&gt; B -&gt; C</text>
+  <text
+     class="label"
+     x="78"
+     y="316"
+     id="text15">kernel writes</text>
+  <rect
+     class="lane"
+     x="172"
+     y="292"
+     width="958"
+     height="54"
+     rx="7"
+     id="rect15" />
+  <rect
+     class="a"
+     x="260"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect16" />
+  <text
+     class="mini"
+     x="269"
+     y="323"
+     id="text16">A0</text>
+  <rect
+     class="a"
+     x="308"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect17" />
+  <text
+     class="mini"
+     x="317"
+     y="323"
+     id="text17">A1</text>
+  <path
+     class="badFlow"
+     d="M 353.87387,317.14414 C 464.87387,293.14414 574,294 680,318"
+     id="path17"
+     sodipodi:nodetypes="cc" />
+  <rect
+     class="a"
+     x="690"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect18" />
+  <text
+     class="mini"
+     x="699"
+     y="323"
+     id="text18">A2</text>
+  <rect
+     class="a"
+     x="738"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect19" />
+  <text
+     class="mini"
+     x="747"
+     y="323"
+     id="text19">A3</text>
+  <rect
+     class="b"
+     x="430"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect20" />
+  <text
+     class="mini"
+     x="439"
+     y="323"
+     id="text20">B0</text>
+  <rect
+     class="b"
+     x="478"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect21" />
+  <text
+     class="mini"
+     x="487"
+     y="323"
+     id="text21">B1</text>
+  <rect
+     class="b"
+     x="526"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect22" />
+  <text
+     class="mini"
+     x="535"
+     y="323"
+     id="text22">B2</text>
+  <rect
+     class="c"
+     x="812"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect23" />
+  <text
+     class="mini"
+     x="821"
+     y="323"
+     id="text23">C0</text>
+  <rect
+     class="c"
+     x="860"
+     y="306"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect24" />
+  <text
+     class="mini"
+     x="869"
+     y="323"
+     id="text24">C1</text>
+  <text
+     class="label"
+     x="78"
+     y="372"
+     id="text25">receiver</text>
+  <rect
+     class="lane"
+     x="172"
+     y="356"
+     width="958"
+     height="36"
+     rx="7"
+     id="rect25" />
+  <rect
+     class="a"
+     x="260"
+     y="364"
+     width="40"
+     height="20"
+     rx="4"
+     id="rect26" />
+  <text
+     class="mini"
+     x="268"
+     y="379"
+     id="text26">A0</text>
+  <rect
+     class="a"
+     x="304"
+     y="364"
+     width="40"
+     height="20"
+     rx="4"
+     id="rect27" />
+  <text
+     class="mini"
+     x="312"
+     y="379"
+     id="text27">A1</text>
+  <text
+     class="mini"
+     x="374"
+     y="379"
+     id="text28">?</text>
+  <rect
+     class="b"
+     x="430"
+     y="364"
+     width="40"
+     height="20"
+     rx="4"
+     id="rect28" />
+  <text
+     class="mini"
+     x="438"
+     y="379"
+     id="text29">B0</text>
+  <rect
+     class="b"
+     x="474"
+     y="364"
+     width="40"
+     height="20"
+     rx="4"
+     id="rect29" />
+  <text
+     class="mini"
+     x="482"
+     y="379"
+     id="text30">B1</text>
+  <rect
+     class="b"
+     x="518"
+     y="364"
+     width="40"
+     height="20"
+     rx="4"
+     id="rect30" />
+  <text
+     class="mini"
+     x="526"
+     y="379"
+     id="text31">B2</text>
+  <rect
+     class="c"
+     x="812"
+     y="364"
+     width="40"
+     height="20"
+     rx="4"
+     id="rect31" />
+  <text
+     class="mini"
+     x="820"
+     y="379"
+     id="text32">C0</text>
+  <rect
+     class="c"
+     x="856"
+     y="364"
+     width="40"
+     height="20"
+     rx="4"
+     id="rect32" />
+  <text
+     class="mini"
+     x="864"
+     y="379"
+     id="text33">C1</text>
+  <text
+     class="mini"
+     x="928"
+     y="379"
+     id="text34">?</text>
+  <rect
+     class="card"
+     x="42"
+     y="426"
+     width="1116"
+     height="270"
+     rx="10"
+     id="rect34" />
+  <rect
+     class="good"
+     x="64"
+     y="446"
+     width="260"
+     height="44"
+     rx="8"
+     id="rect35" />
+  <text
+     class="t"
+     x="84"
+     y="474"
+     id="text35">단일 active SendOp</text>
+  <text
+     class="s"
+     x="344"
+     y="473"
+     id="text36">partial tail이 끝날 때까지 다음 payload는 queue에 남고, 완료 byte 수만 cursor를 전진</text>
+  <text
+     class="label"
+     x="78"
+     y="534"
+     id="text37">SendQueue</text>
+  <rect
+     class="lane"
+     x="172"
+     y="510"
+     width="958"
+     height="44"
+     rx="7"
+     id="rect37" />
+  <rect
+     class="a"
+     x="210"
+     y="520"
+     width="70"
+     height="24"
+     rx="4"
+     id="rect38" />
+  <text
+     class="mini"
+     x="236"
+     y="537"
+     id="text38">A</text>
+  <rect
+     class="b"
+     x="296"
+     y="520"
+     width="70"
+     height="24"
+     rx="4"
+     id="rect39" />
+  <text
+     class="mini"
+     x="322"
+     y="537"
+     id="text39">B</text>
+  <rect
+     class="c"
+     x="382"
+     y="520"
+     width="70"
+     height="24"
+     rx="4"
+     id="rect40" />
+  <text
+     class="mini"
+     x="408"
+     y="537"
+     id="text40">C</text>
+  <text
+     class="xs"
+     x="480"
+     y="536"
+     id="text41">B/C는 A가 끝나기 전까지 제출되지 않음</text>
+  <text
+     class="label"
+     x="78"
+     y="596"
+     id="text42">ActiveSendOp</text>
+  <rect
+     class="lane"
+     x="172"
+     y="572"
+     width="958"
+     height="44"
+     rx="7"
+     id="rect42" />
+  <rect
+     class="a"
+     x="260"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect43" />
+  <text
+     class="mini"
+     x="269"
+     y="599"
+     id="text43">A0</text>
+  <rect
+     class="a"
+     x="308"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect44" />
+  <text
+     class="mini"
+     x="317"
+     y="599"
+     id="text44">A1</text>
+  <path
+     class="flow"
+     d="M 352 594 L 410 594"
+     id="path44" />
+  <rect
+     class="ok"
+     x="416"
+     y="582"
+     width="88"
+     height="24"
+     rx="4"
+     id="rect45" />
+  <text
+     class="mini"
+     x="434"
+     y="599"
+     id="text45">partial</text>
+  <path
+     class="flow"
+     d="M 504 594 L 542 594"
+     id="path45" />
+  <rect
+     class="a"
+     x="548"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect46" />
+  <text
+     class="mini"
+     x="557"
+     y="599"
+     id="text46">A2</text>
+  <rect
+     class="a"
+     x="596"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect47" />
+  <text
+     class="mini"
+     x="605"
+     y="599"
+     id="text47">A3</text>
+  <path
+     class="flow"
+     d="M 640 594 L 700 594"
+     id="path47" />
+  <rect
+     class="b"
+     x="706"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect48" />
+  <text
+     class="mini"
+     x="715"
+     y="599"
+     id="text48">B0</text>
+  <rect
+     class="b"
+     x="754"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect49" />
+  <text
+     class="mini"
+     x="763"
+     y="599"
+     id="text49">B1</text>
+  <rect
+     class="b"
+     x="802"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect50" />
+  <text
+     class="mini"
+     x="811"
+     y="599"
+     id="text50">B2</text>
+  <path
+     class="flow"
+     d="M 846 594 L 924 594"
+     id="path50" />
+  <rect
+     class="c"
+     x="930"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect51" />
+  <text
+     class="mini"
+     x="939"
+     y="599"
+     id="text51">C0</text>
+  <rect
+     class="c"
+     x="978"
+     y="582"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect52" />
+  <text
+     class="mini"
+     x="987"
+     y="599"
+     id="text52">C1</text>
+  <text
+     class="label"
+     x="78"
+     y="658"
+     id="text53">receiver</text>
+  <rect
+     class="lane"
+     x="172"
+     y="634"
+     width="958"
+     height="44"
+     rx="7"
+     id="rect53" />
+  <rect
+     class="a"
+     x="260"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect54" />
+  <text
+     class="mini"
+     x="269"
+     y="661"
+     id="text54">A0</text>
+  <rect
+     class="a"
+     x="308"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect55" />
+  <text
+     class="mini"
+     x="317"
+     y="661"
+     id="text55">A1</text>
+  <rect
+     class="a"
+     x="548"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect56" />
+  <text
+     class="mini"
+     x="557"
+     y="661"
+     id="text56">A2</text>
+  <rect
+     class="a"
+     x="596"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect57" />
+  <text
+     class="mini"
+     x="605"
+     y="661"
+     id="text57">A3</text>
+  <rect
+     class="b"
+     x="706"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect58" />
+  <text
+     class="mini"
+     x="715"
+     y="661"
+     id="text58">B0</text>
+  <rect
+     class="b"
+     x="754"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect59" />
+  <text
+     class="mini"
+     x="763"
+     y="661"
+     id="text59">B1</text>
+  <rect
+     class="b"
+     x="802"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect60" />
+  <text
+     class="mini"
+     x="811"
+     y="661"
+     id="text60">B2</text>
+  <rect
+     class="c"
+     x="930"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect61" />
+  <text
+     class="mini"
+     x="939"
+     y="661"
+     id="text61">C0</text>
+  <rect
+     class="c"
+     x="978"
+     y="644"
+     width="44"
+     height="24"
+     rx="4"
+     id="rect62" />
+  <text
+     class="mini"
+     x="987"
+     y="661"
+     id="text62">C1</text>
+</svg>
