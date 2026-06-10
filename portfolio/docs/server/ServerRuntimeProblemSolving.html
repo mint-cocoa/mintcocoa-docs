@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="배진후">
+
+<title>서버 Runtime 문제 해결 노트</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="ServerRuntimeProblemSolving_files/libs/clipboard/clipboard.min.js"></script>
+<script src="ServerRuntimeProblemSolving_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="ServerRuntimeProblemSolving_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="ServerRuntimeProblemSolving_files/libs/quarto-html/popper.min.js"></script>
+<script src="ServerRuntimeProblemSolving_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="ServerRuntimeProblemSolving_files/libs/quarto-html/anchor.min.js"></script>
+<link href="ServerRuntimeProblemSolving_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="ServerRuntimeProblemSolving_files/libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="ServerRuntimeProblemSolving_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="ServerRuntimeProblemSolving_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="ServerRuntimeProblemSolving_files/libs/bootstrap/bootstrap-7f30639710f116130999550e0f11b8b7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<meta name="mermaid-theme" content="neutral">
+<script src="ServerRuntimeProblemSolving_files/libs/quarto-diagram/mermaid.min.js"></script>
+<script src="ServerRuntimeProblemSolving_files/libs/quarto-diagram/mermaid-init.js"></script>
+<link href="ServerRuntimeProblemSolving_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../portfolio.css">
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">목차</h2>
+   
+  <ul>
+  <li><a href="#문서-목적" id="toc-문서-목적" class="nav-link active" data-scroll-target="#문서-목적"><span class="header-section-number">1</span> 문서 목적</a></li>
+  <li><a href="#한눈에-보는-문제와-해결" id="toc-한눈에-보는-문제와-해결" class="nav-link" data-scroll-target="#한눈에-보는-문제와-해결"><span class="header-section-number">2</span> 한눈에 보는 문제와 해결</a></li>
+  <li><a href="#세션-수명관리-segfault와-uaf" id="toc-세션-수명관리-segfault와-uaf" class="nav-link" data-scroll-target="#세션-수명관리-segfault와-uaf"><span class="header-section-number">3</span> 세션 수명관리: SEGFAULT와 UAF</a>
+  <ul class="collapse">
+  <li><a href="#문제상황" id="toc-문제상황" class="nav-link" data-scroll-target="#문제상황"><span class="header-section-number">3.1</span> 문제상황</a></li>
+  <li><a href="#해결-방식" id="toc-해결-방식" class="nav-link" data-scroll-target="#해결-방식"><span class="header-section-number">3.2</span> 해결 방식</a></li>
+  </ul></li>
+  <li><a href="#부분-수신-provided-buffer와-packet-reassembly" id="toc-부분-수신-provided-buffer와-packet-reassembly" class="nav-link" data-scroll-target="#부분-수신-provided-buffer와-packet-reassembly"><span class="header-section-number">4</span> 부분 수신: Provided Buffer와 Packet Reassembly</a>
+  <ul class="collapse">
+  <li><a href="#문제상황-1" id="toc-문제상황-1" class="nav-link" data-scroll-target="#문제상황-1"><span class="header-section-number">4.1</span> 문제상황</a></li>
+  <li><a href="#해결-방식-1" id="toc-해결-방식-1" class="nav-link" data-scroll-target="#해결-방식-1"><span class="header-section-number">4.2</span> 해결 방식</a></li>
+  </ul></li>
+  <li><a href="#부분-송신-sendop와-short-write-retry" id="toc-부분-송신-sendop와-short-write-retry" class="nav-link" data-scroll-target="#부분-송신-sendop와-short-write-retry"><span class="header-section-number">5</span> 부분 송신: SendOp와 Short Write Retry</a>
+  <ul class="collapse">
+  <li><a href="#문제상황-2" id="toc-문제상황-2" class="nav-link" data-scroll-target="#문제상황-2"><span class="header-section-number">5.1</span> 문제상황</a></li>
+  <li><a href="#해결-방식-2" id="toc-해결-방식-2" class="nav-link" data-scroll-target="#해결-방식-2"><span class="header-section-number">5.2</span> 해결 방식</a></li>
+  </ul></li>
+  <li><a href="#send-buffer-chunk-적재" id="toc-send-buffer-chunk-적재" class="nav-link" data-scroll-target="#send-buffer-chunk-적재"><span class="header-section-number">6</span> Send Buffer Chunk 적재</a>
+  <ul class="collapse">
+  <li><a href="#문제상황-3" id="toc-문제상황-3" class="nav-link" data-scroll-target="#문제상황-3"><span class="header-section-number">6.1</span> 문제상황</a></li>
+  <li><a href="#해결-방식-3" id="toc-해결-방식-3" class="nav-link" data-scroll-target="#해결-방식-3"><span class="header-section-number">6.2</span> 해결 방식</a></li>
+  </ul></li>
+  <li><a href="#타-ring-메시지-전달-msg_ring" id="toc-타-ring-메시지-전달-msg_ring" class="nav-link" data-scroll-target="#타-ring-메시지-전달-msg_ring"><span class="header-section-number">7</span> 타 Ring 메시지 전달: MSG_RING</a>
+  <ul class="collapse">
+  <li><a href="#문제상황-4" id="toc-문제상황-4" class="nav-link" data-scroll-target="#문제상황-4"><span class="header-section-number">7.1</span> 문제상황</a></li>
+  <li><a href="#해결-방식-4" id="toc-해결-방식-4" class="nav-link" data-scroll-target="#해결-방식-4"><span class="header-section-number">7.2</span> 해결 방식</a></li>
+  </ul></li>
+  <li><a href="#전체-흐름으로-다시-보기" id="toc-전체-흐름으로-다시-보기" class="nav-link" data-scroll-target="#전체-흐름으로-다시-보기"><span class="header-section-number">8</span> 전체 흐름으로 다시 보기</a></li>
+  <li><a href="#발표용-요약" id="toc-발표용-요약" class="nav-link" data-scroll-target="#발표용-요약"><span class="header-section-number">9</span> 발표용 요약</a></li>
+  <li><a href="#관련-문서" id="toc-관련-문서" class="nav-link" data-scroll-target="#관련-문서"><span class="header-section-number">10</span> 관련 문서</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">서버 Runtime 문제 해결 노트</h1>
+<p class="subtitle lead">세션 수명, 부분 송수신, MSG_RING, send buffer chunk 적재 정리</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">저자</div>
+    <div class="quarto-title-meta-contents">
+             <p>배진후 </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="문서-목적" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="문서-목적"><span class="header-section-number">1</span> 문서 목적</h2>
+<p>이 문서는 <code>ServerCorePortfolio</code>와 <code>RuntimeGame</code> 문서에 나뉘어 있던 서버 Runtime의 핵심 문제 해결 과정을 한 문서로 모은 것입니다. 전체 아키텍처나 모듈 소개보다, 실제 구현 중 문제가 되었던 지점과 그 해결 방식을 설명하는 데 집중합니다.</p>
+<p>다루는 주제는 네 가지입니다.</p>
+<div class="summary-grid">
+<div class="summary-card">
+<p><strong>Lifecycle</strong></p>
+<p>세션 종료 중 뒤늦은 CQE로 발생하는 SEGFAULT/UAF 방지</p>
+</div>
+<div class="summary-card">
+<p><strong>Partial I/O</strong></p>
+<p>TCP stream 단편 수신과 partial send 재시도</p>
+</div>
+<div class="summary-card">
+<p><strong>Buffer</strong></p>
+<p>send buffer chunk에 작은 payload 여러 개를 적재하는 방식</p>
+</div>
+<div class="summary-card">
+<p><strong>Cross Ring</strong></p>
+<p><code>MSG_RING</code> 기반 타 ring task 전달</p>
+</div>
+</div>
+</section>
+<section id="한눈에-보는-문제와-해결" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="한눈에-보는-문제와-해결"><span class="header-section-number">2</span> 한눈에 보는 문제와 해결</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 37%">
+<col style="width: 40%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>영역</th>
+<th>문제상황</th>
+<th>해결 방식</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>세션 수명</td>
+<td>연결 종료 후에도 kernel에 recv/send/timeout/cancel SQE가 남아 있어 늦은 CQE가 이미 해제된 <code>Session</code>을 참조</td>
+<td>SQE마다 heap op context를 두고 <code>IoEvent</code>가 owner와 buffer 수명을 CQE까지 유지</td>
+</tr>
+<tr class="even">
+<td>cancel race</td>
+<td>cancel 요청 CQE와 cancel 대상 op CQE가 별도로 오며 순서도 보장되지 않음</td>
+<td>cancel op와 target op를 분리해서 각각 drain</td>
+</tr>
+<tr class="odd">
+<td>부분 수신</td>
+<td>TCP는 message boundary가 없어 패킷이 여러 recv CQE로 나뉨</td>
+<td><code>PacketSession</code>이 <code>RecvBuffer</code>에 누적하고 완전한 패킷만 dispatch</td>
+</tr>
+<tr class="even">
+<td>buffer 고갈</td>
+<td>Provided Buffer가 소진되면 <code>ENOBUFS</code>와 함께 Multishot Recv가 해제될 수 있음</td>
+<td>CQE 상태 확인 후 <code>RegisterRecv()</code>로 재등록하고, 처리 직후 buffer를 빠르게 반환</td>
+</tr>
+<tr class="odd">
+<td>부분 송신</td>
+<td><code>sendmsg</code>가 요청한 byte 전체를 한 번에 보내지 못할 수 있음</td>
+<td><code>SendOp</code>이 <code>iovec</code>과 <code>SendBufferRef</code>를 소유하고, 남은 범위만 보정해 재제출</td>
+</tr>
+<tr class="even">
+<td>작은 payload</td>
+<td>작은 패킷/응답마다 chunk를 새로 잡으면 내부 빈 공간과 queue 조각화가 커짐</td>
+<td>하나의 send buffer chunk에 여러 작은 payload를 offset/length view로 적재</td>
+</tr>
+<tr class="odd">
+<td>타 ring 전달</td>
+<td>세션은 accept된 ring에 종속되어 다른 worker 세션을 직접 만지기 어려움</td>
+<td><code>IORING_OP_MSG_RING</code>으로 target ring CQ에 task를 삽입</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="세션-수명관리-segfault와-uaf" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="세션-수명관리-segfault와-uaf"><span class="header-section-number">3</span> 세션 수명관리: SEGFAULT와 UAF</h2>
+<section id="문제상황" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="문제상황"><span class="header-section-number">3.1</span> 문제상황</h3>
+<p>대량 접속과 해제를 반복하는 스트레스 테스트에서 간헐적인 SEGFAULT가 발생했습니다. 크래시 지점은 CQE callback에서 <code>Session</code> 멤버에 접근하는 시점이었습니다.</p>
+<p>원인은 애플리케이션의 세션 종료 시점과 kernel I/O 완료 시점이 일치하지 않는다는 점이었습니다. 애플리케이션은 연결이 끊긴 세션을 닫고 싶지만, kernel에는 아직 완료되지 않은 SQE가 남아 있을 수 있습니다.</p>
+<p>대표적으로 다음 op들이 늦게 완료될 수 있습니다.</p>
+<ul>
+<li>Multishot Recv</li>
+<li>Send</li>
+<li>Timeout</li>
+<li>Shutdown</li>
+<li>Cancel</li>
+</ul>
+<p>특히 cancel은 헷갈리기 쉽습니다. cancel 요청 자체의 CQE가 왔다고 해서 cancel 대상 recv/send/timeout op의 CQE까지 모두 처리된 것은 아닙니다. cancel 요청 CQE와 target op CQE는 별개이며, 순서도 보장되지 않습니다.</p>
+</section>
+<section id="해결-방식" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="해결-방식"><span class="header-section-number">3.2</span> 해결 방식</h3>
+<p>초기 방식처럼 <code>user_data</code>에 <code>Session*</code>나 <code>Session</code> 내부 이벤트 멤버 주소를 넣으면, 세션이 먼저 해제된 뒤 늦은 CQE가 도착했을 때 UAF가 됩니다. 이를 피하기 위해 각 SQE마다 독립적인 heap operation context를 둡니다.</p>
+<p>핵심 구조는 다음과 같습니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>개념 코드 — IoEvent</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-filename="개념 코드 — IoEvent"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> IoEvent <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    EventHandlerRef Owner<span class="op">()</span> <span class="at">const</span> <span class="op">{</span> <span class="cf">return</span> <span class="va">strong_owner_</span><span class="op">;</span> <span class="op">}</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> SetStrongOwner<span class="op">(</span>EventHandlerRef owner<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">strong_owner_</span> <span class="op">=</span> <span class="bu">std::</span>move<span class="op">(</span>owner<span class="op">);</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> SetAutoDelete<span class="op">(</span><span class="dt">bool</span> value<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">auto_delete_</span> <span class="op">=</span> value<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> ShouldDeleteAfterDispatch<span class="op">(</span><span class="bu">std::</span>int32_t result<span class="op">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                                   <span class="bu">std::</span>uint32_t flags<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(!</span><span class="va">auto_delete_</span><span class="op">)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span><span class="va">retain_after_dispatch_</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>            <span class="va">retain_after_dispatch_</span> <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> Complete<span class="op">(</span>result<span class="op">,</span> flags<span class="op">);</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    EventHandlerRef <span class="va">strong_owner_</span><span class="op">;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> <span class="va">auto_delete_</span><span class="op">{</span><span class="kw">false</span><span class="op">};</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> <span class="va">retain_after_dispatch_</span><span class="op">{</span><span class="kw">false</span><span class="op">};</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>IoEvent</code>는 CQE가 올 때까지 handler owner를 붙잡습니다. <code>IoRing::Dispatch()</code>는 <code>user_data</code>를 <code>IoEvent*</code>로 복원하고, owner에게 dispatch한 뒤 op가 끝났으면 삭제합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>개념 코드 — Dispatch</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="개념 코드 — Dispatch"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span><span class="op">*</span> ev <span class="op">=</span> <span class="kw">reinterpret_cast</span><span class="op">&lt;</span>IoEvent<span class="op">*&gt;(</span>cqe<span class="op">-&gt;</span>user_data<span class="op">);</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> owner <span class="op">=</span> ev<span class="op">-&gt;</span>Owner<span class="op">();</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>owner<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    keep_alive<span class="op">.</span>push_back<span class="op">(</span>owner<span class="op">);</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    owner<span class="op">-&gt;</span>Dispatch<span class="op">(</span>ev<span class="op">,</span> cqe<span class="op">-&gt;</span>res<span class="op">,</span> cqe<span class="op">-&gt;</span>flags<span class="op">);</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>ev<span class="op">-&gt;</span>ShouldDeleteAfterDispatch<span class="op">(</span>cqe<span class="op">-&gt;</span>res<span class="op">,</span> cqe<span class="op">-&gt;</span>flags<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">delete</span> ev<span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>이 구조에서 세션 free 시점은 <code>Disconnect()</code>를 호출한 순간이 아닙니다. 세션을 strong owner로 잡고 있던 op context들이 모두 CQE를 받고 삭제된 뒤에야 자연스럽게 해제됩니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-lifecycle-drain" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lifecycle-drain-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-lifecycle-drain">sequenceDiagram
+    participant App as Application
+    participant Sess as Session
+    participant Ring as IoRing
+    participant Kernel as Kernel
+    participant Disp as Dispatch
+
+    App-&gt;&gt;Sess: Disconnect()
+    Sess-&gt;&gt;Sess: disconnecting = true
+    Sess-&gt;&gt;Kernel: ShutdownEvent submit
+    Sess-&gt;&gt;Kernel: CancelEvent submit(target recv/timeout)
+
+    Kernel--&gt;&gt;Disp: Cancel CQE
+    Disp-&gt;&gt;Sess: OnCancel()
+    Note over Disp: cancel op 삭제&lt;br/&gt;target op는 아직 살아 있음
+
+    Kernel--&gt;&gt;Disp: target Recv/Timeout CQE
+    Disp-&gt;&gt;Sess: OnRecv/OnTimeout()
+    Note over Disp: target op 최종 CQE 후 삭제
+
+    Note over Sess,Disp: 모든 strong owner 해제 후 Session free 가능
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lifecycle-drain-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;1: 세션 종료와 CQE drain
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="부분-수신-provided-buffer와-packet-reassembly" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="부분-수신-provided-buffer와-packet-reassembly"><span class="header-section-number">4</span> 부분 수신: Provided Buffer와 Packet Reassembly</h2>
+<section id="문제상황-1" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="문제상황-1"><span class="header-section-number">4.1</span> 문제상황</h3>
+<p>TCP는 byte stream이므로 송신자가 한 번에 보낸 패킷이 수신자에게 같은 단위로 도착한다는 보장이 없습니다. 게임 패킷 하나가 여러 recv CQE로 나뉠 수 있고, 반대로 여러 작은 패킷이 한 번의 recv에 함께 들어올 수도 있습니다.</p>
+<p>또 하나의 문제는 Provided Buffer 고갈입니다. 동시 접속과 수신이 몰려 Provided Buffer Ring의 버퍼가 모두 사용 중이면 kernel이 <code>ENOBUFS</code>를 반환할 수 있습니다. 이때 Multishot Recv가 해제되는데, 이를 감지하지 못하면 해당 세션은 수신이 멈춘 것처럼 보입니다.</p>
+</section>
+<section id="해결-방식-1" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="해결-방식-1"><span class="header-section-number">4.2</span> 해결 방식</h3>
+<p>수신 경로는 fast path와 slow path로 나눕니다.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>경로</th>
+<th>조건</th>
+<th>처리</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fast path</td>
+<td>하나의 provided buffer 안에 완전한 요청/패킷이 있음</td>
+<td><code>span</code>으로 직접 읽고 즉시 buffer 반환</td>
+</tr>
+<tr class="even">
+<td>Slow path</td>
+<td>패킷이 여러 recv CQE로 나뉨</td>
+<td><code>RecvBuffer</code>에 복사해 완전한 패킷이 될 때까지 누적</td>
+</tr>
+<tr class="odd">
+<td>Recovery</td>
+<td><code>ENOBUFS</code> 또는 Multishot 종료</td>
+<td><code>RegisterRecv()</code>로 recv op 재등록</td>
+</tr>
+</tbody>
+</table>
+<p><code>RuntimeGame</code>의 <code>PacketSession</code>은 <code>[size:uint16][msgId:uint16]</code> header를 기준으로 완전한 패킷만 상위 handler로 올립니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-recv-reassembly" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-recv-reassembly-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-recv-reassembly">sequenceDiagram
+    participant K as Kernel
+    participant S as Session
+    participant P as PacketSession
+    participant B as RecvBuffer
+    participant H as Handler
+
+    K--&gt;&gt;S: recv CQE + bytes
+    S-&gt;&gt;P: OnRecv(span)
+    alt complete packet in span
+        P-&gt;&gt;H: OnPacket(msgId, payload)
+        S-&gt;&gt;K: Return provided buffer
+    else fragmented packet
+        P-&gt;&gt;B: append bytes
+        S-&gt;&gt;K: Return provided buffer
+        loop while complete packet exists
+            B-&gt;&gt;P: packet view
+            P-&gt;&gt;H: OnPacket(msgId, payload)
+        end
+    end
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-recv-reassembly-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;2: TCP stream 수신과 패킷 재조립
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>중요한 점은 provided buffer를 오래 붙잡지 않는 것입니다. 상위 프로토콜 처리가 늦어져도 kernel buffer가 계속 점유되면 다른 세션의 buffer 고갈로 이어질 수 있으므로, 필요한 경우 애플리케이션 소유 <code>RecvBuffer</code>로 복사하고 provided buffer는 빠르게 돌려줍니다.</p>
+</section>
+</section>
+<section id="부분-송신-sendop와-short-write-retry" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="부분-송신-sendop와-short-write-retry"><span class="header-section-number">5</span> 부분 송신: SendOp와 Short Write Retry</h2>
+<section id="문제상황-2" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="문제상황-2"><span class="header-section-number">5.1</span> 문제상황</h3>
+<p>송신도 한 번의 submit으로 끝난다고 가정할 수 없습니다. <code>sendmsg</code>는 요청한 byte보다 적은 byte만 보낸 뒤 완료될 수 있습니다. 이때 payload 메모리가 이미 해제되었거나, 어느 iovec까지 전송됐는지 추적하지 못하면 데이터가 깨지거나 중복 전송될 수 있습니다.</p>
+</section>
+<section id="해결-방식-2" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="해결-방식-2"><span class="header-section-number">5.2</span> 해결 방식</h3>
+<p>send op가 송신에 필요한 모든 것을 직접 소유합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>개념 코드 — SendOp</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="개념 코드 — SendOp"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> SendOp <span class="kw">final</span> <span class="op">:</span> ring<span class="op">::</span>SendEvent <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> msghdr msg<span class="op">{};</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>vector<span class="op">&lt;</span><span class="kw">struct</span> iovec<span class="op">&gt;</span> iovecs<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>vector<span class="op">&lt;</span>SendBufferRef<span class="op">&gt;</span> bufs<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>SendOp</code>이 <code>SendBufferRef</code>를 들고 있기 때문에 send CQE가 올 때까지 payload 메모리가 유지됩니다. partial send가 발생하면 이미 보낸 byte 수만큼 iovec의 시작 위치와 길이를 조정하고 같은 op를 다시 제출합니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-partial-send" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-partial-send-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-partial-send">flowchart TD
+    A["Send(buffer list)"] --&gt; B["SendOp 생성"]
+    B --&gt; C["iovec + SendBufferRef 소유"]
+    C --&gt; D["sendmsg submit"]
+    D --&gt; E["send CQE"]
+    E --&gt; F{"전체 전송?"}
+    F -- "yes" --&gt; G["SendOp 삭제"]
+    F -- "no" --&gt; H["전송된 byte만큼 iovec 보정"]
+    H --&gt; I["RetainAfterDispatch()"]
+    I --&gt; D
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-partial-send-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;3: partial send 재시도
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>RetainAfterDispatch()</code>가 필요한 이유는 dispatch 중 같은 op를 재제출하기 때문입니다. 현재 CQE 처리가 끝났다고 op를 삭제하면 재제출된 SQE의 <code>user_data</code>가 dangling pointer가 됩니다.</p>
+</section>
+</section>
+<section id="send-buffer-chunk-적재" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="send-buffer-chunk-적재"><span class="header-section-number">6</span> Send Buffer Chunk 적재</h2>
+<section id="문제상황-3" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="문제상황-3"><span class="header-section-number">6.1</span> 문제상황</h3>
+<p>게임 패킷이나 작은 HTTP 응답은 payload 크기가 작습니다. 이런 요청마다 별도 send buffer chunk를 하나씩 할당하면 다음 문제가 생깁니다.</p>
+<ul>
+<li>chunk 내부 남은 공간이 버려져 메모리 효율이 떨어집니다.</li>
+<li>send queue에 작은 buffer 조각이 많이 쌓입니다.</li>
+<li>iovec 수가 늘어나고 partial send 보정 범위가 복잡해집니다.</li>
+<li>backpressure accounting에서 작은 단위가 과도하게 많아집니다.</li>
+</ul>
+</section>
+<section id="해결-방식-3" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="해결-방식-3"><span class="header-section-number">6.2</span> 해결 방식</h3>
+<p>작은 payload는 send buffer chunk 하나에 순차적으로 적재합니다. chunk는 실제 메모리 블록을 소유하고, 각 send 요청은 <code>(offset, length)</code> view로 queue에 올라갑니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-send-chunk-packing" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-send-chunk-packing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-send-chunk-packing">flowchart LR
+    subgraph Chunk["SendBuffer chunk"]
+        A["packet A&lt;br/&gt;offset 0 len 64"]
+        B["packet B&lt;br/&gt;offset 64 len 80"]
+        C["packet C&lt;br/&gt;offset 144 len 48"]
+        D["free space"]
+    end
+
+    Q["SendQueue"] --&gt; A
+    Q --&gt; B
+    Q --&gt; C
+    A --&gt; Ref["SendBufferRef&lt;br/&gt;chunk lifetime"]
+    B --&gt; Ref
+    C --&gt; Ref
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-send-chunk-packing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;4: 작은 payload를 하나의 send chunk에 적재
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>이 방식의 기준은 다음과 같습니다.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>항목</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>write cursor</td>
+<td>chunk 안에서 다음 payload를 기록할 위치</td>
+</tr>
+<tr class="even">
+<td>offset/length view</td>
+<td>send queue가 참조하는 실제 송신 범위</td>
+</tr>
+<tr class="odd">
+<td><code>SendBufferRef</code></td>
+<td>chunk 메모리를 CQE 완료까지 유지하는 참조</td>
+</tr>
+<tr class="even">
+<td>partial send 보정</td>
+<td>chunk를 복사하지 않고 iovec base/len만 조정</td>
+</tr>
+</tbody>
+</table>
+<p>이 구조는 작은 요청 여러 개를 하나의 메모리 chunk에 모으면서도, kernel에는 <code>iovec</code> 범위로 각각의 송신 구간을 전달할 수 있습니다. 따라서 payload 수명은 chunk reference가 보장하고, 재시도는 iovec view만 수정해서 처리합니다.</p>
+</section>
+</section>
+<section id="타-ring-메시지-전달-msg_ring" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="타-ring-메시지-전달-msg_ring"><span class="header-section-number">7</span> 타 Ring 메시지 전달: MSG_RING</h2>
+<section id="문제상황-4" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="문제상황-4"><span class="header-section-number">7.1</span> 문제상황</h3>
+<p><code>io_uring</code>은 ring-per-thread 모델로 구성했습니다. 세션은 accept된 ring에 종속되고, 이후 recv/send도 같은 ring에서 처리됩니다. 이 구조는 cache locality와 단순한 세션 수명관리에는 유리하지만, 다른 ring에 있는 세션으로 작업을 보내야 할 때 문제가 됩니다.</p>
+<p>예를 들어 Room broadcast에서 Room logic은 worker A에서 실행되지만, 어떤 플레이어의 세션은 worker B의 ring에 속해 있을 수 있습니다. 이때 세션을 worker A로 옮기지 않고, worker B ring에서 안전하게 send를 실행해야 합니다.</p>
+</section>
+<section id="해결-방식-4" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="해결-방식-4"><span class="header-section-number">7.2</span> 해결 방식</h3>
+<p><code>IORING_OP_MSG_RING</code>으로 target ring의 CQ에 task를 직접 삽입합니다.</p>
+<p>핵심은 <code>user_data</code>의 bit 0을 task flag로 쓰는 것입니다. 일반 I/O 이벤트는 <code>IoEvent*</code>이고, MSG_RING task는 heap에 할당한 <code>move_only_function&lt;void()&gt;*</code> 주소에 bit 0을 세팅해 구분합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>개념 코드 — RunOnRing</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-filename="개념 코드 — RunOnRing"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> IoRing<span class="op">::</span>RunOnRing<span class="op">(</span><span class="bu">std::</span>move_only_function<span class="op">&lt;</span><span class="dt">void</span><span class="op">()&gt;</span> task<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span><span class="va">t_current_</span> <span class="op">==</span> <span class="kw">this</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        task<span class="op">();</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span><span class="op">*</span> task_ptr <span class="op">=</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="bu">std::</span>move_only_function<span class="op">&lt;</span><span class="dt">void</span><span class="op">()&gt;(</span><span class="bu">std::</span>move<span class="op">(</span>task<span class="op">));</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>uint64_t tagged <span class="op">=</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="kw">reinterpret_cast</span><span class="op">&lt;</span><span class="bu">std::</span>uint64_t<span class="op">&gt;(</span>task_ptr<span class="op">)</span> <span class="op">|</span> <span class="bn">0x1</span><span class="bu">ULL</span><span class="op">;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    io_uring_sqe<span class="op">*</span> sqe <span class="op">=</span> io_uring_get_sqe<span class="op">(</span><span class="va">t_current_</span><span class="op">-&gt;</span><span class="va">ring_</span><span class="op">);</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    io_uring_prep_msg_ring<span class="op">(</span>sqe<span class="op">,</span> Fd<span class="op">(),</span> <span class="dv">0</span><span class="op">,</span> tagged<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    sqe<span class="op">-&gt;</span>flags <span class="op">|=</span> IOSQE_CQE_SKIP_SUCCESS<span class="op">;</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    io_uring_submit<span class="op">(</span><span class="va">t_current_</span><span class="op">-&gt;</span><span class="va">ring_</span><span class="op">);</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>target ring의 dispatch에서는 bit 0으로 일반 I/O와 task를 구분합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>개념 코드 — Dispatch 분기</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-filename="개념 코드 — Dispatch 분기"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="at">const</span> <span class="bu">std::</span>uint64_t data <span class="op">=</span> cqe<span class="op">-&gt;</span>user_data<span class="op">;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>data <span class="op">&amp;</span> <span class="bn">0x1</span><span class="bu">ULL</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span><span class="op">*</span> task <span class="op">=</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="kw">reinterpret_cast</span><span class="op">&lt;</span><span class="bu">std::</span>move_only_function<span class="op">&lt;</span><span class="dt">void</span><span class="op">()&gt;*&gt;(</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>            data <span class="op">&amp;</span> <span class="op">~</span><span class="bn">0x1</span><span class="bu">ULL</span><span class="op">);</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">(*</span>task<span class="op">)();</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">delete</span> task<span class="op">;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span><span class="op">*</span> ev <span class="op">=</span> <span class="kw">reinterpret_cast</span><span class="op">&lt;</span>IoEvent<span class="op">*&gt;(</span>data<span class="op">);</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// normal I/O dispatch</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-msg-ring-task" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-msg-ring-task-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-msg-ring-task">sequenceDiagram
+    participant A as Source Ring
+    participant K as Kernel
+    participant B as Target Ring
+    participant S as Target Session
+
+    A-&gt;&gt;A: task pointer 생성
+    A-&gt;&gt;A: tagged = ptr | 0x1
+    A-&gt;&gt;K: IORING_OP_MSG_RING
+    K--&gt;&gt;B: target CQE 삽입
+    B-&gt;&gt;B: Dispatch()
+    B-&gt;&gt;B: bit 0 확인
+    B-&gt;&gt;S: task 실행(send 등)
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-msg-ring-task-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;5: MSG_RING 기반 타 ring task 전달
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>이 방식은 세션을 다른 worker로 마이그레이션하지 않습니다. 대신 “그 세션이 속한 ring에서 실행해야 하는 일”만 target ring으로 보냅니다.</p>
+</section>
+</section>
+<section id="전체-흐름으로-다시-보기" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="전체-흐름으로-다시-보기"><span class="header-section-number">8</span> 전체 흐름으로 다시 보기</h2>
+<p>아래 흐름은 수신, Room job, cross-ring send, partial send가 함께 얽히는 게임 서버 상황을 요약한 것입니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-runtime-integrated-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-runtime-integrated-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-runtime-integrated-flow">sequenceDiagram
+    participant K as Kernel
+    participant S1 as Session A&lt;br/&gt;(Ring 0)
+    participant P as PacketSession
+    participant R as Room JobQueue
+    participant GQ as GlobalQueue
+    participant W as Worker
+    participant S2 as Session B&lt;br/&gt;(Ring 1)
+
+    K--&gt;&gt;S1: recv CQE
+    S1-&gt;&gt;P: OnRecv(bytes)
+    P-&gt;&gt;P: packet reassembly
+    P-&gt;&gt;R: Push(packet job)
+    R-&gt;&gt;GQ: register queue
+    W-&gt;&gt;GQ: TryPop()
+    W-&gt;&gt;R: Execute(deadline)
+    R-&gt;&gt;S2: RunOnRing(send task)
+    S2-&gt;&gt;S2: SendOp 생성
+    S2--&gt;&gt;K: sendmsg SQE
+    K--&gt;&gt;S2: send CQE
+    alt partial send
+        S2-&gt;&gt;S2: iovec 보정 후 재제출
+    else complete
+        S2-&gt;&gt;S2: SendOp 삭제
+    end
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-runtime-integrated-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;6: 수신부터 cross-ring 송신까지
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>이 흐름에서 Runtime이 보장해야 하는 것은 세 가지입니다.</p>
+<ol type="1">
+<li>CQE가 늦게 오더라도 <code>Session</code>과 buffer가 먼저 해제되지 않아야 합니다.</li>
+<li>TCP stream의 단편 수신과 partial send를 모두 정상 경로로 처리해야 합니다.</li>
+<li>다른 ring의 세션 작업은 해당 세션이 속한 ring에서 실행되어야 합니다.</li>
+</ol>
+</section>
+<section id="발표용-요약" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="발표용-요약"><span class="header-section-number">9</span> 발표용 요약</h2>
+<p>이 Runtime에서 가장 중요하게 본 문제는 <code>io_uring</code>의 완료 이벤트가 애플리케이션 객체 수명보다 늦게 올 수 있다는 점입니다. 그래서 <code>user_data</code>에 <code>Session*</code>를 직접 넣지 않고, SQE마다 독립적인 op context를 두었습니다. op context는 owner와 buffer를 CQE까지 붙잡고, dispatch 후 완료 여부에 따라 자동 삭제됩니다.</p>
+<p>수신은 Provided Buffer를 사용하지만 TCP stream 단편화 때문에 완전한 패킷만 zero-copy처럼 처리하고, 단편 패킷은 <code>RecvBuffer</code>에서 재조립합니다. 송신은 <code>SendOp</code>이 <code>iovec</code>과 <code>SendBufferRef</code>를 소유해 partial send가 나도 남은 범위만 보정해 재제출합니다. 작은 패킷은 send buffer chunk 하나에 여러 개를 적재해 메모리 낭비와 queue 조각화를 줄였습니다.</p>
+<p>멀티스레드에서는 세션이 accept된 ring에 묶이므로, 다른 worker의 세션에 직접 접근하지 않습니다. 대신 <code>MSG_RING</code>으로 target ring의 CQ에 task를 넣고, 그 ring의 dispatch loop에서 send 같은 세션 작업을 실행합니다. 이 구조로 세션 수명, buffer 수명, worker 간 작업 전달을 같은 CQE 중심 모델 안에서 정리했습니다.</p>
+</section>
+<section id="관련-문서" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="관련-문서"><span class="header-section-number">10</span> 관련 문서</h2>
+<div class="next-docs">
+<p><a href="./ServerCorePortfolio.html">서버 Runtime 구현 포트폴리오</a> · <a href="./RuntimeWebPortfolio.html">RuntimeWeb 모듈 구현</a> · <a href="./RuntimeProxyPortfolio.html">RuntimeProxy 모듈 구현</a> · <a href="./RuntimeGamePortfolio.html">RuntimeGame 모듈 구현</a> · <a href="../index.html">포트폴리오 문서 인덱스</a></p>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "복사완료!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "복사완료!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

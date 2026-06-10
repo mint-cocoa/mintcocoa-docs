@@ -1,0 +1,313 @@
+---
+title: "OCI OKE 프로덕션 GitOps 포트폴리오"
+subtitle: "홈랩 k3s에서 검증하고 Oracle Kubernetes Engine으로 승격하는 운영 파이프라인"
+author: "배진후"
+lang: ko
+format:
+  html:
+    css: ../portfolio.css
+execute:
+  echo: false
+---
+
+## 핵심 요약
+
+::: {.summary-grid}
+::: {.summary-card}
+**Production**
+
+Oracle Kubernetes Engine을 프로덕션 클러스터로 잡고 kubeconfig, 접근 권한,
+스토리지, 관측성을 구성
+:::
+
+::: {.summary-card}
+**GitOps**
+
+`mintcocoa-ops` 저장소를 OKE 중심으로 재작성하고 Argo CD Application 구조로
+desired state를 선언
+:::
+
+::: {.summary-card}
+**Pipeline**
+
+홈랩 k3s를 staging/dev 환경으로 두고 검증 후 OKE production overlay로 승격
+:::
+
+::: {.summary-card}
+**Operate**
+
+Prometheus, Grafana, Loki, Promtail, Tempo, metrics-server를 설치하고 실제 API
+응답까지 검증
+:::
+:::
+
+## 프로젝트 배경
+
+DevOps 포트폴리오에서 보여주고 싶었던 것은 단순히 Kubernetes를 사용했다는
+사실이 아니라, **클러스터를 직접 연결하고, 운영 기준을 정하고, 배포 흐름을
+Git으로 관리할 수 있게 만든 과정**입니다.
+
+기존에는 홈랩 중심의 Kubernetes/GitOps 실험이 있었고, 새로 OCI OKE 클러스터를
+프로덕션 기준 환경으로 잡았습니다. 이후 홈랩 k3s는 staging/dev 역할로 남기고,
+OKE는 production 역할로 분리했습니다.
+
+## 최종 구조
+
+```{mermaid}
+flowchart LR
+    Dev[Developer] --> Repo[mintcocoa-ops]
+    Repo --> Validate[GitHub Actions render validation]
+    Repo --> Argo[Argo CD]
+    Argo --> Home[home k3s staging]
+    Argo --> OKE[OCI OKE production]
+    Runtime[iouring-runtime] --> GHCR[GHCR dropapp image]
+    GHCR --> Repo
+    Home --> Promote[manual promotion workflow]
+    Promote --> OKE
+    OKE --> Ingress[ingress-nginx / cert-manager]
+    Ingress --> Public[drop.mintcocoa.dev]
+    OKE --> Obs[Prometheus / Grafana / Loki / Tempo]
+```
+
+| 영역 | 구성 |
+|---|---|
+| Production cluster | OCI OKE `home-oci-oke-cluster` |
+| Region | `ap-chuncheon-1` |
+| Kubernetes API | Public endpoint `168.110.124.39:6443` |
+| Home staging | k3s, Argo CD cluster name `mintcocoa-home` |
+| GitOps repo | `mint-cocoa/mintcocoa-ops` |
+| Portfolio workload | `dropapp` on C++ `iouring-runtime` `RuntimeWeb` |
+| Public endpoint | `https://drop.mintcocoa.dev` |
+| Observability | metrics-server, kube-prometheus-stack, Loki, Promtail, Tempo |
+| Storage | OCI Block Volume `oci-bv` |
+
+## 인프라 구축 과정
+
+처음에는 로컬 kubeconfig가 다른 클러스터를 가리키고 있어 OKE API에 바로 접근할
+수 없었습니다. OCI CLI로 클러스터를 조회하고, OKE public endpoint를 사용하는
+kubeconfig를 새로 생성해 기본 kubectl 컨텍스트를 교체했습니다.
+
+::: {.evidence-block}
+| 확인 항목 | 결과 |
+|---|---|
+| OCI CLI 인증 | 정상 |
+| OKE cluster | `home-oci-oke-cluster` |
+| API endpoint | `https://168.110.124.39:6443` |
+| Node 상태 | arm64 worker node 3개 `Ready` |
+| Kubernetes version | `v1.33.1` |
+:::
+
+외부 모바일/GUI 클라이언트처럼 OCI CLI exec 인증을 실행할 수 없는 경우를 위해
+ServiceAccount 기반 정적 kubeconfig도 만들었습니다. 다만 이 방식은 권한이 강할수록
+위험하므로, Git에는 토큰을 저장하지 않고 폐기 명령까지 runbook에 남겼습니다.
+
+## 배포 자동화 방식
+
+운영 저장소는 OKE production을 중심으로 다시 구성했습니다.
+
+```text
+mintcocoa-ops/
+  bootstrap/
+    oke-prod-root.yaml
+    home-root.yaml
+  clusters/
+    oke-prod/
+    home/
+  apps/
+    dropapp/
+      base/
+      overlays/home/
+      overlays/oke-prod/
+    whoami/
+      base/
+      overlays/home/
+      overlays/oke-prod/
+  infrastructure/
+    kubernetes/cluster-issuers/
+    kubernetes/grafana-datasources/
+  docs/
+    runbooks/
+```
+
+공통 앱은 `base`에 두고, 환경별 차이는 overlay에 둡니다.
+
+```text
+apps/<app>/base
+  -> apps/<app>/overlays/home
+  -> apps/<app>/overlays/oke-prod
+```
+
+GitHub Actions는 PR이나 main push 때 다음을 검증합니다.
+
+1. `clusters/home` 렌더링
+2. `clusters/oke-prod` 렌더링
+3. `apps/whoami/overlays/home`와 `apps/whoami/overlays/oke-prod` 렌더링
+4. `apps/dropapp/overlays/home`와 `apps/dropapp/overlays/oke-prod` 렌더링
+5. `cluster-issuers`, Grafana datasource 렌더링
+6. 민감정보 패턴 검사
+
+production 반영은 `Promote home overlay to OKE` 수동 workflow로 분리했습니다.
+홈랩에서 먼저 검증하고, 같은 이미지 태그를 OKE overlay에 반영하는 구조입니다.
+
+`iouring-runtime` 저장소의 `dropapp image` workflow는 `ghcr.io/mint-cocoa/dropapp`
+이미지를 Git SHA 태그로 빌드하고, `mintcocoa-ops`의 home overlay 이미지 태그를
+자동 갱신합니다. production 반영은 별도 `Promote home overlay to OKE` workflow로
+같은 이미지 태그를 OKE overlay에 승격합니다.
+
+## 대표 워크로드: RuntimeWeb dropapp
+
+`whoami`는 파이프라인 증명용으로 남겨두고, 실제 포트폴리오 대표 앱은
+`iouring-runtime`의 `dropapp`으로 잡았습니다. `dropapp`은 C++ `RuntimeWeb`
+위에서 동작하는 TTL 파일 전송 앱입니다. 단순 hello world보다 포트폴리오에서
+보여줄 수 있는 운영 표면이 넓습니다.
+
+| 항목 | 구성 |
+|---|---|
+| 이미지 | `ghcr.io/mint-cocoa/dropapp:<git-sha>` |
+| Home 검증 | `home-services`, NodePort `30081` |
+| OKE 공개 | `prod-services`, Ingress `drop.mintcocoa.dev` |
+| 쓰기 권한 | `DROPAPP_AUTH_TOKEN` bearer token Secret |
+| 저장 정책 | `emptyDir` `1Gi`, `DROPAPP_DEFAULT_TTL_SECONDS=3600` |
+| 최대 업로드 | `DROPAPP_MAX_UPLOAD_BYTES=104857600` |
+
+이 앱은 `RuntimeWeb` 문서에서 설명한 streaming upload, static file response,
+route parameter, token-protected write path, timeout/backpressure 설정을 실제
+서비스 매니페스트로 연결합니다. 즉 서버 구현 포트폴리오와 DevOps 포트폴리오가
+분리된 글이 아니라 하나의 배포 사례로 이어집니다.
+
+OKE 공개 경로는 `ingress-nginx`와 `cert-manager`를 GitOps Application으로
+관리하고, `letsencrypt-prod` `ClusterIssuer`로 TLS 인증서를 발급하는 구조입니다.
+최종 공개 도메인은 HSTS preload가 적용되는 `.dev` 도메인인
+`https://drop.mintcocoa.dev`로 정리했습니다.
+
+## 관측성 구성
+
+OKE 클러스터에는 운영 확인을 위해 다음 스택을 구성했습니다.
+
+| 구성요소 | 역할 |
+|---|---|
+| metrics-server | `kubectl top`과 기본 리소스 메트릭 |
+| Prometheus | cluster/workload metrics 수집 |
+| Grafana | dashboard와 datasource 통합 |
+| Alertmanager | 알림 경로 준비 |
+| Loki | 로그 저장 |
+| Promtail | node log shipping |
+| Tempo | trace ingest/query 준비 |
+
+설치 후 단순히 Pod가 떴는지만 본 것이 아니라, 실제 API 응답까지 확인했습니다.
+
+```text
+kubectl top nodes                 # 성공
+Prometheus /api/v1/query?query=up # 성공
+Loki /loki/api/v1/labels          # 성공
+Tempo /ready                      # ready
+```
+
+OCI Block Volume은 최소 프로비저닝 단위 때문에 요청값보다 큰 `50Gi` PVC가 생성되는
+특성이 있었습니다. 이 점은 GitOps values와 운영 문서에 반영했습니다.
+
+## 장애 대응 및 운영 판단 사례
+
+::: {.evidence-block}
+| 상황 | 원인 | 조치 |
+|---|---|---|
+| 기본 kubeconfig 접속 실패 | 기존 context가 `172.30.1.27:6443` 내부 주소를 바라봄 | OCI OKE public endpoint kubeconfig 생성 후 기본 context 교체 |
+| 외부 클라이언트 인증 제약 | 모바일 앱은 `oci ce cluster generate-token` 실행 불가 | ServiceAccount token 방식 kubeconfig 별도 생성 |
+| Bastion 경로 오해 가능성 | WireGuard VM은 있었지만 OKE VCN과 peering/route 없음 | public OKE endpoint를 기준 접근 경로로 문서화 |
+| Argo CD repo-server GitHub timeout | OKE Pod subnet은 public subnet이지만 Pod에는 public IP가 없어 egress가 실패 | NAT Gateway와 Pod subnet 전용 route table을 만들고 `0.0.0.0/0 -> NAT Gateway`로 분리 |
+| Argo CD private repo 인증 실패 | NAT 이후 GitHub에는 닿았지만 repo credential이 없어 clone 실패 | Argo CD repository Secret에 GitHub token을 저장하고 root app sync 성공 확인 |
+| `dropapp` Pod readiness 실패 | OKE Oracle Linux 8.10 / UEK 5.15에서 `RuntimeDefault` seccomp가 `io_uring` setup을 막음 | OKE overlay에만 `seccompProfile: Unconfined` 적용 |
+| `io_uring` provided buffer ring 실패 | 5.15 커널에서 `io_uring_register_buf_ring`이 `-22`로 실패 | `iouring-runtime`에 compatibility recv path를 구현해 기본 accept/recv 경로로 fallback |
+| TLS HTTP-01 검증 지연 | Cloudflare public DNS는 정상이나 OCI VCN resolver가 NXDOMAIN을 캐시 | CoreDNS hosts override로 임시 통과 후 `.dev` 전환 시 override 제거 |
+| `.cc`와 `.dev` 도메인 혼재 | 초기 공개 도메인과 최종 브랜드 도메인이 동시에 남아 인증서 SAN이 넓어짐 | Ingress/TLS에서 `.cc` 제거, `drop.mintcocoa.dev` 단독 인증서로 재발급 |
+| Loki 기본값 과다 | 기본 cache 설정이 작은 클러스터에 과함 | SingleBinary, cache 비활성화, 제한된 retention으로 조정 |
+| Grafana password 평문 위험 | 초기 values에 임시 비밀번호가 남을 수 있음 | Kubernetes Secret 참조 방식으로 전환 |
+| 공개 업로드 악용 가능성 | 파일 전송 앱을 인터넷에 공개하면 쓰기 경로가 공격 표면이 됨 | 업로드/삭제는 bearer token으로 보호하고 파일은 TTL과 `emptyDir` 크기 제한으로 회수 |
+:::
+
+이 과정에서 운영 기준도 함께 정했습니다.
+
+- production 서비스는 홈랩에 의존하지 않는다.
+- 홈랩은 staging/dev와 복구 연습 환경으로 둔다.
+- OKE Argo CD가 home k3s를 원격 관리하는 구조를 목표로 한다.
+- 토큰, kubeconfig, Grafana 비밀번호는 Git에 저장하지 않는다.
+- 외부 공개는 명시적으로 필요한 앱만 Ingress로 열고, 쓰기 권한은 Secret 기반으로 둔다.
+- production 공개 도메인은 `drop.mintcocoa.dev`로 단일화하고, TLS 인증서 SAN도 필요한 host만 포함한다.
+
+## 운영 검증 스냅샷
+
+최종 배포 상태는 다음 기준으로 확인했습니다.
+
+```text
+prod-dropapp Argo CD Application: Synced / Healthy
+dropapp Deployment: 2/2 Ready
+Ingress host: drop.mintcocoa.dev
+Certificate: dropapp-tls Ready=True
+TLS SAN: DNS:drop.mintcocoa.dev
+Health check: https://drop.mintcocoa.dev/healthz -> HTTP/2 200, ok
+Image: ghcr.io/mint-cocoa/dropapp:4f86a2ed21bef5a477f1be027eaeb19fcc8c5691
+```
+
+운영 저장소의 주요 변경 이력도 배포 증거로 남겼습니다.
+
+```text
+46875b7 Remove dropapp mintcocoa.cc host
+752ad1b Add mintcocoa.dev host for dropapp
+d98fc1c Allow dropapp seccomp for io_uring on OKE
+f6cb7c8 Promote dropapp to ghcr.io/mint-cocoa/dropapp:4f86a2ed21bef5a477f1be027eaeb19fcc8c5691
+```
+
+애플리케이션 저장소에는 OKE 커널 제약을 반영한 compatibility path를 남겼습니다.
+
+```text
+4f86a2e Add io_uring compatibility recv path
+09a2bba Update dropapp GitOps deployment workflow
+```
+
+## 결과물
+
+- OKE production kubeconfig 구성과 접근 검증
+- ServiceAccount 기반 외부 수동 클라이언트 접근 경로 정리
+- `mintcocoa-ops` 저장소를 OKE production 중심 GitOps 구조로 재작성
+- home k3s -> OKE production 승격 파이프라인 설계
+- C++ `RuntimeWeb` 기반 `dropapp`을 홈랩 검증 후 OKE production Ingress로 공개하는 구조 추가
+- `ingress-nginx`, `cert-manager`, `letsencrypt-prod` GitOps 구성 추가
+- `drop.mintcocoa.dev` HTTPS 공개와 Let’s Encrypt 인증서 자동 발급 검증
+- OKE Pod egress용 NAT Gateway와 Pod subnet route table 분리
+- OKE 커널/seccomp 제약에 맞춘 `io_uring` runtime compatibility path 구현
+- metrics/logs/traces 관측 스택 설치 및 동작 검증
+- bootstrap, access, observability, rebuild runbook 작성
+
+## 관련 레포와 문서
+
+::: {.repo-links}
+| 레포/문서 | 역할 |
+|---|---|
+| [iouring-runtime](https://github.com/mint-cocoa/iouring-runtime) | `dropapp`과 `RuntimeWeb` 서버 구현 |
+| [mintcocoa-ops](https://github.com/mint-cocoa/mintcocoa-ops) | OKE production + home k3s GitOps desired state |
+| [portfolio](https://github.com/mint-cocoa/portfolio) | 이 포트폴리오 문서와 공개 페이지 |
+| [RuntimeWeb 모듈 구현](../server/RuntimeWebPortfolio.html) | `dropapp`이 사용하는 HTTP/streaming 서버 계층 |
+| [홈랩 DevOps 포트폴리오](DevOpsPortfolio.html) | 기존 홈랩 Kubernetes 배포 사례 |
+| [Live Ops Dashboard](OpsDashboard.html) | Prometheus/Proxmox 기반 운영 대시보드 |
+:::
+
+## 면접에서 설명할 포인트
+
+이 프로젝트는 완성된 SaaS 운영팀 수준의 대규모 플랫폼이라기보다, 작은 클러스터에서
+운영자가 직접 결정해야 하는 문제를 끝까지 다룬 사례입니다.
+
+- 어떤 endpoint를 production 접근 기준으로 삼을지 결정
+- 어떤 인증 방식이 사람/자동화/모바일 클라이언트에 맞는지 구분
+- 기본 Helm chart 값을 그대로 쓰지 않고 클러스터 크기에 맞게 조정
+- GitOps repo를 기존 kubeadm cloud 기준에서 OKE production 기준으로 재작성
+- home과 production을 섞지 않고 promotion 흐름으로 분리
+- 직접 만든 `io_uring` 기반 앱을 컨테이너, GitOps, Ingress, TLS, 로그/메트릭까지 연결
+- 네트워크, DNS, 인증서, 컨테이너 런타임 제약을 실제 장애 로그에서 원인 분리하고 코드와 인프라 양쪽으로 해결
+
+## 다음 문서
+
+::: {.next-docs}
+[포트폴리오 문서 인덱스](../index.html) ·
+[홈랩 DevOps 포트폴리오](DevOpsPortfolio.html) ·
+[Live Ops Dashboard](OpsDashboard.html)
+:::

@@ -1,0 +1,14 @@
+_site/
+.quarto/
+node_modules/
+**/node_modules/
+**/.venv/
+hub/_site/
+hub/node_modules/
+portfolio/_site/
+portfolio/.quarto/
+portfolio/dashboard/node_modules/
+portfolio/dashboard/dist/
+portfolio/docs/**/*.quarto_ipynb
+.DS_Store
+.env

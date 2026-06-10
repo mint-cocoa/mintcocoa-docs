@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">io_uring runtime architecture diagram</title>
+  <desc id="desc">A clean diagram showing Core Runtime components connected to RuntimeWeb, RuntimeProxy, and RuntimeGame modules.</desc>
+  <defs>
+    <filter id="softShadow" x="-15%" y="-20%" width="130%" height="150%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#182033" flood-opacity="0.13"/>
+    </filter>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .panel { fill: #ffffff; stroke: #dce2ec; stroke-width: 2; }
+      .panel-strong { fill: #ffffff; stroke: #c8d5e7; stroke-width: 2.4; }
+      .ink { fill: #182033; font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif; }
+      .muted { fill: #616b7f; font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif; }
+      .label { fill: #087f7a; font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif; font-weight: 800; letter-spacing: 1px; }
+      .line { stroke: #c8d5e7; stroke-width: 3; fill: none; stroke-linecap: round; }
+      .chip { fill: #f8fafc; stroke: #d6deea; stroke-width: 2; }
+      .chipText { fill: #3d4759; font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif; font-size: 23px; font-weight: 700; }
+      .nodeTitle { font-size: 32px; font-weight: 800; }
+      .nodeText { font-size: 22px; font-weight: 600; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="760"/>
+  <circle cx="1004" cy="108" r="190" fill="#eef3f8"/>
+  <circle cx="208" cy="650" r="210" fill="#eef3f8"/>
+
+  <g filter="url(#softShadow)">
+    <rect class="panel-strong" x="74" y="70" width="1052" height="620" rx="28"/>
+  </g>
+
+  <text class="label" x="116" y="124" font-size="24">SERVER CORE</text>
+  <text class="ink" x="116" y="170" font-size="42" font-weight="800">io_uring Runtime</text>
+  <text class="muted" x="116" y="208" font-size="24" font-weight="600">Protocol-agnostic C++ runtime with optional modules</text>
+
+  <g transform="translate(132 258)">
+    <rect class="panel-strong" x="0" y="0" width="936" height="170" rx="22"/>
+    <text class="label" x="36" y="50" font-size="21">CORE RUNTIME</text>
+    <text class="ink nodeTitle" x="36" y="96">IoRing · Worker · Listener · Session</text>
+    <text class="muted nodeText" x="36" y="135">accept loop · buffer ownership · send queue · timers · cross-ring work</text>
+  </g>
+
+  <path class="line" d="M600 428 L600 474"/>
+  <path class="line" d="M256 474 L944 474"/>
+  <path class="line" d="M256 474 L256 506"/>
+  <path class="line" d="M600 474 L600 506"/>
+  <path class="line" d="M944 474 L944 506"/>
+
+  <g transform="translate(116 506)">
+    <rect class="panel" x="0" y="0" width="280" height="120" rx="18"/>
+    <text class="label" x="26" y="42" font-size="20">RUNTIMEWEB</text>
+    <text class="ink" x="26" y="78" font-size="27" font-weight="800">HTTP Server</text>
+    <text class="muted" x="26" y="108" font-size="19" font-weight="600">routing · files · streaming</text>
+  </g>
+
+  <g transform="translate(460 506)">
+    <rect class="panel" x="0" y="0" width="280" height="120" rx="18"/>
+    <text class="label" x="26" y="42" font-size="20">RUNTIMEPROXY</text>
+    <text class="ink" x="26" y="78" font-size="27" font-weight="800">TCP / TLS Proxy</text>
+    <text class="muted" x="26" y="108" font-size="19" font-weight="600">upstream · SNI · metrics</text>
+  </g>
+
+  <g transform="translate(804 506)">
+    <rect class="panel" x="0" y="0" width="280" height="120" rx="18"/>
+    <text class="label" x="26" y="42" font-size="20">RUNTIMEGAME</text>
+    <text class="ink" x="26" y="78" font-size="27" font-weight="800">Packet Server</text>
+    <text class="muted" x="26" y="108" font-size="19" font-weight="600">rooms · sessions · players</text>
+  </g>
+</svg>

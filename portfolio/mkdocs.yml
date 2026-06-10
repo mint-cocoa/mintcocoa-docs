@@ -1,0 +1,54 @@
+site_name: Portfolio Docs
+site_description: 서버 Runtime, 클라이언트, DevOps 포트폴리오 문서
+site_author: 배진후
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: ko
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+nav:
+  - Home: index.html
+  - Server:
+      - Runtime 문제 해결 예시: server/server-runtime-problem-solving-example.md
+      - Server Core: server/ServerCorePortfolio.html
+      - Runtime Web: server/RuntimeWebPortfolio.html
+      - Runtime Proxy: server/RuntimeProxyPortfolio.html
+      - Runtime Game: server/RuntimeGamePortfolio.html
+  - DevOps:
+      - DevOps Portfolio: devops/DevOpsPortfolio.html
+      - OCI OKE GitOps: devops/OciOkeGitOpsPortfolio.html
+      - Ops Hardening Roadmap: ops-hardening-roadmap.md
+  - Client:
+      - Client Portfolio: client/ClientPortfolio.html
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search

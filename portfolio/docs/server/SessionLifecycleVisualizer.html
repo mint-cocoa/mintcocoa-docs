@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Session Lifecycle Visualizer</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #182033;
+        --muted: #596679;
+        --subtle: #7a8798;
+        --line: #dce4ef;
+        --paper: #ffffff;
+        --wash: #f6f8fb;
+        --accept: #697386;
+        --owner: #16815b;
+        --io: #c46a00;
+        --dispatch: #1664a7;
+        --close: #bc3d66;
+        --blue: #2457c5;
+        --shadow: 0 18px 42px rgba(24, 32, 51, 0.1);
+        font-family:
+          "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Inter,
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--wash);
+        font-family: inherit;
+        font-weight: 500;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .app {
+        min-height: 100vh;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        min-height: 4rem;
+        padding: 0.85rem max(1rem, calc((100vw - 1240px) / 2));
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.94);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        backdrop-filter: blur(12px);
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 0.18rem;
+      }
+
+      .brand span {
+        color: var(--teal, #087f7a);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .nav-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: flex-end;
+      }
+
+      .nav-actions a,
+      .nav-actions button,
+      .stage-controls button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.25rem;
+        padding: 0.43rem 0.7rem;
+        border: 1px solid #c8d4e4;
+        border-radius: 7px;
+        background: #ffffff;
+        color: var(--ink);
+        font-size: 0.82rem;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .nav-actions a:hover,
+      .nav-actions button:hover,
+      .stage-controls button:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+        background: #f3f7ff;
+      }
+
+      .nav-actions button.primary,
+      .stage-controls button.active {
+        border-color: #a7beef;
+        background: #edf4ff;
+        color: #174fb5;
+      }
+
+      main {
+        padding: 1.1rem max(1rem, calc((100vw - 1240px) / 2)) 3rem;
+      }
+
+      .workbench {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.9fr);
+        gap: 1rem;
+        align-items: start;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        box-shadow: 0 10px 26px rgba(24, 32, 51, 0.06);
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1rem 0.8rem;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .panel-title {
+        min-width: 0;
+      }
+
+      .panel-title p {
+        margin: 0 0 0.25rem;
+        color: var(--teal, #087f7a);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .panel-title h2 {
+        margin: 0;
+        font-size: 1.18rem;
+        line-height: 1.28;
+        letter-spacing: 0;
+      }
+
+      .stage-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.42rem;
+        padding: 1rem;
+      }
+
+      .stage-controls button {
+        min-width: 4.4rem;
+        padding-left: 0.55rem;
+        padding-right: 0.55rem;
+      }
+
+      .stage-map {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(92px, 1fr));
+        gap: 0.5rem;
+        padding: 0 1rem 1rem;
+      }
+
+      .stage-node {
+        position: relative;
+        min-height: 7.6rem;
+        padding: 0.72rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfe;
+        cursor: pointer;
+        transition:
+          transform 150ms ease,
+          border-color 150ms ease,
+          box-shadow 150ms ease;
+      }
+
+      .stage-node::after {
+        content: "";
+        position: absolute;
+        top: 1.1rem;
+        right: -0.47rem;
+        width: 0.44rem;
+        height: 1px;
+        background: #b7c3d3;
+      }
+
+      .stage-node:last-child::after {
+        display: none;
+      }
+
+      .stage-node:hover,
+      .stage-node.active {
+        transform: translateY(-2px);
+        border-color: var(--stage-color);
+        box-shadow: 0 12px 26px rgba(24, 32, 51, 0.1);
+      }
+
+      .stage-node.active {
+        background: linear-gradient(180deg, #ffffff, var(--stage-bg));
+      }
+
+      .stage-index {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.8rem;
+        height: 1.8rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid color-mix(in srgb, var(--stage-color) 42%, #ffffff);
+        border-radius: 999px;
+        color: var(--stage-color);
+        background: var(--stage-bg);
+        font-size: 0.76rem;
+        font-weight: 900;
+      }
+
+      .stage-node h3 {
+        margin: 0 0 0.35rem;
+        font-size: 0.94rem;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .stage-node p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1.48;
+      }
+
+      .detail-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 0.72fr);
+        gap: 1rem;
+        padding: 0 1rem 1rem;
+      }
+
+      .stage-detail {
+        min-height: 17.4rem;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--stage-color);
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .stage-detail h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.2rem;
+        line-height: 1.3;
+        letter-spacing: 0;
+      }
+
+      .stage-detail p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .code-note {
+        margin-top: 0.9rem;
+        padding: 0.82rem;
+        border: 1px solid #d8e0eb;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #2f394a;
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.82rem;
+        line-height: 1.62;
+        white-space: pre-wrap;
+      }
+
+      .counter-card {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-height: 17.4rem;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfe;
+      }
+
+      .counter-card h3 {
+        margin: 0 0 0.65rem;
+        font-size: 1rem;
+        letter-spacing: 0;
+      }
+
+      .meter {
+        display: grid;
+        gap: 0.58rem;
+        align-content: start;
+      }
+
+      .meter-row {
+        display: grid;
+        grid-template-columns: 8.5rem 1fr 2.2rem;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .meter-row span {
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+
+      .bar {
+        height: 0.68rem;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e9eef6;
+      }
+
+      .bar i {
+        display: block;
+        width: var(--value);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--bar-color);
+        transition: width 180ms ease;
+      }
+
+      .owner-lanes {
+        display: grid;
+        gap: 0.72rem;
+        padding: 1rem;
+      }
+
+      .lane {
+        display: grid;
+        grid-template-columns: 12rem 1fr;
+        gap: 0.75rem;
+        align-items: center;
+      }
+
+      .lane-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: 2.5rem;
+        padding: 0.62rem 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 900;
+      }
+
+      .dot {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 50%;
+        background: var(--lane-color);
+      }
+
+      .lane-track {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        gap: 0.32rem;
+      }
+
+      .lane-cell {
+        min-height: 2.35rem;
+        border: 1px solid #e0e7f0;
+        border-radius: 7px;
+        background: #f7f9fc;
+      }
+
+      .lane-cell.on {
+        border-color: color-mix(in srgb, var(--lane-color) 48%, #ffffff);
+        background: color-mix(in srgb, var(--lane-color) 15%, #ffffff);
+      }
+
+      .side-column {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .boundary-list {
+        display: grid;
+        gap: 0.62rem;
+        padding: 1rem;
+      }
+
+      .boundary-item {
+        display: grid;
+        grid-template-columns: 2rem 1fr;
+        gap: 0.58rem;
+        padding: 0.72rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfe;
+      }
+
+      .boundary-item strong {
+        display: block;
+        margin-bottom: 0.18rem;
+        font-size: 0.9rem;
+      }
+
+      .boundary-item p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.5;
+      }
+
+      .boundary-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.8rem;
+        height: 1.8rem;
+        border-radius: 999px;
+        background: var(--item-bg);
+        color: var(--item-color);
+        font-size: 0.84rem;
+        font-weight: 900;
+      }
+
+      .timeline-panel {
+        margin-top: 1rem;
+      }
+
+      .timeline {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(120px, 1fr));
+        gap: 0.5rem;
+        padding: 1rem;
+        overflow-x: auto;
+      }
+
+      .timeline-step {
+        min-height: 8.7rem;
+        padding: 0.78rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .timeline-step strong {
+        display: block;
+        margin-bottom: 0.42rem;
+        color: var(--step-color);
+        font-size: 0.86rem;
+      }
+
+      .timeline-step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.52;
+      }
+
+      @media (max-width: 1120px) {
+        .workbench,
+        .detail-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stage-map {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .stage-node::after {
+          display: none;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .nav-actions,
+        .nav-actions a,
+        .nav-actions button {
+          width: 100%;
+        }
+
+        .stage-map {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .lane {
+          grid-template-columns: 1fr;
+        }
+
+        .lane-track {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .meter-row {
+          grid-template-columns: 7rem 1fr 1.8rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .stage-map {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span>ServerCore / Session</span>
+          <h1>세션 수명관리 경계 시각화</h1>
+        </div>
+        <nav class="nav-actions" aria-label="관련 문서">
+          <a href="./ServerCorePortfolio.html">ServerCore 문서</a>
+          <a href="../index.html">포트폴리오 홈</a>
+          <button class="primary" id="playButton" type="button">재생</button>
+        </nav>
+      </header>
+
+      <main>
+        <section class="workbench" aria-label="세션 수명관리 시각화">
+          <article class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <p>Lifecycle State</p>
+                <h2>Accept부터 마지막 strong ref 해제까지</h2>
+              </div>
+            </div>
+            <div class="stage-controls" id="stageControls" aria-label="상태 선택"></div>
+            <div class="stage-map" id="stageMap"></div>
+            <div class="detail-grid">
+              <div class="stage-detail" id="stageDetail"></div>
+              <aside class="counter-card" aria-label="현재 단계 카운터">
+                <h3>release 판단 신호</h3>
+                <div class="meter" id="meter"></div>
+              </aside>
+            </div>
+          </article>
+
+          <aside class="side-column">
+            <article class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <p>Owner Boundary</p>
+                  <h2>각 경계의 생존 보장자</h2>
+                </div>
+              </div>
+              <div class="boundary-list" id="boundaryList"></div>
+            </article>
+          </aside>
+        </section>
+
+        <section class="panel timeline-panel" aria-label="owner lane matrix">
+          <div class="panel-header">
+            <div class="panel-title">
+              <p>Strong Reference Lanes</p>
+              <h2>소유권은 하나씩 이전되는 것이 아니라 필요한 구간에 추가된다</h2>
+            </div>
+          </div>
+          <div class="owner-lanes" id="ownerLanes"></div>
+        </section>
+
+        <section class="panel timeline-panel" aria-label="disconnect drain flow">
+          <div class="panel-header">
+            <div class="panel-title">
+              <p>Drain Flow</p>
+              <h2>Disconnect는 free가 아니라 drain 상태 전환</h2>
+            </div>
+          </div>
+          <div class="timeline" id="timeline"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const stages = [
+        {
+          key: "accept",
+          title: "Accepted",
+          short: "factory shared_ptr 생성",
+          color: "#697386",
+          bg: "#f1f4f8",
+          detail:
+            "accept 처리 구간의 임시 owner가 SessionRef를 잡고 있다. 아직 connected session 목록의 장기 소유권은 등록되지 않았다.",
+          code: "Listener::OnAccept()\n  -> SessionFactory\n  -> sess->Start()",
+          meters: { manager: 0, event: 0, keepAlive: 0, pending: 0 },
+        },
+        {
+          key: "connected",
+          title: "Connected",
+          short: "SessionManager owner 등록",
+          color: "#16815b",
+          bg: "#e8f5ee",
+          detail:
+            "Start()에서 SessionManager::Add(self)가 호출되며 connected session의 장기 소유권이 생긴다. local owner는 scope 종료와 함께 사라질 수 있다.",
+          code: "ring_.Sessions().Add(self);\nOnConnected();\nRegisterRecv();\nArmWatchdog();",
+          meters: { manager: 100, event: 0, keepAlive: 0, pending: 0 },
+        },
+        {
+          key: "submitted",
+          title: "I/O Submitted",
+          short: "IoEvent.owner + pending_io_",
+          color: "#c46a00",
+          bg: "#fff3df",
+          detail:
+            "kernel에 제출된 작업은 completion 시점이 늦어질 수 있다. event owner가 callback이 들어올 때까지 session의 생존을 보장한다.",
+          code:
+            "recv_ev->SetStrongOwner(shared_from_this());\n++pending_io_;\nring_.PrepRecvMultishot(*recv_ev, Fd());",
+          meters: { manager: 100, event: 100, keepAlive: 0, pending: 70 },
+        },
+        {
+          key: "dispatch",
+          title: "CQE Dispatch",
+          short: "keep_alive stack 보호",
+          color: "#1664a7",
+          bg: "#e8f4fd",
+          detail:
+            "IoRing::Dispatch()는 event owner를 keep_alive에 복사한다. callback 실행 중 manager release가 일어나도 현재 stack의 접근은 안전하다.",
+          code:
+            "auto owner = ev->Owner();\nkeep_alive.push_back(owner);\nowner->Dispatch(ev, result, flags);",
+          meters: { manager: 100, event: 100, keepAlive: 100, pending: 70 },
+        },
+        {
+          key: "disconnecting",
+          title: "Disconnecting",
+          short: "shutdown / cancel 등록",
+          color: "#bc3d66",
+          bg: "#fdeaf0",
+          detail:
+            "disconnecting_을 먼저 세워 중복 종료를 막고 shutdown, recv cancel, timeout cancel 같은 정리 작업을 각각 completion으로 기다린다.",
+          code: "if (disconnecting_) return;\ndisconnecting_ = true;\nRegisterShutdownAndCancel();",
+          meters: { manager: 100, event: 100, keepAlive: 55, pending: 85 },
+        },
+        {
+          key: "draining",
+          title: "Draining",
+          short: "final CQE마다 pending 감소",
+          color: "#bc3d66",
+          bg: "#fdeaf0",
+          detail:
+            "cancel CQE와 target operation CQE는 별개다. multishot recv도 final CQE에서만 pending_io_를 감소시킨다.",
+          code: "if (!more) {\n  recv_armed_ = false;\n  --pending_io_;\n}\nTryRelease();",
+          meters: { manager: 100, event: 50, keepAlive: 45, pending: 35 },
+        },
+        {
+          key: "released",
+          title: "Released",
+          short: "SessionManager owner 해제",
+          color: "#bc3d66",
+          bg: "#fdeaf0",
+          detail:
+            "pending_io_가 0이고 disconnecting_ 상태일 때 TryRelease()가 connected session owner를 놓는다. 이것이 곧 destructor 호출을 의미하지는 않는다.",
+          code: "if (disconnecting_ && pending_io_ == 0)\n  ring_.Sessions().Release(self);",
+          meters: { manager: 0, event: 20, keepAlive: 25, pending: 0 },
+        },
+        {
+          key: "destroyed",
+          title: "Destroyed",
+          short: "마지막 strong ref 해제",
+          color: "#8a2b4b",
+          bg: "#f7e7ee",
+          detail:
+            "manager ref, event owner, dispatch keep_alive, 외부 shared_ptr가 모두 사라진 뒤에야 destructor와 fd close가 실행된다.",
+          code: "~Session()\n  -> SocketHandle closes fd",
+          meters: { manager: 0, event: 0, keepAlive: 0, pending: 0 },
+        },
+      ];
+
+      const boundaries = [
+        {
+          mark: "M",
+          title: "SessionManager",
+          body: "connected session 목록의 장기 owner",
+          color: "#16815b",
+          bg: "#e8f5ee",
+          cells: [0, 1, 1, 1, 1, 1, 0, 0],
+        },
+        {
+          mark: "E",
+          title: "IoEvent.owner",
+          body: "제출된 I/O callback의 임시 owner",
+          color: "#c46a00",
+          bg: "#fff3df",
+          cells: [0, 0, 1, 1, 1, 1, 1, 0],
+        },
+        {
+          mark: "K",
+          title: "IoRing::keep_alive",
+          body: "현재 dispatch stack의 임시 owner",
+          color: "#1664a7",
+          bg: "#e8f4fd",
+          cells: [0, 0, 0, 1, 1, 1, 1, 0],
+        },
+        {
+          mark: "P",
+          title: "pending_io_",
+          body: "connected ownership release 시점 결정",
+          color: "#bc3d66",
+          bg: "#fdeaf0",
+          cells: [0, 0, 1, 1, 1, 1, 0, 0],
+        },
+      ];
+
+      const drainSteps = [
+        ["Accept", "factory가 shared_ptr<Session>을 만들고 Start()로 넘긴다.", "#697386"],
+        ["Start", "SessionManager::Add(self)로 connected owner를 등록한다.", "#16815b"],
+        ["Submit", "event owner를 붙이고 pending_io_를 증가시킨 뒤 SQE를 제출한다.", "#c46a00"],
+        ["Dispatch", "CQE의 IoEvent owner를 keep_alive에 복사하고 callback을 실행한다.", "#1664a7"],
+        ["Disconnect", "shutdown과 cancel 작업을 등록하고 completion을 별도로 기다린다.", "#bc3d66"],
+        ["TryRelease", "disconnecting_이고 pending_io_가 0이면 manager owner를 해제한다.", "#bc3d66"],
+        ["Destruct", "마지막 strong ref가 사라진 뒤 destructor가 fd를 닫는다.", "#8a2b4b"],
+      ];
+
+      let current = 0;
+      let timer = null;
+
+      const stageControls = document.querySelector("#stageControls");
+      const stageMap = document.querySelector("#stageMap");
+      const stageDetail = document.querySelector("#stageDetail");
+      const meter = document.querySelector("#meter");
+      const boundaryList = document.querySelector("#boundaryList");
+      const ownerLanes = document.querySelector("#ownerLanes");
+      const timeline = document.querySelector("#timeline");
+      const playButton = document.querySelector("#playButton");
+
+      function renderStatic() {
+        stageControls.innerHTML = stages
+          .map((stage, index) => `<button type="button" data-index="${index}">${index + 1}</button>`)
+          .join("");
+
+        stageMap.innerHTML = stages
+          .map(
+            (stage, index) => `
+              <article class="stage-node" data-index="${index}" style="--stage-color: ${stage.color}; --stage-bg: ${stage.bg}">
+                <span class="stage-index">${String(index + 1).padStart(2, "0")}</span>
+                <h3>${stage.title}</h3>
+                <p>${stage.short}</p>
+              </article>
+            `,
+          )
+          .join("");
+
+        boundaryList.innerHTML = boundaries
+          .map(
+            (item) => `
+              <article class="boundary-item">
+                <span class="boundary-icon" style="--item-bg: ${item.bg}; --item-color: ${item.color}">${item.mark}</span>
+                <div>
+                  <strong>${item.title}</strong>
+                  <p>${item.body}</p>
+                </div>
+              </article>
+            `,
+          )
+          .join("");
+
+        ownerLanes.innerHTML = boundaries
+          .map(
+            (lane) => `
+              <div class="lane" style="--lane-color: ${lane.color}">
+                <div class="lane-label"><span class="dot"></span>${lane.title}</div>
+                <div class="lane-track">
+                  ${lane.cells.map((cell) => `<span class="lane-cell${cell ? " on" : ""}"></span>`).join("")}
+                </div>
+              </div>
+            `,
+          )
+          .join("");
+
+        timeline.innerHTML = drainSteps
+          .map(
+            ([title, body, color]) => `
+              <article class="timeline-step">
+                <strong style="--step-color: ${color}">${title}</strong>
+                <p>${body}</p>
+              </article>
+            `,
+          )
+          .join("");
+
+        document.querySelectorAll("[data-index]").forEach((node) => {
+          node.addEventListener("click", () => setStage(Number(node.dataset.index)));
+        });
+      }
+
+      function renderStage() {
+        const stage = stages[current];
+        document.documentElement.style.setProperty("--stage-color", stage.color);
+        document.documentElement.style.setProperty("--stage-bg", stage.bg);
+
+        document.querySelectorAll(".stage-node").forEach((node, index) => {
+          node.classList.toggle("active", index === current);
+        });
+        document.querySelectorAll(".stage-controls button").forEach((node, index) => {
+          node.classList.toggle("active", index === current);
+        });
+
+        stageDetail.innerHTML = `
+          <h3>${stage.title}</h3>
+          <p>${stage.detail}</p>
+          <pre class="code-note">${stage.code}</pre>
+        `;
+
+        const meterRows = [
+          ["manager owner", stage.meters.manager, "#16815b"],
+          ["event owner", stage.meters.event, "#c46a00"],
+          ["keep_alive", stage.meters.keepAlive, "#1664a7"],
+          ["pending_io_", stage.meters.pending, "#bc3d66"],
+        ];
+
+        meter.innerHTML = meterRows
+          .map(
+            ([label, value, color]) => `
+              <div class="meter-row">
+                <span>${label}</span>
+                <div class="bar" style="--bar-color: ${color}"><i style="--value: ${value}%"></i></div>
+                <span>${value}</span>
+              </div>
+            `,
+          )
+          .join("");
+      }
+
+      function setStage(index) {
+        current = index;
+        renderStage();
+      }
+
+      function stopPlayback() {
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+        playButton.textContent = "재생";
+      }
+
+      function startPlayback() {
+        stopPlayback();
+        playButton.textContent = "정지";
+        timer = setInterval(() => {
+          current = (current + 1) % stages.length;
+          renderStage();
+        }, 1400);
+      }
+
+      playButton.addEventListener("click", () => {
+        if (timer) {
+          stopPlayback();
+        } else {
+          startPlayback();
+        }
+      });
+
+      renderStatic();
+      renderStage();
+    </script>
+  </body>
+</html>

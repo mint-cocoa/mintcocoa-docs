@@ -1,0 +1,144 @@
+## 버퍼 관리 {#sec-buffer-management}
+
+`Session`의 recv/send 경로는 커널이 언제 버퍼를 참조하고 언제 CQE를 돌려주는지에 맞춰 설계해야 했습니다. recv는 provided buffer를 오래 붙잡으면 전체 풀 고갈로 이어지고, send는 CQE가 오기 전까지 유저 버퍼를 커널이 참조할 수 있으므로 payload 수명을 명확히 보장해야 합니다.
+
+### 기존 구현 {#sec-buffer-old}
+
+초기 구현은 recv/send buffer를 단순 heap buffer처럼 사용했습니다. 수신 데이터는 CQE에서 받은 포인터를 바로 처리하거나 세션 내부 임시 버퍼로 복사했고, 송신 데이터도 호출 시점의 payload가 send 완료 전까지 살아 있다고 가정하기 쉬운 구조였습니다.
+
+이 방식은 echo 수준의 작은 예제에서는 단순하지만, 실제 TCP stream과 `io_uring` 완료 모델에서는 버퍼 소유권과 반환 시점이 명확하지 않아 문제가 생겼습니다.
+
+::: {.panel-tabset}
+
+### recv path {#sec-buffer-recv .active}
+
+#### 구현 문제 {#sec-buffer-recv-problem}
+
+- provided buffer 고갈 시 `ENOBUFS`가 발생합니다.
+- TCP stream packet fragmentation이 발생합니다.
+- recv pause 중에도 커널은 이미 수신 완료 CQE를 돌려줄 수 있습니다.
+- provided buffer를 오래 붙잡으면 다른 세션의 recv까지 영향을 받습니다.
+
+#### 분석 {#sec-buffer-recv-analysis}
+
+- TCP는 message boundary를 보장하지 않습니다.
+- provided buffer는 CQE 단위 buffer입니다.
+- provided buffer는 세션 전용 소유물이 아니라 worker/ring이 공유하는 커널 버퍼 풀입니다.
+- multishot recv는 `IORING_CQE_F_MORE`가 사라지거나 `ENOBUFS`가 발생하면 다시 등록해야 합니다.
+- 상위 프로토콜이 HTTP/Game packet처럼 message boundary를 요구하면 session별 재조립 버퍼가 필요합니다.
+
+#### 최종 개선 {#sec-buffer-recv-final}
+
+recv path에서는 provided buffer를 "처리 직후 반환하는 커널 임대 버퍼"로 취급합니다. `Session::OnRecv()`는 CQE에 buffer id가 있으면 데이터를 처리하거나 paused queue에 복사한 뒤, disconnect 중이어도 항상 `buf_ring.Return(buf_id)`를 호출합니다.
+
+```{.cpp filename="src/runtime/io/Session.cpp — OnRecv(): provided buffer 반환"}
+if (has_buffer) {
+    std::uint16_t buf_id = flags >> IORING_CQE_BUFFER_SHIFT;
+    auto& buf_ring = ring_.BufRing();
+
+    if (res > 0 && !disconnecting_) {
+        auto view = buf_ring.View(buf_id, static_cast<std::uint32_t>(res));
+        if (recv_paused_) {
+            paused_recv_overflow = !paused_recv_.Push(view);
+        } else {
+            OnRecv(view);
+        }
+    }
+
+    buf_ring.Return(buf_id);
+}
+```
+
+`ENOBUFS`가 발생하거나 multishot recv가 종료되면, 세션이 pause 상태가 아닐 때 `RegisterRecv()`로 recv SQE를 다시 등록합니다.
+
+```{.cpp filename="src/runtime/io/Session.cpp — ENOBUFS / multishot 종료 복구"}
+if (res == -ENOBUFS) {
+    if (!recv_paused_) {
+        RegisterRecv();
+    }
+    return;
+}
+
+if (!more && !recv_paused_) {
+    RegisterRecv();
+}
+```
+
+HTTP/Game module처럼 message boundary가 필요한 상위 계층은 session별 recv buffer를 사용해 단편화된 데이터를 재조립합니다. recv pause 중 들어온 데이터는 bounded paused recv queue에 저장합니다. queue가 넘치면 세션을 disconnect해 무제한 메모리 증가로 이어지지 않게 했고, pause가 해제되면 저장된 데이터를 다시 `OnRecv()`로 흘려보냅니다.
+
+```{.cpp filename="src/runtime/io/Session.cpp — paused recv queue flush"}
+while (!paused_recv_.Empty() && !disconnecting_) {
+    auto pending = paused_recv_.Pop();
+    if (!pending) {
+        break;
+    }
+    OnRecv(std::span<const std::byte>(
+        pending->data.data(), pending->data.size()));
+}
+```
+
+#### 개선 결과 {#sec-buffer-recv-result}
+
+- provided buffer 점유 시간이 감소했습니다.
+- `ENOBUFS`와 multishot 종료 후 recv를 복구할 수 있습니다.
+- packet fragmentation 처리가 가능해졌습니다.
+- recv pause 중 들어온 데이터도 bounded queue 안에서 제어할 수 있습니다.
+
+### send path {#sec-buffer-send}
+
+#### 구현 문제 {#sec-buffer-send-problem}
+
+- partial send / short write가 발생합니다.
+- send 완료 전 payload 수명 문제가 발생할 수 있습니다.
+- 여러 `SendBuffer`를 한 번에 보낼 때 iovec 상태를 CQE 이후까지 유지해야 합니다.
+
+#### 분석 {#sec-buffer-send-analysis}
+
+- send는 요청한 byte를 항상 한 번에 보내지 않습니다.
+- kernel은 send CQE 전까지 user buffer를 참조할 수 있습니다.
+- short-write 이후에는 이미 보낸 byte를 제외한 나머지 구간만 재전송해야 합니다.
+- 재전송 중인 op context가 dispatch 끝에서 삭제되면 남은 send 상태를 잃습니다.
+
+#### 최종 개선 {#sec-buffer-send-final}
+
+send path에서는 `SendOp`이 send CQE까지 필요한 상태와 payload reference를 직접 소유합니다. `msghdr`, `iovec`, `SendBufferRef` 목록을 `SendOp` 안에 넣어 커널이 CQE를 돌려주기 전까지 payload 수명이 유지되게 했습니다.
+
+```{.cpp filename="include/iouring_runtime/core/Session.h"}
+struct SendOp final : ring::SendEvent {
+    struct msghdr msg{};
+    std::vector<struct iovec> iovecs;
+    std::vector<SendBufferRef> bufs;
+};
+```
+
+send CQE에서 실제 전송 byte가 요청 byte보다 작으면 partial send입니다. 이때 `AdvanceSendState()`로 이미 보낸 구간만큼 `iovec`과 `SendBufferRef` 목록을 전진시키고, 남은 구간만 같은 `SendOp`으로 재전송합니다. 이 경우 dispatch 후 op가 삭제되면 안 되므로 `RetainAfterDispatch()`로 auto-delete를 한 번 미룹니다.
+
+```{.cpp filename="src/runtime/io/SessionSend.cpp — partial send 재전송"}
+if (sent < requested) {
+    AdvanceSendState(send_op.iovecs, send_op.bufs, sent);
+
+    std::memset(&send_op.msg, 0, sizeof(send_op.msg));
+    send_op.msg.msg_iov = send_op.iovecs.data();
+    send_op.msg.msg_iovlen = send_op.iovecs.size();
+
+    ++pending_io_;
+    if (!ring_.PrepSendMsg(send_op, Fd(), &send_op.msg, MSG_NOSIGNAL)) {
+        --pending_io_;
+        Disconnect();
+        return;
+    }
+    active_send_ev_ = &send_op;
+    send_op.RetainAfterDispatch();
+    ring_.Submit();
+    return;
+}
+```
+
+#### 개선 결과 {#sec-buffer-send-result}
+
+- short-write 상황에서도 payload 수명을 보장합니다.
+- partial send 이후 남은 byte만 재전송합니다.
+- send CQE 전까지 `SendBufferRef`가 payload를 붙잡습니다.
+- 재전송 op는 `RetainAfterDispatch()`로 auto-delete 시점을 늦춰 상태를 유지합니다.
+
+:::

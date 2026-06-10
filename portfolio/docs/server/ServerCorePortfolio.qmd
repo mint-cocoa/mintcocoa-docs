@@ -1,0 +1,940 @@
+---
+title: "서버 런타임 구현 포트폴리오"
+subtitle: "io_uring 기반 C++ 서버 엔진과 홈랩 서비스 확장 구조"
+author: "배진후"
+lang: ko
+format:
+  html:
+    css: ../portfolio.css
+    code-overflow: wrap
+    highlight-style: github
+    fontsize: 1em
+    linestretch: 1.6
+    mermaid:
+      theme: neutral
+---
+
+## 프로젝트 개요 {#sec-overview}
+
+`iouring-runtime`은 Linux `io_uring`을 사용해 만든 C++ 서버 런타임입니다.
+TCP 서버를 만들 때 반복되는 연결 수락, 비동기 수신/송신, disconnect, timeout,
+cancel, backpressure, 세션 수명관리를 공통 transport 계층으로 분리하고, 그 위에
+Web, Proxy, Game 모듈을 선택적으로 올릴 수 있게 구성했습니다.
+
+::: {.summary-grid}
+::: {.summary-card}
+**Runtime**
+
+프로토콜에 독립적인 C++ 서버 엔진이 추상화된 iouirng 라이브러리 제공
+:::
+
+::: {.summary-card}
+**I/O**
+
+Multishot Accept/Recv, Provided Buffer, MSG_RING 기반 이벤트 처리
+:::
+
+::: {.summary-card}
+**Lifecycle**
+
+owned op context와 auto-delete로 CQE 지연, cancel race, UAF 문제 대응
+:::
+
+::: {.summary-card}
+**Modules**
+
+Web/Proxy/Game은 같은 Core 위에 올라가는 모듈로 분리
+:::
+:::
+
+### 런타임을 분리한 이유
+
+기존에도 Linux와 서버 구조에 관심이 많았고, 소켓 프로그래밍을 공부하면서 Linux의
+최신 I/O API인 `io_uring`으로 직접 서버를 만들어보고 싶었습니다. 처음에는
+TCP/Protobuf를 사용하는 게임 서버 구현으로 시작했습니다. 
+
+초기 ServerCore는 런타임 계층(`IoRing`, `Session`, `BufferPool`)과 애플리케이션
+계층(`IoLoop`, `GameRoom`, `PacketSession`)이 한 레이어에 섞여 있었습니다.
+
+구현 중 TCP 연결 수락, 수신, 송신 등 기반 기능들은 다른 서버에서도 백엔드로 사용될 수 있는 기반 기능이고 재사용성을 
+생각하게 되었고,목표를 애플리케이션 하나가 아니라 여러 프로토콜이 올라갈 수 있는 transport runtime으로 잡았습니다.
+
+
+정리하면서 게임 로직은 Runtime의 소비자가 되고, Core Runtime은 TCP byte stream과
+session lifecycle만 책임지도록 방향을 바꿨습니다.
+
+### epoll이 아니라 io_uring을 고른 이유
+
+`epoll`은 fd가 읽거나 쓸 준비가 되었다는 readiness를 알려줍니다. 이후 실제
+`read`/`write` 호출, 버퍼 소유권, 세션 수명, close 이후 남는 작업 정리는
+애플리케이션이 별도로 구성해야 합니다. 반면 `io_uring`은 SQE로 작업을 제출하고
+CQE로 완료를 받으므로, operation context를 중심으로 서버 구조를 잡기 좋았습니다.
+
+### 목표: protocol runtime이 아니라 transport runtime
+
+계속 구현해나가며 Runtime이 직접 해결하려는 문제는 "어떤 메시지를 처리할 것인가"가 아니라
+"연결과 I/O 완료를 어떻게 안전하게 끝까지 관리할 것인가" 형태로 생각하게 되었고, 이 기준을 세운 뒤
+`include/iouring_runtime/core`와 `src/runtime`에는 네트워크 I/O, 세션 관리, 버퍼
+관리, 이벤트 디스패치, 타이머와 작업 큐 같은 범용 기능만 남겼습니다.
+
+HTTP 라우팅과 정적 파일 응답은 `RuntimeWeb`, TCP/TLS 중계는 `RuntimeProxy`, 패킷
+프레이밍과 Room 계층은 `RuntimeGame`이 담당합니다. 예제 앱들은 같은 Runtime이 웹
+서버, 프록시, 게임 서버, 운영용 서비스로 확장될 수 있음을 알 수 있게되었습니다.
+
+### 구현 계층과 문서 범위
+
+```{mermaid}
+%%| label: fig-runtime-layering
+%%| fig-cap: "io_uring 런타임과 애플리케이션 계층"
+graph TD
+    classDef runtime fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef app fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef external fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    Core["Runtime<br/>IoRing · Listener · Session<br/>RingBuffer · SendQueue<br/>GlobalQueue · JobQueue"]:::runtime
+
+
+    Web["RuntimeWeb<br/>HTTP parser · Router · HttpSession"]:::app
+    Proxy["RuntimeProxy<br/>TcpProxyServer · bridge · TLS/SNI"]:::app
+    GameRuntime["RuntimeGame<br/>PacketSession · Room · RoomManager"]:::app
+    Examples["app/examples<br/>module smoke and integration apps"]:::external
+
+
+    Core --> Web
+    Core --> Proxy
+    Core --> GameRuntime
+    Web --> Examples
+    Proxy --> Examples
+    GameRuntime --> Examples
+```
+
+
+### 현재 런타임 모듈 {#sec-current-modules}
+
+| 모듈 | CMake 타깃 | 구현 위치 | 책임 |
+|------|-----------|-----------|------|
+| Core runtime | `iouring_runtime::Runtime` | `src/runtime`, `include/iouring_runtime/core` | `io_uring` 전체 라이프사이클 관리|
+| Web | `iouring_runtime_web::RuntimeWeb` | `src/modules/web` | HTTP 파싱, 라우팅, 파일/스트리밍 응답|
+| Proxy | `iouring_runtime_proxy::RuntimeProxy` | `src/modules/proxy` | tcp 브릿지 및 라우팅 |
+| Game | `iouring_runtime_game::RuntimeGame` | `src/modules/game` | 패킷 프레이밍, room 단위 직렬화|
+
+: 현재 런타임 모듈 {#tbl-runtime-modules}
+
+### 기본 Runtime 책임 경계 {#sec-core-responsibility}
+
+코어를 직접 사용할 때의 흐름은 `IoRing::Create` → `BufferPool` → `SessionFactory` → `Listener::Start` 이후 `ring.Dispatch` 루프 안에서 CQE를 꺼내고, 완료 이벤트를 분기한 뒤 `Session::OnRecv`/`Session::Send`와 다음 SQE 재등록으로 이어집니다. 종료 요청이 들어오면 `Disconnect` 또는 `DisconnectAfterFlush`로 전환하고 남은 완료 이벤트를 정리합니다.
+
+
+worker는 서버 루프가 반복되어 서버가 돌아가는 최소한의 단위입니다. 각 worker는 하나의 스레드에서 자기 `IoRing`을 소유하고, `Listener`가 제출한 accept 작업과 세션별 recv/send 작업의 완료를 같은 dispatch 루프에서 처리합니다. 세션의 수신 버퍼와 송신 버퍼는 worker의 I/O 흐름 안에서 재사용되며, 완료 이벤트가 도착할 때마다 다음 SQE 제출 여부가 결정됩니다.
+
+
+
+```{mermaid}
+%%| label: fig-core-runtime-init
+%%| fig-cap: "Core Runtime 초기화 흐름"
+flowchart LR
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+
+    Create["IoRing::Create<br/>io_uring 생성"]:::core
+    Pool["BufferPool<br/>recv buffer 준비"]:::core
+    Factory["SessionFactory<br/>세션 생성 정책 연결"]:::core
+    Start["Listener::Start<br/>accept SQE 제출"]:::core
+    DispatchStart["ring.Dispatch 진입"]:::core
+
+    Create --> Pool --> Factory --> Start --> DispatchStart
+```
+
+```{mermaid}
+%%| label: fig-core-runtime-loop
+%%| fig-cap: "WorkerLoop"
+flowchart LR
+    classDef loop fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef endstate fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    subgraph WorkerLoop["Worker Loop"]
+        direction LR
+        Dispatch["(1) ring.Dispatch<br/>CQE wait / drain"]:::loop
+        Complete["(2) 완료 이벤트 분기<br/>accept · recv · send · timeout"]:::loop
+        Callback["(3) 세션 콜백 실행<br/>Session::OnRecv / Send"]:::loop
+        Submit["(4) 다음 SQE 제출<br/>accept · recv · send 재등록"]:::loop
+    end
+
+    Close["Disconnect<br/>DisconnectAfterFlush"]:::endstate
+
+    Dispatch --> Complete --> Callback --> Submit --> Dispatch
+    Callback -->|"종료 요청"| Close
+    Close -->|"남은 CQE drain 후 정리"| Dispatch
+```
+
+
+## 수명관리 {#sec-session}
+
+### 최종 구현 {#sec-session-final}
+
+수명관리의 핵심은 세션 객체 하나를 누가 끝까지 소유하느냐가 아니라,
+세션이 비동기 경계를 지날 때 각 구간의 생존을 누가 보장하느냐입니다. 
+현재 구조는 `SessionManager`, `IoEvent.owner`, `IoRing::keep_alive`, `pending_io_`가 서로 다른 경계를 담당합니다.
+
+```text
+SessionManager:
+  connected session의 장기 소유자
+
+IoEvent.owner:
+  submitted I/O callback safety의 임시 소유자
+
+IoRing::keep_alive:
+  current dispatch stack safety의 임시 소유자
+
+pending_io_:
+  connected ownership을 언제 release할지 결정하는 counter
+```
+
+소유권 이동 관점에서 보면 session은 하나의 owner가 순서대로 넘겨받는 객체가 아닙니다. 단계별로 필요한 strong owner가 추가되고, 해당 경계가 끝나면 빠집니다.
+
+```text
+1. Accept 직후
+   factory/local shared_ptr
+
+2. Start()
+   factory/local shared_ptr
+   + SessionManager strong ref
+
+3. I/O submit
+   SessionManager strong ref
+   + IoEvent.owner strong ref
+
+4. CQE dispatch
+   SessionManager strong ref
+   + IoEvent.owner strong ref
+   + IoRing::keep_alive strong ref
+
+5. event 완료
+   IoEvent.owner release
+   pending_io_--
+
+6. disconnect drain 완료
+   SessionManager::Release()
+
+7. 실제 소멸
+   외부 shared_ptr / keep_alive / event owner가 모두 사라진 뒤 destructor 실행
+```
+
+따라서 disconnect는 객체 파괴가 아니라 상태 전환입니다. 실제 객체 소멸은 manager release 이후에도 남아 있는 event owner, dispatch `keep_alive`, 외부 `shared_ptr`가 모두 사라진 뒤에 일어납니다.
+
+### 기존 문제점 {#sec-session-problem}
+
+문제는 session 객체 자체보다 session이 여러 비동기 경계를 지나갈 때 발생했습니다. 초기 설계처럼 raw `Session*` 하나로 모든 상태를 대표하면 각 경계에서 서로 다른 수명 요구를 표현할 수 없습니다.
+
+| 경계 | 발생한 문제 | 왜 위험한가 |
+| --- | --- | --- |
+| factory/local owner -> `SessionManager` | accept 직후 manager 등록 전후의 장기 소유권이 불명확함 | 연결된 세션을 누가 유지하는지 명확하지 않으면 recv/watchdog 등록 시점이 흔들립니다. |
+| `SessionManager` -> submitted I/O | SQE submit 이후 completion 시점은 kernel이 결정함 | `user_data`에 raw `Session*`만 넣으면 close 이후 늦게 온 CQE에서 UAF가 날 수 있습니다. |
+| submitted I/O -> CQE dispatch | callback 실행 중 disconnect와 manager release가 발생할 수 있음 | callback stack에서 접근 중인 session이 중간에 마지막 참조를 잃을 수 있습니다. |
+| cancel request -> target operation | cancel CQE와 target CQE가 같은 사건이 아님 | cancel 요청이 완료되어도 target recv/send CQE가 별도로 도착할 수 있습니다. |
+| disconnect request -> drain 완료 | shutdown, recv cancel, timeout cancel, send completion이 서로 다른 시점에 도착함 | 단일 close flag만으로는 언제 disconnect callback을 호출해도 되는지 알 수 없습니다. |
+| graceful close -> pending work drain | send queue나 app async work가 남아 있을 수 있음 | 응답 전송이나 DB callback보다 disconnect notification이 먼저 나가면 순서가 깨집니다. |
+| worker stop -> live session drain | accept 중지 후에도 기존 세션의 in-flight I/O가 남아 있음 | worker를 바로 종료하면 CQE drain과 callback 실행이 중간에 끊깁니다. |
+| manager release -> destructor | manager가 놓아도 다른 strong ref가 남을 수 있음 | `Release()`를 객체 파괴로 이해하면 실제 destructor 시점과 어긋납니다. |
+
+즉 수명관리 문제의 본질은 "세션이 살아 있는가"가 아니라 "각 비동기 경계에서 어떤 owner가 그 구간의 생존을 보장하는가"였습니다.
+
+### 해결 과정 {#sec-session-solution}
+
+각 경계마다 owner와 release 조건을 따로 두었습니다.
+
+| 경계 | 해결 |
+| --- | --- |
+| connected session 경계 | `Session::Start()`에서 `SessionManager::Add(self)`로 connected session strong ref를 등록합니다. |
+| submitted I/O 경계 | recv/send/timeout/cancel/disconnect event가 `SetStrongOwner(shared_from_this())`로 session을 붙잡습니다. |
+| dispatch 경계 | `IoRing::Dispatch()`가 event owner를 `keep_alive`에 복사해 callback stack을 보호합니다. |
+| multishot recv 경계 | `IORING_CQE_F_MORE`가 사라지는 final CQE에서만 `pending_io_--` 합니다. |
+| cancel 경계 | cancel request CQE와 target operation CQE를 별개 completion으로 처리합니다. |
+| disconnect release 경계 | `pending_io_ == 0`일 때만 `TryRelease()`가 `SessionManager::Release(self)`를 호출합니다. |
+| graceful close 경계 | `DisconnectAfterFlush()`가 send queue, active send, app work가 비워질 때까지 기다립니다. |
+| worker shutdown 경계 | `Worker::Stop()`이 graceful drain 후 timeout 시 force disconnect로 전환합니다. |
+
+accept부터 connected owner 등록까지는 다음 흐름입니다.
+
+```text
+Listener::OnAccept()
+  -> accepted fd 수신
+  -> SessionFactory로 SessionRef 생성
+  -> sess->Start()
+
+Session::Start()
+  -> ring_.Sessions().Add(self)
+  -> OnConnected()
+  -> connected callback 호출
+  -> RegisterRecv()
+  -> ArmWatchdog()
+```
+
+`Start()` 이후 연결 유지 여부는 `SessionManager`가 결정합니다. accept 시점의 factory/local owner는 임시 owner이고, manager strong ref가 추가된 뒤 local ref는 scope 종료와 함께 사라집니다.
+
+```cpp
+auto self = std::static_pointer_cast<Session>(shared_from_this());
+ring_.Sessions().Add(self);
+OnConnected();
+RegisterRecv();
+ArmWatchdog();
+```
+
+I/O submit 경계에서는 event가 session을 잡습니다. manager owner는 "연결 목록에 남아 있는가"를 의미하고, event owner는 "이미 kernel에 제출한 작업의 callback을 안전하게 받을 수 있는가"를 의미합니다.
+
+```cpp
+auto* recv_ev = new ring::RecvEvent();
+recv_ev->SetStrongOwner(shared_from_this());
+recv_ev->SetAutoDelete(true);
+++pending_io_;
+ring_.PrepRecvMultishot(*recv_ev, Fd());
+```
+
+CQE dispatch 경계에서는 `keep_alive`가 현재 callback stack을 보호합니다.
+
+```cpp
+auto* ev = reinterpret_cast<IoEvent*>(data);
+auto owner = ev->Owner();
+
+if (owner) {
+    keep_alive.push_back(owner);
+    owner->Dispatch(ev, result, flags);
+}
+```
+
+event owner는 CQE가 callback으로 들어올 수 있게 보장하고, `keep_alive`는 callback 실행 중 manager release나 다른 owner release가 발생해도 현재 stack frame의 `Session` 접근이 안전하도록 보장합니다.
+
+`pending_io_`는 object lifetime 자체를 담당하는 owner가 아닙니다. 등록한 I/O 중 아직 최종 완료되지 않은 작업 수를 세고, disconnect notification과 manager release 타이밍을 결정합니다.
+
+```text
+I/O 등록 성공
+  -> pending_io_++
+
+최종 CQE 도착
+  -> pending_io_--
+```
+
+multishot recv는 CQE가 여러 번 올 수 있으므로 final CQE에서만 감소합니다.
+
+```cpp
+if (!more) {
+    recv_armed_ = false;
+    active_recv_ev_ = nullptr;
+    --pending_io_;
+}
+```
+
+disconnect는 중복 실행을 막기 위해 owner ring에서 `disconnecting_`을 먼저 세운 뒤 shutdown과 cancel event를 등록합니다.
+
+```cpp
+if (disconnecting_) return;
+disconnecting_ = true;
+```
+
+```text
+Disconnect
+  -> disconnecting_ = true
+  -> shutdown(SHUT_RDWR) event registered
+  -> active recv/watchdog best-effort cancel
+  -> each event owns session
+  -> each final CQE decrements pending_io_
+```
+
+disconnect 이후 도착하는 recv, send, timeout, cancel CQE는 새 작업을 이어가기보다 pending count를 정리하고 `TryRelease()`로 이어집니다. 최종 release 조건은 `TryRelease()`에서 확인하도록 둡니다.
+
+```cpp
+if (!disconnecting_ || pending_io_ > 0)
+    return;
+
+if (disconnected_notified_)
+    return;
+
+disconnected_notified_ = true;
+
+OnDisconnected();
+on_disconnect_(self);
+
+ring_.Sessions().Release(self);
+```
+
+`TryRelease()`는 destructor를 호출하지 않습니다. 여기서 일어나는 일은 connected session owner 해제입니다.
+
+```text
+Before TryRelease success:
+  SessionManager owns connected session
+
+After SessionManager::Release(self):
+  connected session ownership is gone
+  object may still live because:
+    - current dispatch keep_alive
+    - in-flight event owner
+    - external shared_ptr
+```
+
+Graceful close는 `DisconnectAfterFlush()`가 담당합니다. 즉시 shutdown하지 않고 send queue, active send, app-level async work가 모두 비워질 때까지 기다린 뒤 `Disconnect()`로 넘어갑니다.
+
+```text
+DisconnectAfterFlush()
+  -> disconnect_after_flush_ = true
+  -> waits until send queue empty
+  -> waits until no active send
+  -> waits until HasPendingAppWork() == false
+  -> Disconnect()
+```
+
+app-level 비동기 작업은 `BeginAppIo()` / `EndAppIo()`로 drain에 포함시킵니다.
+
+```text
+BeginAppIo()
+  -> pending_io_++
+
+EndAppIo()
+  -> pending_io_--
+  -> TryRelease()
+```
+
+worker shutdown도 같은 경계 모델을 따릅니다. `Worker::Stop()`은 accept를 먼저 멈추고, manager snapshot에 있는 live session에 graceful close를 요청합니다. timeout 안에 drain이 끝나지 않으면 force disconnect로 넘어갑니다.
+
+```text
+Worker::Stop()
+  -> accept 중지
+  -> live session snapshot
+  -> 각 session에 DisconnectAfterFlush()
+  -> drain_timeout 동안 Sessions().Count() == 0 대기
+  -> 남아 있으면 Disconnect() 강제 호출
+  -> force_close_timeout 동안 추가 대기
+```
+
+전체 흐름은 다음과 같습니다.
+
+```text
+Accept
+  -> factory creates shared_ptr<Session>
+  -> Session::Start()
+
+Start
+  -> SessionManager::Add(session)
+  -> OnConnected()
+  -> RegisterRecv()
+  -> optional ArmWatchdog()
+
+RegisterRecv
+  -> RecvEvent created
+  -> RecvEvent.owner = session
+  -> pending_io_++
+  -> io_uring recv_multishot submitted
+
+Recv CQE
+  -> IoRing gets IoEvent*
+  -> event.owner copied into keep_alive
+  -> Session::OnRecv()
+  -> if final CQE: pending_io_--
+
+Send
+  -> SendEvent/SendOp.owner = session
+  -> pending_io_++
+  -> completion: pending_io_--
+
+Disconnect
+  -> shutdown/cancel events registered
+  -> each event owns session
+  -> each final CQE decrements pending_io_
+
+TryRelease
+  -> waits until disconnecting_ && pending_io_ == 0
+  -> OnDisconnected()
+  -> SessionManager::Release(session)
+
+Destruction
+  -> after manager ref + event owner refs + dispatch keep_alive refs are gone
+  -> Session destructor
+  -> SocketHandle closes fd
+```
+
+### 결과 {#sec-session-result}
+
+close 이후 늦게 도착하는 CQE도 안전하게 처리할 수 있습니다. session 해제 시점은 application close 호출이 아니라, Runtime이 in-flight operation을 모두 정리하고 `SessionManager`에서 connected session ref를 제거한 뒤로 이동했습니다.
+
+이 구조는 필요 이상으로 방어적인 구조라기보다, `io_uring` completion 모델에서 필요한 방어선을 경계별로 나눈 구조입니다.
+
+```text
+SessionManager owns "connected session".
+IoEvent owns "submitted operation callback safety".
+keep_alive owns "current dispatch stack safety".
+pending_io_ decides "when connected ownership can be released".
+```
+
+문제와 해결 과정은 모두 이 경계에서 발생합니다. accept 이후 connected owner를 등록하는 경계, SQE submit 이후 kernel이 completion을 돌려주는 경계, callback 실행 중 release가 발생할 수 있는 dispatch 경계, disconnect 이후 모든 pending work를 drain하고 manager owner를 놓는 release 경계를 각각 분리했기 때문에 UAF 없이 종료할 수 있습니다.
+
+면접에서 이 장은 다음 질문에 답하는 근거가 됩니다.
+
+- 왜 `Session*`를 `user_data`에 직접 넣지 않았는가
+- cancel CQE가 왔는데 왜 target op를 따로 기다리는가
+- close와 free가 왜 분리되어야 하는가
+- `SessionManager`, `IoEvent.owner`, `keep_alive`가 각각 어떤 소유권 경계를 담당하는가
+- `pending_io_`가 왜 object lifetime 자체가 아니라 release 타이밍 제어용인가
+
+## 버퍼 관리 {#sec-buffer-management}
+
+`Session`의 recv/send 경로는 커널이 언제 버퍼를 참조하고 언제 CQE를 돌려주는지에 맞춰 설계해야 했습니다. recv는 provided buffer를 오래 붙잡으면 전체 풀 고갈로 이어지고, send는 CQE가 오기 전까지 유저 버퍼를 커널이 참조할 수 있으므로 payload 수명을 명확히 보장해야 합니다.
+
+### 기존 구현 {#sec-buffer-old}
+
+초기 구현은 recv/send buffer를 단순 heap buffer처럼 사용했습니다. 수신 데이터는 CQE에서 받은 포인터를 바로 처리하거나 세션 내부 임시 버퍼로 복사했고, 송신 데이터도 호출 시점의 payload가 send 완료 전까지 살아 있다고 가정하기 쉬운 구조였습니다.
+
+이 방식은 echo 수준의 작은 예제에서는 단순하지만, 실제 TCP stream과 `io_uring` 완료 모델에서는 버퍼 소유권과 반환 시점이 명확하지 않아 문제가 생겼습니다.
+
+### 구현 문제: recv path {#sec-buffer-recv-problem}
+
+- provided buffer 고갈 시 `ENOBUFS`가 발생합니다.
+- TCP stream packet fragmentation이 발생합니다.
+- recv pause 중에도 커널은 이미 수신 완료 CQE를 돌려줄 수 있습니다.
+- provided buffer를 오래 붙잡으면 다른 세션의 recv까지 영향을 받습니다.
+
+### recv path 분석 {#sec-buffer-recv-analysis}
+
+- TCP는 message boundary를 보장하지 않습니다.
+- provided buffer는 CQE 단위 buffer입니다.
+- provided buffer는 세션 전용 소유물이 아니라 worker/ring이 공유하는 커널 버퍼 풀입니다.
+- multishot recv는 `IORING_CQE_F_MORE`가 사라지거나 `ENOBUFS`가 발생하면 다시 등록해야 합니다.
+- 상위 프로토콜이 HTTP/Game packet처럼 message boundary를 요구하면 session별 재조립 버퍼가 필요합니다.
+
+### recv path 최종 개선 {#sec-buffer-recv-final}
+
+recv path에서는 provided buffer를 "처리 직후 반환하는 커널 임대 버퍼"로 취급합니다. `Session::OnRecv()`는 CQE에 buffer id가 있으면 데이터를 처리하거나 paused queue에 복사한 뒤, disconnect 중이어도 항상 `buf_ring.Return(buf_id)`를 호출합니다.
+
+```{.cpp filename="src/runtime/io/Session.cpp — OnRecv(): provided buffer 반환"}
+if (has_buffer) {
+    std::uint16_t buf_id = flags >> IORING_CQE_BUFFER_SHIFT;
+    auto& buf_ring = ring_.BufRing();
+
+    if (res > 0 && !disconnecting_) {
+        auto view = buf_ring.View(buf_id, static_cast<std::uint32_t>(res));
+        if (recv_paused_) {
+            paused_recv_overflow = !paused_recv_.Push(view);
+        } else {
+            OnRecv(view);
+        }
+    }
+
+    buf_ring.Return(buf_id);
+}
+```
+
+`ENOBUFS`가 발생하거나 multishot recv가 종료되면, 세션이 pause 상태가 아닐 때 `RegisterRecv()`로 recv SQE를 다시 등록합니다.
+
+```{.cpp filename="src/runtime/io/Session.cpp — ENOBUFS / multishot 종료 복구"}
+if (res == -ENOBUFS) {
+    if (!recv_paused_) {
+        RegisterRecv();
+    }
+    return;
+}
+
+if (!more && !recv_paused_) {
+    RegisterRecv();
+}
+```
+
+HTTP/Game module처럼 message boundary가 필요한 상위 계층은 session별 recv buffer를 사용해 단편화된 데이터를 재조립합니다. recv pause 중 들어온 데이터는 bounded paused recv queue에 저장합니다. queue가 넘치면 세션을 disconnect해 무제한 메모리 증가로 이어지지 않게 했고, pause가 해제되면 저장된 데이터를 다시 `OnRecv()`로 흘려보냅니다.
+
+```{.cpp filename="src/runtime/io/Session.cpp — paused recv queue flush"}
+while (!paused_recv_.Empty() && !disconnecting_) {
+    auto pending = paused_recv_.Pop();
+    if (!pending) {
+        break;
+    }
+    OnRecv(std::span<const std::byte>(
+        pending->data.data(), pending->data.size()));
+}
+```
+
+### recv path 개선 결과 {#sec-buffer-recv-result}
+
+- provided buffer 점유 시간이 감소했습니다.
+- `ENOBUFS`와 multishot 종료 후 recv를 복구할 수 있습니다.
+- packet fragmentation 처리가 가능해졌습니다.
+- recv pause 중 들어온 데이터도 bounded queue 안에서 제어할 수 있습니다.
+
+### 구현 문제: send path {#sec-buffer-send-problem}
+
+- partial send / short write가 발생합니다.
+- send 완료 전 payload 수명 문제가 발생할 수 있습니다.
+- 여러 `SendBuffer`를 한 번에 보낼 때 iovec 상태를 CQE 이후까지 유지해야 합니다.
+
+### send path 분석 {#sec-buffer-send-analysis}
+
+- send는 요청한 byte를 항상 한 번에 보내지 않습니다.
+- kernel은 send CQE 전까지 user buffer를 참조할 수 있습니다.
+- short-write 이후에는 이미 보낸 byte를 제외한 나머지 구간만 재전송해야 합니다.
+- 재전송 중인 op context가 dispatch 끝에서 삭제되면 남은 send 상태를 잃습니다.
+
+### send path 최종 개선 {#sec-buffer-send-final}
+
+send path에서는 `SendOp`이 send CQE까지 필요한 상태와 payload reference를 직접 소유합니다. `msghdr`, `iovec`, `SendBufferRef` 목록을 `SendOp` 안에 넣어 커널이 CQE를 돌려주기 전까지 payload 수명이 유지되게 했습니다.
+
+```{.cpp filename="include/iouring_runtime/core/Session.h"}
+struct SendOp final : ring::SendEvent {
+    struct msghdr msg{};
+    std::vector<struct iovec> iovecs;
+    std::vector<SendBufferRef> bufs;
+};
+```
+
+send CQE에서 실제 전송 byte가 요청 byte보다 작으면 partial send입니다. 이때 `AdvanceSendState()`로 이미 보낸 구간만큼 `iovec`과 `SendBufferRef` 목록을 전진시키고, 남은 구간만 같은 `SendOp`으로 재전송합니다. 이 경우 dispatch 후 op가 삭제되면 안 되므로 `RetainAfterDispatch()`로 auto-delete를 한 번 미룹니다.
+
+```{.cpp filename="src/runtime/io/SessionSend.cpp — partial send 재전송"}
+if (sent < requested) {
+    AdvanceSendState(send_op.iovecs, send_op.bufs, sent);
+
+    std::memset(&send_op.msg, 0, sizeof(send_op.msg));
+    send_op.msg.msg_iov = send_op.iovecs.data();
+    send_op.msg.msg_iovlen = send_op.iovecs.size();
+
+    ++pending_io_;
+    if (!ring_.PrepSendMsg(send_op, Fd(), &send_op.msg, MSG_NOSIGNAL)) {
+        --pending_io_;
+        Disconnect();
+        return;
+    }
+    active_send_ev_ = &send_op;
+    send_op.RetainAfterDispatch();
+    ring_.Submit();
+    return;
+}
+```
+
+### send path 개선 결과 {#sec-buffer-send-result}
+
+- short-write 상황에서도 payload 수명을 보장합니다.
+- partial send 이후 남은 byte만 재전송합니다.
+- send CQE 전까지 `SendBufferRef`가 payload를 붙잡습니다.
+- 재전송 op는 `RetainAfterDispatch()`로 auto-delete 시점을 늦춰 상태를 유지합니다.
+
+## 대칭형 이벤트 루프 — IoWorker {#sec-ioworker}
+
+모든 `IoWorker`는 I/O와 게임 로직을 동일한 단일 루프에서 실행합니다. 별도의 게임 로직 전용 스레드를 두지 않아 컨텍스트 스위치를 줄였고, 8ms 실행 예산을 둬 하나의 Room이 한 틱 동안 I/O를 독점하지 않도록 했습니다.
+
+```{.cpp filename="io_worker.cpp — Run(): IO + 게임 로직 단일 루프"}
+void IoWorker::Run() {
+    IoRing::SetCurrent(ring_.get());
+    while (running_) {
+        ring_->Dispatch(std::chrono::milliseconds(1));     // 1. I/O 이벤트
+        ring_->ProcessPostedTasks();                        // 2. 크로스 스레드 태스크
+        timer_.DistributeExpired();                         // 3. 타이머 만료 작업
+        while (auto* q = global_queue_.TryPop())
+            q->Execute(std::chrono::steady_clock::now()
+                       + std::chrono::milliseconds(8));     // 4. 게임 로직 (8ms 예산)
+    }
+}
+```
+
+```{mermaid}
+%%| label: fig-ioworker-loop
+%%| fig-cap: "IoWorker 대칭형 이벤트 루프"
+flowchart TD
+    classDef phase fill:#f0f8ff,stroke:#007acc,stroke-width:2px,color:#333
+
+    P1["Phase 1: Dispatch"]:::phase
+    P2["Phase 2: PostedTasks()"]:::phase
+    P3["Phase 3: Timer"]:::phase
+    P4["Phase 4: GameLogic"]:::phase
+
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P1
+```
+
+| 단계 | 처리 대상 | 함수 / 설명 |
+|------|-----------|-------------|
+| Phase 1 | I/O 이벤트 | `ring_->Dispatch()` — CQE를 배치로 수확하고 처리 |
+| Phase 2 | 크로스 스레드 태스크 | `ProcessPostedTasks()` — 다른 스레드에서 넘어온 태스크 실행 |
+| Phase 3 | 타이머 | `timer_.DistributeExpired()` — 만료된 작업 분배 |
+| Phase 4 | 게임 로직 | `GlobalQueue`에서 `JobQueue`를 꺼내 8ms 예산 내에서 실행 |
+
+: IoWorker 이벤트 루프 단계 {#tbl-ioworker-phases}
+
+### JobQueue & 스케줄링 {#sec-jobqueue}
+
+게임서버에서 Room 하나는 하나의 독립적인 게임 월드입니다. 여러 Room이 소수의 `IoWorker` 스레드를 공유하기 때문에, 특정 Room의 로직이 오래 걸리면 같은 스레드에 배정된 다른 Room의 틱이 밀리는 문제가 발생합니다. 이를 해결하기 위해 `JobQueue` + `GlobalQueue` 구조로 스케줄링을 구현했습니다.
+
+#### JobQueue — 락-프리 직렬 실행
+
+`JobQueue`는 Room·Match 등 게임 오브젝트가 상속하는 직렬 실행 큐입니다. 외부 스레드에서 `Push(job)`를 호출하면 큐에 적재되고, 실제 실행은 단일 스레드에서만 이루어지므로 게임 로직 내부에서는 뮤텍스가 필요하지 않습니다.
+
+```{mermaid}
+%%| label: fig-jobqueue-lifecycle
+%%| fig-cap: "JobQueue 실행 사이클"
+sequenceDiagram
+    participant S as Session (IoWorker A)
+    participant JQ as JobQueue (Room)
+    participant GQ as GlobalQueue
+    participant W as IoWorker B
+
+    S->>JQ: Push(패킷 핸들러)
+    Note over JQ: 큐에 작업 적재
+    JQ->>GQ: 첫 Push 시 자동 등록
+    W->>GQ: Phase 4에서 JobQueue 꺼냄
+    W->>JQ: Execute(deadline = now + 8ms)
+    loop 작업 순회
+        JQ->>JQ: job 실행
+        alt deadline 초과
+            JQ->>GQ: 미완료 → 재등록
+        end
+    end
+    Note over JQ: 모든 작업 완료 시 GlobalQueue에서 제거
+```
+
+**실행 흐름의 핵심 세 단계:**
+
+1. **Batch Swap** — 뮤텍스를 잡고, 현재 큐 전체를 로컬 `batch` 변수와 교환한 뒤 즉시 해제합니다. 이후 순회 중에는 락을 잡지 않으므로, Push와 Execute가 동시에 진행되어도 경합이 최소화됩니다.
+
+2. **시간 예산 실행** — `Execute(deadline)`은 `steady_clock::now()`가 deadline(8ms)을 넘지 않는 동안만 작업을 꺼내 실행합니다. 8ms는 60fps 기준 한 프레임(16.6ms)의 절반으로, 나머지 시간을 I/O 처리에 할당하기 위한 값입니다.
+
+3. **이어 실행** — 예산 초과로 남은 작업이 있으면 큐 앞에 복원하고, `JobQueue` 자신을 다시 `GlobalQueue`에 등록합니다. 다음 Phase 4에서 이어서 실행되므로 작업이 유실되지 않습니다.
+
+#### GlobalQueue — 워크 스틸링 분배
+
+`GlobalQueue`는 실행 대기 중인 `JobQueue`들의 중앙 저장소입니다. 여러 `IoWorker`가 Phase 4에서 경쟁적으로 `JobQueue`를 꺼내 실행하는 **워크 스틸링** 패턴으로 동작합니다.
+
+```{mermaid}
+%%| label: fig-globalqueue-workstealing
+%%| fig-cap: "GlobalQueue 워크 스틸링"
+graph LR
+    classDef worker fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef gq fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef room fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    GQ["GlobalQueue"]:::gq
+
+    W1["IoWorker 0"]:::worker
+    W2["IoWorker 1"]:::worker
+    W3["IoWorker 2"]:::worker
+    W4["IoWorker 3"]:::worker
+
+    R1["Room A<br/>JobQueue"]:::room
+    R2["Room B<br/>JobQueue"]:::room
+    R3["Room C<br/>JobQueue"]:::room
+    R4["Room D<br/>JobQueue"]:::room
+    R5["Room E<br/>JobQueue"]:::room
+
+    GQ --> W1
+    GQ --> W2
+    GQ --> W3
+    GQ --> W4
+
+    W1 --> R1
+    W1 --> R5
+    W2 --> R2
+    W3 --> R3
+    W4 --> R4
+```
+
+- 어떤 `IoWorker`든 여유가 있으면 `GlobalQueue`에서 `JobQueue`를 가져가므로, Room이 특정 스레드에 고정되지 않고 **부하가 자연스럽게 분산**됩니다.
+- 하나의 `JobQueue`는 동시에 하나의 스레드에서만 실행되므로 직렬성이 보장됩니다.
+
+#### JobTimer — 게임 틱 스케줄링
+
+`JobTimer`는 `steady_clock` 기반의 지연 실행 타이머입니다. Room의 게임 틱(20Hz)이나 버프 지속시간 같은 시간 기반 이벤트를 스케줄링합니다.
+
+- **등록** — `Reserve(delay, callback)`으로 지정 시간 후 실행할 작업을 등록합니다.
+- **분배** — `IoWorker`의 Phase 3에서 `DistributeExpired()`가 호출되면, 만료된 타이머의 콜백을 해당 `JobQueue`에 Push합니다. 콜백은 타이머 스레드가 아니라 `JobQueue`의 직렬 실행 흐름에서 수행되므로, 게임 로직과의 동기화 문제가 없습니다.
+- **반복 틱** — 게임 틱처럼 주기적인 작업은 콜백 내부에서 자기 자신을 다시 `Reserve`하는 방식으로 반복합니다.
+
+## DB 접근 실험과 현재 예제 백엔드 {#sec-postgresql}
+
+초기 서버에서는 PostgreSQL 쿼리를 `IoWorker` 스레드에서 동기 `libpq`로 바로 호출하면 쿼리 실행이 끝날 때까지 해당 워커가 블로킹되고, 같은 스레드에 배정된 다른 Room들도 영향을 받는 문제가 발생했습니다. 이 문제를 해결하기 위해 io_uring의 비동기 DB 접근과 전용 워커 풀 방식 두 가지를 시도해 봤습니다.
+
+첫째는 `PQsendQuery` + `POLL_ADD`로 PostgreSQL 소켓 fd의 readiness를 io_uring에 등록해 결과를 이벤트 루프 안에서 수확하는 방식입니다. 한 번 시도해 봤지만 실질적인 이점이 없었습니다. `POLL_ADD`는 readiness 알림 역할만 하고, 실제 `recv(2)`는 `PQconsumeInput()` 안에서 libpq가 자체 버퍼로 직접 호출합니다. 그래서 io_uring 고유 최적화인 Provided Buffer Ring이나 Multishot Recv는 DB 경로에 전혀 적용되지 않고, 순수 성능만 보면 `epoll` + 비동기 libpq와 동일한 구조가 됩니다.
+
+둘째는 전용 워커 스레드 풀에 쿼리를 던지고 블로킹 `libpq`로 실행하는 방식입니다.
+
+상태 머신(`Connecting`/`QuerySent`/`ReadingResult`)과 `POLL_ADD` 재등록 로직이 전부 사라지고 쿼리 하나는 `PQexec` 한 줄이 되며, DB 워커가 블로킹 상태로 오래 머물러도 `IoWorker` 스레드는 영향받지 않아 실패가 격리됩니다. 추후 sqlpp11 같은 동기 ORM 래퍼를 얹더라도 인터페이스가 그대로 맞물립니다.
+
+**DB 워커와 콜백 처리**
+
+워커 풀 방식에서 남는 문제는 DB 워커가 완료한 콜백을 어느 스레드에서 실행하느냐입니다. DB 워커 스레드에서 그대로 실행하면 Room 상태에 접근하는 순간 데이터 레이스가 발생하므로, 결과를 원래 `IoWorker` 스레드로 돌려보내야 합니다.
+
+`IoRing`은 `thread_local IoRing* Current()`로 현재 스레드에 바인딩된 링을 노출합니다. `PgConnectionPool::Execute()` 호출 시점에 그 포인터를 캡처해두면, DB 워커는 `PQexec` 완료 직후 캡처된 링의 `Post(lambda)`로 콜백을 밀어넣기만 하면 됩니다. `IoWorker`는 매 루프에서 `ProcessPostedTasks()`로 이 큐를 비우므로, 콜백은 자연스럽게 원래 스레드에서 실행되고 Room 상태에 락 없이 접근할 수 있습니다.
+
+```{mermaid}
+%%| label: fig-db-worker-pool
+%%| fig-cap: "워커 풀 기반 DB 쿼리 흐름"
+sequenceDiagram
+    participant GL as 게임 로직 (Room)
+    participant Pool as PgConnectionPool<br/>(facade)
+    participant WP as PgWorkerPool<br/>작업 큐
+    participant DW as DB 워커 스레드
+    participant PG as PostgreSQL
+    participant W as IoWorker<br/>(원래 스레드)
+
+    GL->>Pool: Execute(sql, params, cb)
+    Note over Pool: IoRing::Current() 캡처
+    Pool->>WP: Submit(job + reply_ring)
+    Note over GL: 게임 로직 계속 실행
+
+    WP->>DW: condvar notify_one
+    DW->>PG: PQexec(sql)  [블로킹]
+    PG-->>DW: PGresult
+    DW->>W: reply_ring->Post(callback)
+
+    Note over W: 다음 루프 Phase
+    W->>W: ProcessPostedTasks()
+    W->>GL: cb(result) 실행
+```
+
+**`PgConnectionPool` — 워커-커넥션 1:1 매핑**
+
+`PgConnectionPool`은 얇은 facade이고, 실제 동작은 내부의 `PgWorkerPool`이 담당합니다. `PgWorkerPool`은 설정된 `connections_per_worker` 수만큼 스레드를 스폰하고, **각 스레드에 `PgConnection` 하나씩을 1:1로 고정**합니다. 스레드별로 자기 전용 커넥션만 쓰므로 커넥션 접근에 락이 필요 없고, 공유 상태는 `std::mutex` + `std::condition_variable`로 보호되는 작업 큐 하나뿐입니다. 스레드가 작업을 가져가면 전용 커넥션 위에서 블로킹 `PQexec`를 실행합니다.
+
+커넥션 풀 자체의 역할은 세 가지입니다.
+
+- **사전 연결** — 서버 시작 시점에 모든 커넥션을 `PQconnectdb`로 열어둡니다. 쿼리가 들어올 때마다 TCP 핸드셰이크와 인증을 반복하는 비용을 피합니다.
+- **동시 쿼리 상한** — 워커 스레드 수가 곧 동시 쿼리 상한입니다. 트래픽이 몰려도 PostgreSQL 쪽으로 가는 부하는 이 상한을 넘지 않습니다.
+- **백프레셔** — 상한을 초과한 요청은 작업 큐에 쌓여 순서대로 처리됩니다. DB 서버가 수용 가능한 속도 이상으로 요청이 밀려드는 상황을 자연스럽게 흡수합니다.
+
+| 상황 | 풀 없음 | 워커 풀 |
+|------|---------|---------|
+| 1000명 동시 로그인 | 1000개 커넥션 시도 → DB 거부 | 풀 크기(예: 20)만 사용, 나머지는 작업 큐에서 대기 |
+| 초당 5000 쿼리 | 5000번 커넥션 생성/해제 | 20개 커넥션 재사용 |
+
+: 풀 적용 효과 {#tbl-pg-pool}
+
+현재 `iouring-runtime/app/examples/game/dungeon_full_server` 예제는 배포와 smoke test가 쉬운 형태를 우선해 `DbService` 인터페이스 뒤에 SQLite와 in-memory 백엔드를 제공합니다. 기본 실행은 `gameserver.db` SQLite 파일을 사용하고, 자동화 검증은 `GAMESERVER_DB=memory`로 외부 DB 없이 실행합니다. PostgreSQL 워커 풀 설계는 별도 운영형 백엔드로 확장 가능한 방향을 설명하는 설계 기록이고, 현재 main의 full server 예제에는 SQLite/Memory 백엔드만 포함되어 있습니다.
+
+## 선택 모듈과 예제 앱의 역할 {#sec-example-surface}
+
+선택 모듈은 서비스 앱을 직접 의미하지 않습니다. 기본 `Runtime` 위에 붙는 프로토콜별 라이브러리 계층이며, 예제 앱은 이 모듈들이 실제 프로세스에서 링크되고 동작하는지 확인하는 소비자입니다. 따라서 문서에서는 `RuntimeWeb`, `RuntimeProxy`, `RuntimeGame`의 모듈 경계를 먼저 설명하고, 앱 이름은 검증 표면으로만 다룹니다.
+
+선택 모듈 상세 구현은 본문에서 분리했습니다. 각 모듈 문서는 다음 위치에서 별도로 설명합니다.
+
+- [RuntimeWeb 모듈 구현 포트폴리오](./RuntimeWebPortfolio.html) - HTTP parser, router, `HttpSession`, 파일/스트리밍 응답, request timeout, send backpressure
+- [RuntimeProxy 모듈 구현 포트폴리오](./RuntimeProxyPortfolio.html) - TCP bridge, upstream connector, TLS/SNI route, ACME challenge, metrics snapshot
+- [RuntimeGame 모듈 구현 포트폴리오](./RuntimeGamePortfolio.html) - packet framing, `PacketSession`, `Room`, `RoomManager`, Room job queue 실행 모델
+
+| 영역 | 예제 위치 | 검증한 런타임 표면 |
+|------|-----------|--------------------|
+| Core TCP | `app/examples/runtime/core_echo`, `core_idle_echo` | 직접 `IoRing`/`Listener`/`Session`을 구성하는 기본 TCP 서버 흐름, inactivity timeout, `DisconnectAfterFlush` |
+| Web | `app/examples/web/*` | `RuntimeWeb`의 HTTP parser, radix router, file/streaming response, request timeout, send backpressure |
+| Proxy | `app/examples/proxy/tcp_reverse_proxy` | HTTP 객체 없이 downstream/upstream 세션을 bridge하는 TCP proxy 흐름, TLS/SNI, metrics snapshot |
+| Game | `app/examples/game/dungeon_packet_echo`, `dungeon_full_server` | `RuntimeGame`의 packet framing, `PacketSession`, `Room`, `RoomManager`, cross-ring broadcast |
+| Activity server | `app/activity-server` | 런타임을 별도 C++ 백엔드 프로세스에서 소비하는 패키징/배포 경로 |
+
+: 선택 모듈 예제의 검증 범위 {#tbl-example-surface}
+
+`RuntimeWeb`은 HTTP 파싱과 라우팅, 파일/스트리밍 응답을 제공하지만 세부 앱 로직은 코어와 분리됩니다. `RuntimeProxy`는 HTTP request/response 객체를 만들지 않고 TCP byte stream을 직접 중계합니다. `RuntimeGame`은 게임 도메인 전체가 아니라 패킷 세션과 Room 실행 모델만 제공합니다. 이 경계를 유지했기 때문에 같은 `Runtime`이 포트폴리오 정적 파일 서버, TCP reverse proxy, 패킷 게임 서버, 활동 백엔드처럼 서로 다른 실행 단위에서 재사용될 수 있었습니다.
+
+예제 던전 서버의 인증, 전투, 절차적 던전, 파티/채팅, SQLite/Memory 백엔드 같은 도메인 기능은 `RuntimeGame`을 사용한 통합 검증 대상으로만 다룹니다. 런타임 관점에서 중요한 점은 `PacketSession`이 코어 `Session`의 수명관리와 send/recv 경로를 그대로 사용하고, Room 작업은 `JobQueue`/`GlobalQueue`를 통해 직렬성과 워크 스틸링을 동시에 얻는다는 점입니다.
+
+## 벤치마크 — io_uring vs epoll {#sec-benchmark}
+
+ServerCore(io_uring)가 기존 epoll 대비 실제로 어떤 차이를 보이는지 검증하기 위해, 동일한 게임 로직을 두 I/O 백엔드로 구현해 비교했습니다.
+
+### 테스트 환경 {#sec-bench-env}
+
+- **환경**: WSL2 Ubuntu 24.04, localhost, Intel i7 (8코어)
+- **도구**: `game_bench` / `echo_bench` (`tools/run_bench.sh`)
+- **게임 로직**: Login → EnterGame → Move(20Hz) → Attack(2Hz, 4종 스킬), 두 서버 동일
+
+| 서버 | I/O 백엔드 | 설명 |
+|------|-----------|------|
+| **io_uring** | io_uring | IoWorker가 I/O 디스패치와 Zone 틱을 단일 루프에서 처리, ServerCore 사용 |
+| **Epoll** | epoll | 베이스라인 epoll 구현, ServerCore 미사용 |
+
+: 벤치마크 서버 구성 {#tbl-bench-servers}
+
+### Echo 벤치마크 {#sec-echo-bench}
+
+게임 로직 없이 io_uring 코어의 순수 I/O 성능만 측정했습니다. 64바이트 페이로드, pipeline=1 조건입니다.
+
+| 클라이언트 | 처리량 (echo/s) | p50 (μs) | p99 (μs) |
+|-----------|----------------|----------|----------|
+| 10 | 218,498 | 30 | 157 |
+| 50 | 305,183 | 152 | 367 |
+| 100 | 326,913 | 293 | 594 |
+
+: Echo 벤치마크 결과 {#tbl-echo-bench}
+
+100 클라이언트에서 최대 처리량 **327K echo/s**, p50 레이턴시 **293μs**를 기록해 서브 밀리초 수준의 응답성을 확인했습니다.
+
+### 브로드캐스트 지연 — 단일 존 {#sec-bench-latency}
+
+`C_MOVE` 수신 → `S_MOVE` 브로드캐스트 완료까지의 지연(μs)입니다. 모든 봇이 하나의 존에 몰린 조건입니다.
+
+| 봇 수 | 구성 | io_uring p50 | Epoll p50 |
+|-------|------|-------------:|----------:|
+| 40 | 4스레드 | 838 | 3,322 |
+| 200 | 4스레드 | 10,001 | 4,419,583 |
+| 400 | 8스레드 | 3,025 | — |
+
+: 브로드캐스트 p50 지연 (단일 존, μs) {#tbl-broadcast-latency}
+
+- **40봇**: io_uring이 서브 밀리초, Epoll은 3ms 수준
+- **200봇**: Epoll이 뮤텍스 경합으로 초 단위에 진입, io_uring은 10ms 수준 유지
+- **400봇**: io_uring은 여전히 3ms 수준을 유지, Epoll은 서버 포화로 측정 불가
+
+### Tail Latency — p99 {#sec-bench-tail}
+
+| 봇 수 | 구성 | io_uring p99 | Epoll p99 |
+|-------|------|-------------:|----------:|
+| 40 | 1스레드 | 1,887 | 6,067 |
+| 200 | 4스레드 | 24,191 | 11,794,952 |
+
+: Tail latency p99 (μs) {#tbl-tail-latency}
+
+200봇 p99 기준, io_uring은 24ms 수준을 유지한 반면 Epoll은 11.8초까지 증가했습니다.
+
+### 처리량 {#sec-bench-throughput}
+
+`S_MOVE + S_ATTACK + S_DAMAGE` 수신 메시지/초 기준입니다.
+
+| 봇 수 | 구성 | io_uring (msg/s) | Epoll (msg/s) | 배율 |
+|-------|------|------------------:|--------------:|-----:|
+| 40 | 1스레드 | 37,288 | 37,288 | 1.0× |
+| 200 | 4스레드 | 950,656 | 523,846 | **1.8×** |
+
+: 단일 존 처리량 {#tbl-throughput}
+
+소규모(40봇)에서는 차이가 없지만, 200봇부터 Epoll이 뮤텍스 경합으로 처리량이 제한되기 시작합니다.
+
+### 멀티 Room — Room 샤딩 효과 {#sec-bench-rooms}
+
+봇을 여러 Room으로 분산하면 Room당 약 20명이 되어, 단일 존의 O(N²) 브로드캐스트 병목이 해소됩니다.
+
+| 규모 | 구성 | io_uring p50 (μs) | Epoll p50 (μs) |
+|------|------|-------------------:|----------------:|
+| 200봇 / 10 Room | 4T×50C | 846 | 897 |
+| 400봇 / 20 Room | 4T×100C | 920 | 691 |
+
+: 멀티 Room 브로드캐스트 p50 {#tbl-room-sharding}
+
+Room 샤딩을 적용하면 두 서버 모두 **서브 밀리초** 수준으로 수렴합니다. 실제 게임에서는 Room 분산이 기본이므로, io_uring의 이점은 대규모 단일 존에서 두드러지게 드러납니다.
+
+### 결론 {#sec-bench-conclusion}
+
+| 항목 | io_uring | Epoll |
+|------|----------|-------|
+| **강점** | 400봇까지 ms 수준 지연 유지, 배치 제출로 시스템콜 최소화 | 소규모에서 구현이 단순, SQE 오버헤드 없음 |
+| **병목** | Zone 틱이 IO와 스레드 공유 | 200봇 이상에서 브로드캐스트 뮤텍스 경합 |
+
+두 백엔드의 차이는 단일 존에 봇이 몰릴수록 뚜렷해집니다. 40봇 구간에서는 차이가 크지 않지만, 200봇을 넘어서면 epoll은 브로드캐스트 경로의 뮤텍스 경합으로 p99가 초 단위까지 벌어지는 반면, io_uring 쪽은 400봇까지도 밀리초대를 유지합니다. 반대로 Room 샤딩으로 부하를 분산하면 두 서버 모두 서브 밀리초로 수렴해 차이가 사라지는데, 이는 io_uring의 이점이 "작은 방이 많은" 상황이 아니라 "한 방에 사람이 많은" 상황에서 드러난다는 것을 보여줍니다.
+
+## 관련 레포
+
+::: {.repo-links}
+| 레포 | 역할 |
+|---|---|
+| [iouring-runtime](https://github.com/mint-cocoa/iouring-runtime) | 현재 기준 메인 구현. `Runtime`, `RuntimeWeb`, `RuntimeProxy`, `RuntimeGame`, web/proxy/game 실행 앱 포함 |
+| [libiouring-core](https://github.com/mint-cocoa/libiouring-core) | 통합 이전 `io_uring` 코어 런타임 히스토리 |
+| [libiouringweb](https://github.com/mint-cocoa/libiouringweb) | 통합 이전 HTTP/web layer 히스토리 |
+| [multiplayer-dungeon-rpg-server](https://github.com/mint-cocoa/multiplayer-dungeon-rpg-server) | `dungeon_full_server`로 흡수된 멀티플레이 던전 RPG 서버 히스토리 |
+| [game-client](https://github.com/mint-cocoa/game-client) | 연동 DirectX 11 클라이언트 |
+:::
+
+## 다음 문서
+
+::: {.next-docs}
+[포트폴리오 문서 인덱스](../index.html) ·
+[클라이언트 구현 포트폴리오](../client/ClientPortfolio.html) ·
+[홈랩 DevOps 포트폴리오](../devops/DevOpsPortfolio.html)
+:::

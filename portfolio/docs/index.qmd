@@ -1,0 +1,251 @@
+---
+title: "포트폴리오 문서"
+subtitle: "서버, 클라이언트, 홈랩 DevOps 구현 문서 모음"
+author: "배진후"
+format:
+  html:
+    toc: false
+    page-layout: full
+    css: portfolio.css
+---
+
+::: {.summary-grid}
+::: {.summary-card}
+**서버**
+
+`io_uring` 기반 C++ 서버 Runtime과 Web/Proxy/Game 모듈
+:::
+
+::: {.summary-card}
+**클라이언트**
+
+DirectX 11 아이소메트릭 멀티플레이 던전 RPG 클라이언트
+:::
+
+::: {.summary-card}
+**운영**
+
+GHCR, GitOps, Argo CD, Kubernetes Ingress 배포 경로
+:::
+
+::: {.summary-card}
+**대시보드**
+
+Cloudflare Tunnel 뒤의 Ops API로 Prometheus와 Proxmox 상태 표시
+:::
+:::
+
+## 문서 서빙 위치
+
+::: {.exposure-map .pages-note}
+**현재 canonical 문서 경로**
+
+`https://mint-cocoa.github.io/portfolio/`는 이 저장소의 GitHub Actions가 `docs/` 빌드 결과를 `_site/` Pages artifact로 배포한 상세 포트폴리오 기준 경로입니다. `https://portfolio.mintcocoa.cc/`는 `https://mint-cocoa.github.io/` 루트 허브를 C++ `RuntimeWeb` 컨테이너로 서빙하는 홈랩 미러 경로이며, 상세 문서는 `https://portfolio.mintcocoa.cc/portfolio/` 아래에 함께 제공합니다.
+:::
+
+## 문서 구성
+
+이 문서는 C++ 네트워크 서버 구현을 중심으로 정리했습니다. TCP Echo와 게임 서버 구현에서 시작해 `io_uring` 기반 Runtime, HTTP/Web 모듈, TCP Proxy 모듈, Packet Game 모듈로 책임을 나누었습니다. 클라이언트 문서는 `RuntimeGame` 기반 서버와 패킷을 주고받는 소비자 관점이고, DevOps 문서는 RuntimeWeb 기반 포트폴리오 서버의 배포 경로를 다룹니다.
+
+::: {.doc-grid}
+::: {.doc-card}
+### [서버 구현 포트폴리오](server/ServerCorePortfolio.html)
+
+`iouring-runtime`의 core Runtime과 선택 모듈 구조를 설명한 문서입니다.
+`io_uring` 비동기 I/O, 세션 수명관리, 버퍼 관리, 작업 큐, 모듈 경계,
+벤치마크를 중심으로 정리했습니다.
+
+::: {.serve-path}
+**서빙 경로**
+
+`mint-cocoa.github.io/portfolio/server/ServerCorePortfolio.html`
+
+`GitHub Actions` → `_site/portfolio` → `GitHub Pages`
+:::
+
+::: {.serve-path .runtime-example}
+**연결 문서와 런타임 예제**
+
+[RuntimeWeb 모듈 구현](server/RuntimeWebPortfolio.html)
+
+[RuntimeProxy 모듈 구현](server/RuntimeProxyPortfolio.html)
+
+[RuntimeGame 모듈 구현](server/RuntimeGamePortfolio.html)
+
+[Session 수명관리 시각화](server/SessionLifecycleVisualizer.html)
+
+[`iouring-runtime/examples/web`](https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/web)
+
+`hello_http`, `status_server`, `file_store_server`, `speedtest_server`, `dropapp`
+
+[`iouring-runtime/examples/proxy/tcp_reverse_proxy`](https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/proxy/tcp_reverse_proxy)
+
+[`iouring-runtime/examples/game/dungeon_full_server`](https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/game/dungeon_full_server)
+
+[`iouring-runtime/examples/game/dungeon_packet_echo`](https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/game/dungeon_packet_echo)
+:::
+
+::: {.tag-row}
+`C++` `io_uring` `Linux` `Web` `Proxy` `Game Server`
+:::
+:::
+
+::: {.doc-card}
+### [RuntimeWeb 모듈 구현](server/RuntimeWebPortfolio.html)
+
+`RuntimeWeb`을 서비스 앱이 아니라 HTTP 서버 선택 모듈 기준으로 분리해 설명한
+문서입니다. `WebServer`, `HttpSession`, `HttpParser`, `Router`, `RadixTree`,
+`HttpResponse`, 파일/스트리밍 응답, timeout/backpressure 정책을 다룹니다.
+
+::: {.serve-path}
+**서빙 경로**
+
+`mint-cocoa.github.io/portfolio/server/RuntimeWebPortfolio.html`
+
+`GitHub Actions` → `_site/portfolio` → `GitHub Pages`
+:::
+
+::: {.tag-row}
+`C++` `RuntimeWeb` `HTTP` `Streaming` `Backpressure`
+:::
+:::
+
+::: {.doc-card}
+### [RuntimeProxy 모듈 구현](server/RuntimeProxyPortfolio.html)
+
+`RuntimeProxy`를 TCP reverse proxy 선택 모듈 기준으로 분리해 설명한 문서입니다.
+`TcpProxyServer`, `ProxyBridge`, `ProxyConnector`, TLS/SNI 라우팅, ACME challenge,
+metrics snapshot, stream backpressure 정책을 다룹니다.
+
+::: {.serve-path}
+**서빙 경로**
+
+`mint-cocoa.github.io/portfolio/server/RuntimeProxyPortfolio.html`
+
+`GitHub Actions` → `_site/portfolio` → `GitHub Pages`
+:::
+
+::: {.tag-row}
+`C++` `RuntimeProxy` `TCP` `TLS` `SNI`
+:::
+:::
+
+::: {.doc-card}
+### [RuntimeGame 모듈 구현](server/RuntimeGamePortfolio.html)
+
+`RuntimeGame`을 게임 서비스 앱이 아니라 packet session과 Room 실행 모듈 기준으로
+분리해 설명한 문서입니다. `PacketSession`, `PacketBuilder`, `PlayerRegistry`,
+`Room`, `RoomManager`, `JobQueue` 기반 Room 직렬 실행을 다룹니다.
+
+::: {.serve-path}
+**서빙 경로**
+
+`mint-cocoa.github.io/portfolio/server/RuntimeGamePortfolio.html`
+
+`GitHub Actions` → `_site/portfolio` → `GitHub Pages`
+:::
+
+::: {.tag-row}
+`C++` `RuntimeGame` `PacketSession` `Room` `JobQueue`
+:::
+:::
+
+::: {.doc-card .client}
+### [클라이언트 구현 포트폴리오](client/ClientPortfolio.html)
+
+`RuntimeGame` 기반 던전 서버와 TCP/Protobuf 패킷을 주고받는 DirectX 11
+클라이언트 문서입니다. 렌더링, 씬 전환, 네트워크 처리, 게임 UI를 다룹니다.
+
+::: {.serve-path}
+**서빙 경로**
+
+`mint-cocoa.github.io/portfolio/client/ClientPortfolio.html`
+
+`GitHub Actions` → `_site/portfolio` → `GitHub Pages`
+:::
+
+::: {.tag-row}
+`C++` `DirectX 11` `Protobuf` `RPG Client`
+:::
+:::
+
+::: {.doc-card .devops}
+### [홈랩 DevOps 포트폴리오](devops/DevOpsPortfolio.html)
+
+RuntimeWeb 기반 포트폴리오 서버와 관련 서비스를 컨테이너 이미지, GitOps,
+Argo CD, Kubernetes 경로로 배포한 내용을 정리한 문서입니다.
+
+::: {.serve-path}
+**서빙 경로**
+
+`mint-cocoa.github.io/portfolio/devops/DevOpsPortfolio.html`
+
+`GitHub Actions` → `_site/portfolio` → `GitHub Pages`
+:::
+
+::: {.tag-row}
+`Kubernetes` `GitOps` `Argo CD` `GHCR`
+:::
+:::
+
+::: {.doc-card .devops}
+### [OCI OKE 프로덕션 GitOps](devops/OciOkeGitOpsPortfolio.html)
+
+OCI OKE를 production 클러스터로 구성하고 홈랩 k3s에서 검증한 뒤 OKE로 승격하는
+GitOps 파이프라인을 정리한 문서입니다. `RuntimeWeb` 기반 `dropapp`을
+`drop.mintcocoa.cc`로 공개하는 Ingress/TLS 경로, kubeconfig, 접근 권한,
+관측성, 장애 대응 판단까지 포함합니다.
+
+::: {.serve-path}
+**서빙 경로**
+
+`mint-cocoa.github.io/portfolio/devops/OciOkeGitOpsPortfolio.html`
+
+`GitHub Actions` → `_site/portfolio` → `GitHub Pages`
+:::
+
+::: {.tag-row}
+`OCI` `OKE` `GitOps` `RuntimeWeb` `Ingress`
+:::
+:::
+
+::: {.doc-card .ops}
+### [Live Ops Dashboard](devops/OpsDashboard.html)
+
+`ops-api.mintcocoa.cc`를 통해 Prometheus target, Kubernetes workload,
+Proxmox node/VM 상태를 실시간으로 읽는 대시보드입니다.
+
+::: {.serve-path}
+**서빙/조회 경로**
+
+`mint-cocoa.github.io/portfolio/devops/OpsDashboard.html`
+
+`browser` → `GitHub Pages static page` → `https://ops-api.mintcocoa.cc/api/*`
+:::
+
+::: {.tag-row}
+`Quarto Dashboard` `Prometheus` `Proxmox` `Cloudflare Tunnel`
+:::
+:::
+:::
+
+::: {.exposure-map}
+**공개 문서 노출 경로**
+
+`GitHub push` → `GitHub Actions` → `docs/` render → `_site/` Pages artifact → `https://mint-cocoa.github.io/portfolio/`
+
+`portfolio.mintcocoa.cc`는 GitHub Pages custom domain이 아니라 홈랩 edge proxy 뒤의 C++ `RuntimeWeb` 미러입니다. 루트는 `mint-cocoa.github.io` 허브 앱과 같은 React/Vite 산출물을 서빙하고, 상세 문서는 같은 컨테이너의 `/portfolio/` 아래에 포함합니다. Live Ops Dashboard는 GitHub Pages와 홈랩 미러 두 경로 모두에서 `https://ops-api.mintcocoa.cc/api/*`를 호출해 Prometheus와 Proxmox 상태를 읽습니다.
+:::
+
+## 관련 레포
+
+| 레포 | 역할 |
+|---|---|
+| [portfolio](https://github.com/mint-cocoa/portfolio) | 이 문서 묶음과 C++ 정적 파일 서버 이미지 |
+| [iouring-runtime](https://github.com/mint-cocoa/iouring-runtime) | 최신 `io_uring` Runtime, `RuntimeWeb`, `RuntimeProxy`, `RuntimeGame`, 웹/프록시/게임 예제 |
+| [mintcocoa-ops](https://github.com/mint-cocoa/mintcocoa-ops) | OCI OKE production과 home k3s GitOps 운영 저장소 |
+| [libiouring-core](https://github.com/mint-cocoa/libiouring-core) | 통합 이전 코어 런타임 히스토리 |
+| [libiouringweb](https://github.com/mint-cocoa/libiouringweb) | 통합 이전 HTTP/web 계층 히스토리 |
+| [multiplayer-dungeon-rpg-server](https://github.com/mint-cocoa/multiplayer-dungeon-rpg-server) | `dungeon_full_server`로 흡수된 멀티플레이 던전 RPG 서버 히스토리 |
+| [game-client](https://github.com/mint-cocoa/game-client) | DirectX 11 게임 클라이언트 |
+| [home-k8s-gitops](https://github.com/mint-cocoa/home-k8s-gitops) | 홈 Kubernetes desired state |

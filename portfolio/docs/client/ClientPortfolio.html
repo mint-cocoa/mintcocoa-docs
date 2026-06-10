@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="배진후">
+
+<title>클라이언트 구현 포트폴리오</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="ClientPortfolio_files/libs/clipboard/clipboard.min.js"></script>
+<script src="ClientPortfolio_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="ClientPortfolio_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="ClientPortfolio_files/libs/quarto-html/popper.min.js"></script>
+<script src="ClientPortfolio_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="ClientPortfolio_files/libs/quarto-html/anchor.min.js"></script>
+<link href="ClientPortfolio_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="ClientPortfolio_files/libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="ClientPortfolio_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="ClientPortfolio_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="ClientPortfolio_files/libs/bootstrap/bootstrap-7f30639710f116130999550e0f11b8b7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<meta name="mermaid-theme" content="neutral">
+<script src="ClientPortfolio_files/libs/quarto-diagram/mermaid.min.js"></script>
+<script src="ClientPortfolio_files/libs/quarto-diagram/mermaid-init.js"></script>
+<link href="ClientPortfolio_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
+<style>
+.quarto-figure .mermaid-js { text-align: center; }
+.mermaid-js svg { max-width: 100% !important; min-width: 70%; }
+</style>
+
+
+<link rel="stylesheet" href="../portfolio.css">
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">목차</h2>
+   
+  <ul>
+  <li><a href="#핵심-요약" id="toc-핵심-요약" class="nav-link active" data-scroll-target="#핵심-요약"><span class="header-section-number">1</span> 핵심 요약</a></li>
+  <li><a href="#sec-overview" id="toc-sec-overview" class="nav-link" data-scroll-target="#sec-overview"><span class="header-section-number">2</span> 프로젝트 개요</a></li>
+  <li><a href="#sec-architecture" id="toc-sec-architecture" class="nav-link" data-scroll-target="#sec-architecture"><span class="header-section-number">3</span> 아키텍처와 실행 흐름</a>
+  <ul class="collapse">
+  <li><a href="#sec-system-layers" id="toc-sec-system-layers" class="nav-link" data-scroll-target="#sec-system-layers"><span class="header-section-number">3.1</span> 시스템 레이어</a></li>
+  <li><a href="#sec-main-loop" id="toc-sec-main-loop" class="nav-link" data-scroll-target="#sec-main-loop"><span class="header-section-number">3.2</span> 메인 루프</a></li>
+  <li><a href="#sec-scene-transition" id="toc-sec-scene-transition" class="nav-link" data-scroll-target="#sec-scene-transition"><span class="header-section-number">3.3</span> 씬 전환과 패킷 버퍼링</a></li>
+  </ul></li>
+  <li><a href="#sec-rendering" id="toc-sec-rendering" class="nav-link" data-scroll-target="#sec-rendering"><span class="header-section-number">4</span> 렌더링 파이프라인</a>
+  <ul class="collapse">
+  <li><a href="#sec-shaders" id="toc-sec-shaders" class="nav-link" data-scroll-target="#sec-shaders"><span class="header-section-number">4.1</span> 셰이더 구성과 라이팅</a></li>
+  <li><a href="#sec-instance-renderer" id="toc-sec-instance-renderer" class="nav-link" data-scroll-target="#sec-instance-renderer"><span class="header-section-number">4.2</span> 인스턴스드 던전 렌더링</a></li>
+  <li><a href="#sec-effect-renderer" id="toc-sec-effect-renderer" class="nav-link" data-scroll-target="#sec-effect-renderer"><span class="header-section-number">4.3</span> 이펙트 셰이더</a></li>
+  <li><a href="#sec-mesh-material" id="toc-sec-mesh-material" class="nav-link" data-scroll-target="#sec-mesh-material"><span class="header-section-number">4.4</span> 메시 캐시와 머티리얼</a></li>
+  </ul></li>
+  <li><a href="#sec-isometric-math" id="toc-sec-isometric-math" class="nav-link" data-scroll-target="#sec-isometric-math"><span class="header-section-number">5</span> 공간</a>
+  <ul class="collapse">
+  <li><a href="#sec-camera" id="toc-sec-camera" class="nav-link" data-scroll-target="#sec-camera"><span class="header-section-number">5.1</span> 카메라</a></li>
+  <li><a href="#sec-screen-to-ground" id="toc-sec-screen-to-ground" class="nav-link" data-scroll-target="#sec-screen-to-ground"><span class="header-section-number">5.2</span> ScreenToGround 역투영</a></li>
+  <li><a href="#sec-move-send" id="toc-sec-move-send" class="nav-link" data-scroll-target="#sec-move-send"><span class="header-section-number">5.3</span> 이동 송신 최적화</a></li>
+  </ul></li>
+  <li><a href="#sec-network" id="toc-sec-network" class="nav-link" data-scroll-target="#sec-network"><span class="header-section-number">6</span> 네트워크 아키텍처</a>
+  <ul class="collapse">
+  <li><a href="#sec-flow-control-impl" id="toc-sec-flow-control-impl" class="nav-link" data-scroll-target="#sec-flow-control-impl"><span class="header-section-number">6.1</span> 서버 주도 흐름 제어 구현</a></li>
+  </ul></li>
+  <li><a href="#sec-game-systems" id="toc-sec-game-systems" class="nav-link" data-scroll-target="#sec-game-systems"><span class="header-section-number">7</span> 게임 시스템</a>
+  <ul class="collapse">
+  <li><a href="#sec-combat" id="toc-sec-combat" class="nav-link" data-scroll-target="#sec-combat"><span class="header-section-number">7.1</span> 전투 시스템</a></li>
+  <li><a href="#sec-dungeon" id="toc-sec-dungeon" class="nav-link" data-scroll-target="#sec-dungeon"><span class="header-section-number">7.2</span> 던전 생성</a></li>
+  <li><a href="#sec-interpolation" id="toc-sec-interpolation" class="nav-link" data-scroll-target="#sec-interpolation"><span class="header-section-number">7.3</span> 원격 엔티티 보간</a></li>
+  </ul></li>
+  <li><a href="#sec-extensions" id="toc-sec-extensions" class="nav-link" data-scroll-target="#sec-extensions"><span class="header-section-number">8</span> 확장 기능</a>
+  <ul class="collapse">
+  <li><a href="#sec-minimap" id="toc-sec-minimap" class="nav-link" data-scroll-target="#sec-minimap"><span class="header-section-number">8.1</span> 미니맵 셰이더</a></li>
+  <li><a href="#sec-aimline" id="toc-sec-aimline" class="nav-link" data-scroll-target="#sec-aimline"><span class="header-section-number">8.2</span> LoL 스타일 에임 라인</a></li>
+  <li><a href="#sec-wall-collision" id="toc-sec-wall-collision" class="nav-link" data-scroll-target="#sec-wall-collision"><span class="header-section-number">8.3</span> 벽 충돌 시스템</a></li>
+  <li><a href="#sec-scoreboard" id="toc-sec-scoreboard" class="nav-link" data-scroll-target="#sec-scoreboard"><span class="header-section-number">8.4</span> 킬/데스 리더보드</a></li>
+  <li><a href="#sec-killfeed" id="toc-sec-killfeed" class="nav-link" data-scroll-target="#sec-killfeed"><span class="header-section-number">8.5</span> 킬피드 + 이름표</a></li>
+  <li><a href="#sec-fbx" id="toc-sec-fbx" class="nav-link" data-scroll-target="#sec-fbx"><span class="header-section-number">8.6</span> FBX 로딩 (Assimp)</a></li>
+  <li><a href="#sec-portal" id="toc-sec-portal" class="nav-link" data-scroll-target="#sec-portal"><span class="header-section-number">8.7</span> 그래프 기반 존 전환 (포탈)</a></li>
+  <li><a href="#sec-fullmap" id="toc-sec-fullmap" class="nav-link" data-scroll-target="#sec-fullmap"><span class="header-section-number">8.8</span> 전체 지도 (M키)</a></li>
+  <li><a href="#sec-inventory-list" id="toc-sec-inventory-list" class="nav-link" data-scroll-target="#sec-inventory-list"><span class="header-section-number">8.9</span> 인벤토리 목록형 UI</a></li>
+  <li><a href="#sec-login-flow" id="toc-sec-login-flow" class="nav-link" data-scroll-target="#sec-login-flow"><span class="header-section-number">8.10</span> 로그인 흐름 개선</a></li>
+  <li><a href="#sec-dogtag" id="toc-sec-dogtag" class="nav-link" data-scroll-target="#sec-dogtag"><span class="header-section-number">8.11</span> 독텍 루팅 시스템</a></li>
+  <li><a href="#sec-death-drop" id="toc-sec-death-drop" class="nav-link" data-scroll-target="#sec-death-drop"><span class="header-section-number">8.12</span> 사망 드롭 + 재화</a></li>
+  <li><a href="#sec-ui-components" id="toc-sec-ui-components" class="nav-link" data-scroll-target="#sec-ui-components"><span class="header-section-number">8.13</span> GameScene UI 컴포넌트 구성</a></li>
+  <li><a href="#sec-imgui-focus" id="toc-sec-imgui-focus" class="nav-link" data-scroll-target="#sec-imgui-focus"><span class="header-section-number">8.14</span> ImGui 윈도우 포커스 수정</a></li>
+  <li><a href="#sec-cross-ref" id="toc-sec-cross-ref" class="nav-link" data-scroll-target="#sec-cross-ref"><span class="header-section-number">8.15</span> 서버 포트폴리오 연관성</a></li>
+  </ul></li>
+  <li><a href="#관련-레포" id="toc-관련-레포" class="nav-link" data-scroll-target="#관련-레포"><span class="header-section-number">9</span> 관련 레포</a></li>
+  <li><a href="#다음-문서" id="toc-다음-문서" class="nav-link" data-scroll-target="#다음-문서"><span class="header-section-number">10</span> 다음 문서</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">클라이언트 구현 포트폴리오</h1>
+<p class="subtitle lead">C++ DirectX 11 멀티플레이 던전 RPG 클라이언트</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">저자</div>
+    <div class="quarto-title-meta-contents">
+             <p>배진후 </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="핵심-요약" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="핵심-요약"><span class="header-section-number">1</span> 핵심 요약</h2>
+<div class="summary-grid">
+<div class="summary-card">
+<p><strong>Rendering</strong></p>
+<p>DirectX 11 기반 인스턴스드 던전 렌더링과 프로시저럴 이펙트 셰이더</p>
+</div>
+<div class="summary-card">
+<p><strong>Network</strong></p>
+<p>WinSock2, Protobuf 3, 4바이트 패킷 프레이밍 기반 비동기 TCP 통신</p>
+</div>
+<div class="summary-card">
+<p><strong>Scene</strong></p>
+<p>Login, Character Select, Lobby, GameScene 흐름과 패킷 버퍼링 안정화</p>
+</div>
+<div class="summary-card">
+<p><strong>Gameplay</strong></p>
+<p>미니맵, 전체 지도, 독텍 루팅, 리더보드, 킬피드, 인벤토리 UI 구현</p>
+</div>
+</div>
+</section>
+<section id="sec-overview" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="sec-overview"><span class="header-section-number">2</span> 프로젝트 개요</h2>
+<div id="tbl-overview" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;1: 프로젝트 요약
+</figcaption>
+<div aria-describedby="tbl-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>프로젝트명</strong></td>
+<td>Isometric Client — DX11 멀티플레이 던전 RPG</td>
+</tr>
+<tr class="even">
+<td><strong>기술 스택</strong></td>
+<td>C++, DirectX 11, Protobuf 3, Dear ImGui, WinSock2</td>
+</tr>
+<tr class="odd">
+<td><strong>서버</strong></td>
+<td><a href="https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/game/dungeon_full_server">iouring-runtime/examples/game/dungeon_full_server</a> on <code>RuntimeGame</code></td>
+</tr>
+<tr class="even">
+<td><strong>공개 저장소</strong></td>
+<td><a href="https://github.com/mint-cocoa/game-client">game-client</a></td>
+</tr>
+<tr class="odd">
+<td><strong>프로토콜</strong></td>
+<td>Binary Header <code>[size:uint16][msgId:uint16]</code> + Protobuf 3 payload</td>
+</tr>
+<tr class="even">
+<td><strong>핵심 기술</strong></td>
+<td>인스턴스드 던전 렌더링, 프로시저럴 이펙트 셰이더, 비동기 네트워킹, 씬 기반 상태 관리</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>DirectX 11 API로 제작한 멀티플레이 던전 RPG 클라이언트입니다. 서버 쪽 기준 구현은 <code>iouring-runtime</code>의 <code>RuntimeGame</code> 위에 올라간 <code>dungeon_full_server</code> 예제입니다. 클라이언트는 DX11 파이프라인, 리소스 로더, 네트워크 계층을 별도로 두고 TCP/Protobuf 패킷 흐름과 렌더링 구조를 정리했습니다.</p>
+<pre><code>isometric_client/
+├── src/
+│   ├── Core/       App, DX11Device, EngineContext, Input, Timer, WinMain
+│   ├── Game/       PlayerController, EntityManager, CombatManager,
+│   │               DungeonGenerator, SessionState
+│   ├── Renderer/   Pipeline, Camera, MeshCache, MaterialManager, ObjLoader,
+│   │               InstanceRenderer, EffectRenderer, MinimapRenderer,
+│   │               TextureLoader, Material
+│   ├── Network/    TcpClient, PacketFramer, PacketHandler, PacketBuilder,
+│   │               RecvBuffer, NetworkContext
+│   ├── Scene/      IScene, LoginScene, CharSelectScene, LobbyScene, GameScene
+│   ├── UI/         UIManager
+│   └── Data/       PlayerData, SkillData, InventoryData, CurrencyData, ChatHistory
+├── assets/
+│   ├── models/     29개 OBJ + MTL (Kenney 던전 에셋 + 캐릭터)
+│   ├── shaders/    default.hlsl, effect.hlsl, minimap.hlsl
+│   └── textures/   캐릭터·던전 텍스처
+└── proto/          7개 Protobuf 정의 (59 메시지)</code></pre>
+</section>
+<section id="sec-architecture" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="sec-architecture"><span class="header-section-number">3</span> 아키텍처와 실행 흐름</h2>
+<section id="sec-system-layers" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="sec-system-layers"><span class="header-section-number">3.1</span> 시스템 레이어</h3>
+<p><code>App&amp;</code>을 세 가지 Context 구조체(<code>EngineContext</code>, <code>SessionState</code>, <code>NetworkContext</code>)로 분리해 각 레이어가 필요한 데이터와 서비스를 명확히 구분하도록 설계했습니다.</p>
+<div id="tbl-contexts" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-contexts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;2: Context 분리 구조
+</figcaption>
+<div aria-describedby="tbl-contexts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 40%">
+<col style="width: 30%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>구조체</th>
+<th>내용</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>EngineContext</strong></td>
+<td>DX11Device, Pipeline, Camera, MeshCache, MaterialManager, Input, UIManager, assetsDir, pipelineOk</td>
+<td>재사용 가능한 엔진 인프라 포인터 번들</td>
+</tr>
+<tr class="even">
+<td><strong>SessionState</strong></td>
+<td>PlayerData, InventoryData, CurrencyData, ChatHistory, playerName, playerId, isLocalPlayerDead, MapData 캐시, pendingEnterGame</td>
+<td>씬 전환을 넘어 유지되는 게임 상태</td>
+</tr>
+<tr class="odd">
+<td><strong>NetworkContext</strong></td>
+<td>TcpClient, PacketHandler, PacketBuilder + Connect/Disconnect/SendSceneReady API</td>
+<td>네트워크 프로토콜 계층 + 서버 주도 흐름 제어</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-arch-overview" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-arch-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-arch-overview">graph TB
+    classDef engine fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef net fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef game fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    classDef ext fill:#e8eaf6,stroke:#283593,stroke-width:2px,color:#000
+
+    subgraph Game["Game Layer"]
+        direction LR
+        SM["SceneManager&lt;br/&gt;지연 전환"]:::game ~~~ Scenes["LoginScene · CharSelectScene&lt;br/&gt;LobbyScene · GameScene"]:::game ~~~ SS["SessionState&lt;br/&gt;플레이어 · 인벤토리 · 화폐"]:::game
+    end
+
+    subgraph Network["Network Layer"]
+        direction LR
+        TCP["TcpClient&lt;br/&gt;Overlapped + IOCP"]:::net ~~~ Framer["PacketFramer&lt;br/&gt;4B 헤더 프레이밍"]:::net ~~~ Handler["PacketHandler&lt;br/&gt;msgId → 콜백"]:::net ~~~ Builder["PacketBuilder&lt;br/&gt;Protobuf 직렬화"]:::net
+    end
+
+    subgraph Engine["Engine Layer"]
+        direction LR
+        DX["DX11Device&lt;br/&gt;SwapChain · RTV · DSV"]:::engine ~~~ Pipe["Pipeline&lt;br/&gt;VS · PS · CB"]:::engine ~~~ Cam["Camera&lt;br/&gt;아이소메트릭"]:::engine ~~~ Mesh["MeshCache&lt;br/&gt;29 OBJ"]:::engine ~~~ Input["Input"]:::engine ~~~ UI["UIManager&lt;br/&gt;ImGui"]:::engine
+    end
+
+    Server["GameServer (외부)"]:::ext
+
+    Game --&gt;|"SendProto()"| Network
+    Network --&gt;|"패킷 콜백"| Game
+    Game --&gt;|"Draw · ImGui"| Engine
+    Engine --&gt;|"Input 상태"| Game
+    Network &lt;--&gt;|"TCP"| Server
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-arch-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;1: 3-Layer 아키텍처와 레이어 간 데이터 흐름
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-arch-network" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-arch-network-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-arch-network">graph LR
+    classDef net fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef ext fill:#e8eaf6,stroke:#283593,stroke-width:2px,color:#000
+
+    Server["GameServer"]:::ext
+    Scene["현재 Scene"]:::ext
+
+    subgraph recv["수신 경로"]
+        direction LR
+        TCP_R["TcpClient&lt;br/&gt;WSARecv → IOCP 완료"]:::net
+        Framer["PacketFramer&lt;br/&gt;[size:u16][msgId:u16]&lt;br/&gt;경계 분리"]:::net
+        Handler["PacketHandler&lt;br/&gt;msgId → 콜백 디스패치"]:::net
+    end
+
+    subgraph send["송신 경로"]
+        direction LR
+        Builder["PacketBuilder&lt;br/&gt;Proto → 직렬화&lt;br/&gt;4B 헤더 부착"]:::net
+        TCP_S["TcpClient&lt;br/&gt;WSASend 큐"]:::net
+    end
+
+    Server --&gt;|"TCP 바이트 스트림"| TCP_R --&gt; Framer --&gt; Handler --&gt;|"콜백 호출"| Scene
+    Scene --&gt;|"SendProto(msgId, proto)"| Builder --&gt; TCP_S --&gt;|"TCP"| Server
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-arch-network-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;2: Network Layer 내부 — 패킷 송수신 파이프라인
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>SessionState</code>는 단순한 데이터 컨테이너가 아니라 Proto↔︎로컬 변환 헬퍼(<code>FillLocalPlayerFromProto</code>)와 전체 초기화(<code>Reset</code>)를 포함합니다. 연결 끊김 시 <code>Reset()</code>이 모든 서브시스템(Inventory, Currency, ChatHistory 등)을 일괄 초기화하여 재접속 시 이전 상태가 잔류하지 않도록 합니다.</p>
+<p><code>NetworkContext</code>는 <code>Connect(host, port)</code> / <code>Disconnect()</code> / <code>IsConnected()</code> API를 제공해 씬에서 직접 소켓 객체를 다루지 않도록 캡슐화합니다.</p>
+<p>Scene 팩토리에서 세 컨텍스트와 SceneManager 참조를 전달합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>App.cpp — Scene 팩토리 등록</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="App.cpp — Scene 팩토리 등록"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">sceneManager_</span><span class="op">.</span>Register<span class="op">(</span>SceneId<span class="op">::</span>Game<span class="op">,</span> <span class="op">[</span><span class="kw">this</span><span class="op">]()</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">std::</span>make_unique<span class="op">&lt;</span>GameScene<span class="op">&gt;(</span><span class="va">engineCtx_</span><span class="op">,</span> <span class="va">session_</span><span class="op">,</span> <span class="va">netCtx_</span><span class="op">,</span> <span class="va">sceneManager_</span><span class="op">);</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="op">});</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-main-loop" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="sec-main-loop"><span class="header-section-number">3.2</span> 메인 루프</h3>
+<p><code>WinMain</code>의 메시지 루프가 매 프레임 다음 순서를 반복합니다. 네트워크 수신은 <code>App::PollNetwork()</code>가 IOCP의 완료 큐를 0 ms 타임아웃으로 드레인하면서 처리하므로, 게임 업데이트 직전에 한 번만 호출하면 한 프레임에 도착한 모든 패킷이 한꺼번에 디스패치됩니다.</p>
+<pre><code>Input.NewFrame → PeekMessage/DispatchMessage → App.PollNetwork() → Timer.Tick(dt) → App.Update(dt) → App.Render()</code></pre>
+<p><code>App::Update(dt)</code>는 <code>SceneManager::Update(dt)</code>를 호출하고, <code>App::Render()</code>는 <code>BeginFrame() → Scene.OnRender() → UIManager.BeginFrame() → Scene.OnUI() → UIManager.EndFrame() → EndFrame()</code> 순서로 처리합니다.</p>
+</section>
+<section id="sec-scene-transition" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="sec-scene-transition"><span class="header-section-number">3.3</span> 씬 전환과 패킷 버퍼링</h3>
+<p><code>SceneManager::ChangeScene()</code>은 호출 시점에 즉시 전환하지 않고, <code>hasPending_</code> 플래그만 세워 두었다가 다음 <code>Update()</code> 호출에서 실제 전환을 수행합니다. 패킷 핸들러 콜백 내부에서 <code>ChangeScene()</code>을 호출하면, 전환된 새 Scene이 현재 콜백 실행 중인 이전 Scene의 핸들러를 문제가 발생할 수 있기 때문입니다. 콜백이 완전히 반환된 뒤에만 Scene이 교체됩니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-scene-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-scene-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-scene-flow">stateDiagram-v2
+    [*] --&gt; LoginScene
+    LoginScene --&gt; CharSelectScene : S_LOGIN (인증 성공)
+    CharSelectScene --&gt; LobbyScene : S_SELECT_CHAR (캐릭터 진입)
+    LobbyScene --&gt; GameScene : S_JOIN_ROOM (+MapData)
+    GameScene --&gt; LobbyScene : ESC → 방 나가기
+    GameScene --&gt; LoginScene : 연결 끊김
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-scene-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;3: 4단계 씬 흐름과 패킷 교환
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="tbl-scenes" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-scenes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;3: 씬별 역할과 패킷
+</figcaption>
+<div aria-describedby="tbl-scenes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 28%">
+<col style="width: 52%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>씬</th>
+<th>역할</th>
+<th>주요 패킷</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>LoginScene</strong></td>
+<td>회원가입·로그인</td>
+<td>C/S_LOGIN, C/S_REGISTER</td>
+</tr>
+<tr class="even">
+<td><strong>CharSelectScene</strong></td>
+<td>캐릭터 목록·생성·선택</td>
+<td>C/S_CHAR_LIST, C/S_CREATE_CHAR, C/S_SELECT_CHAR</td>
+</tr>
+<tr class="odd">
+<td><strong>LobbyScene</strong></td>
+<td>방 목록·생성·참가</td>
+<td>C/S_ROOM_LIST, C/S_CREATE_ROOM, C/S_JOIN_ROOM</td>
+</tr>
+<tr class="even">
+<td><strong>GameScene</strong></td>
+<td>게임 플레이 (26종 핸들러)</td>
+<td>이동·전투·소셜·인벤토리·화폐·루팅</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+</section>
+<section id="sec-rendering" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="sec-rendering"><span class="header-section-number">4</span> 렌더링 파이프라인</h2>
+<section id="sec-shaders" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="sec-shaders"><span class="header-section-number">4.1</span> 셰이더 구성과 라이팅</h3>
+<p><code>Pipeline</code> 클래스가 <code>default.hlsl</code>에서 VS/PS를 컴파일하고, 2개의 Constant Buffer를 관리합니다.</p>
+<div id="tbl-shader-cb" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-shader-cb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;4: 셰이더 상수 버퍼 구성
+</figcaption>
+<div aria-describedby="tbl-shader-cb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>상수 버퍼</th>
+<th>슬롯</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>PerFrame</strong></td>
+<td><code>b0</code></td>
+<td>ViewProj 행렬, LightDir, AmbientColor</td>
+</tr>
+<tr class="even">
+<td><strong>PerObject</strong></td>
+<td><code>b1</code></td>
+<td>World 행렬, HitFlash (0~1)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Pixel Shader는 Lambert 디퓨즈 라이팅에 <code>HitFlash</code> 파라미터를 결합해, 피격 시 빨간색 플래시 효과를 표현합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>default.hlsl — Pixel Shader</strong></pre>
+</div>
+<pre class="hlsl" data-filename="default.hlsl — Pixel Shader"><code>float4 PSMain(VS_OUT i) : SV_Target
+{
+    float3 n = normalize(i.WorldNormal);
+    float ndotl = saturate(dot(n, -LightDir));
+    float4 tex = DiffuseTex.Sample(LinearSampler, i.UV);
+    float3 lit = tex.rgb * (AmbientColor + ndotl * 0.7);
+    float3 hitColor = float3(1.0, 0.3, 0.2);
+    lit = lerp(lit, hitColor, HitFlash);
+    return float4(lit, 1.0);
+}</code></pre>
+</div>
+</section>
+<section id="sec-instance-renderer" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="sec-instance-renderer"><span class="header-section-number">4.2</span> 인스턴스드 던전 렌더링</h3>
+<p>던전은 많은 수의 바닥과 벽 타일로 구성됩니다. 측정에 사용한 던전은 인스턴스 4640개로 구성되어 있으며, 초기 구현에서는 타일마다 개별 <code>DrawIndexed()</code>를 호출했습니다. 타일 한 개를 그릴 때마다 <code>IASetVertexBuffers</code>/<code>IASetIndexBuffer</code>/<code>UpdatePerObject</code>(Map/Unmap+memcpy) + <code>DrawIndexed</code>가 반복되며 CPU→GPU 커맨드 제출이 병목이 되었습니다. 대부분의 타일은 floor, wall 등 8종 정도의 메시만 공유하므로, 같은 메시를 사용하는 타일을 하나의 Draw Call로 묶을 수 있었습니다. <code>InstanceRenderer</code>가 메시 이름 기준으로 인스턴스를 그룹화하고, Structured Buffer에 World Matrix 배열을 적재해 메시 종류당 1 Draw Call로 처리합니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-instancing" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-instancing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-instancing">graph LR
+    classDef data fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef gpu fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    DG["DungeonGenerator&lt;br/&gt;메시별 DungeonInstance 생성"]:::data
+    IR["InstanceRenderer&lt;br/&gt;meshName 기준 그룹화&lt;br/&gt;→ sortedWorlds_ 정렬"]:::data
+    SB["StructuredBuffer&lt;br/&gt;World Matrix 배열&lt;br/&gt;(DYNAMIC + Map/Unmap)"]:::gpu
+    VS["Vertex Shader&lt;br/&gt;SV_InstanceID →&lt;br/&gt;배열 인덱싱"]:::gpu
+    DC["DrawIndexedInstanced&lt;br/&gt;1 call per mesh type"]:::gpu
+
+    DG --&gt; IR --&gt; SB --&gt; VS --&gt; DC
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-instancing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;4: 인스턴스드 렌더링 파이프라인
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="tbl-instancing" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-instancing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;5: 인스턴스 렌더링 구성 요소
+</figcaption>
+<div aria-describedby="tbl-instancing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 64%">
+<col style="width: 35%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>구성 요소</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>DungeonInstance</strong></td>
+<td>메시 이름 + World Matrix 쌍</td>
+</tr>
+<tr class="even">
+<td><strong>BatchInfo</strong></td>
+<td>메시별 <code>{startIndex, count}</code> — Structured Buffer 내 구간</td>
+</tr>
+<tr class="odd">
+<td><strong>EnsureBuffer()</strong></td>
+<td>인스턴스 수 초과 시 버퍼 재할당 (capacity 부족 방지)</td>
+</tr>
+<tr class="even">
+<td><strong>BindSingle()</strong></td>
+<td>캐릭터 등 단일 엔티티용 1-element 버퍼 경로</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>인스턴스 수가 현재 capacity를 초과하면 1.5배로 재할당합니다. 최소 256개로 할당해 작은 던전에서도 버퍼 부족이 발생하지 않도록 했습니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>InstanceRenderer.cpp — EnsureBuffer()</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-filename="InstanceRenderer.cpp — EnsureBuffer()"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint32_t</span> newCapacity <span class="op">=</span> <span class="op">(</span>neededCount <span class="op">&lt;</span> <span class="dv">256</span><span class="op">)</span> <span class="op">?</span> <span class="dv">256</span> <span class="op">:</span> <span class="op">((</span>neededCount <span class="op">*</span> <span class="dv">3</span><span class="op">)</span> <span class="op">/</span> <span class="dv">2</span><span class="op">);</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>D3D11_BUFFER_DESC bd <span class="op">=</span> <span class="op">{};</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>bd<span class="op">.</span>ByteWidth <span class="op">=</span> newCapacity <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>XMFLOAT4X4<span class="op">);</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>bd<span class="op">.</span>Usage <span class="op">=</span> D3D11_USAGE_DYNAMIC<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>bd<span class="op">.</span>BindFlags <span class="op">=</span> D3D11_BIND_SHADER_RESOURCE<span class="op">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>bd<span class="op">.</span>MiscFlags <span class="op">=</span> D3D11_RESOURCE_MISC_BUFFER_STRUCTURED<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>bd<span class="op">.</span>StructureByteStride <span class="op">=</span> <span class="kw">sizeof</span><span class="op">(</span>XMFLOAT4X4<span class="op">);</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>InstanceRenderer</code>는 두 개의 Structured Buffer를 운용합니다. 배치 렌더링용 <code>instanceBuffer_</code>(256+ 용량, 1.5배 지수 성장)와 단일 엔티티용 <code>singleBuffer_</code>(1-element, 매 프레임 Map/Unmap)를 분리했습니다. 캐릭터처럼 단일 엔티티를 렌더링하려면 인스턴싱 셰이더와 별도의 non-instanced 셰이더를 유지해야 하는데, 파이프라인이 분기되면 셰이더 상태 전환과 코드 중복이 발생합니다. 1-element Structured Buffer를 두면 동일한 인스턴싱 셰이더로 단일 엔티티도 처리할 수 있어 렌더링 경로를 하나로 통일했습니다.</p>
+<section id="sec-instancing-measurement" class="level4" data-number="4.2.1">
+<h4 data-number="4.2.1" class="anchored" data-anchor-id="sec-instancing-measurement"><span class="header-section-number">4.2.1</span> 측정</h4>
+<p>성능 비교를 위해 GameScene에 <code>useInstancing_</code> 토글과 D3D11 Timestamp Query 기반 측정 코드를 잠시 도입했습니다. 두 경로(<code>DrawIndexed</code> × N vs <code>DrawIndexedInstanced</code> × M)를 런타임에 전환하면서 던전 렌더링 블록만 감싸 CPU 시간(<code>std::chrono::high_resolution_clock</code>)과 GPU 시간(D3D11 Timestamp Query, 3-frame latency)을 동시에 측정했습니다.</p>
+<div id="tbl-instancing-perf" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-instancing-perf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;6: 인스턴싱 방식별 성능 비교 (4640 인스턴스)
+</figcaption>
+<div aria-describedby="tbl-instancing-perf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 25%">
+<col style="width: 23%">
+<col style="width: 23%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>모드</th>
+<th>Draw Call</th>
+<th>CPU (μs)</th>
+<th>GPU (μs)</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Per-instance (<code>DrawIndexed</code> × N)</td>
+<td><strong>4,640</strong></td>
+<td><strong>7,936.5</strong></td>
+<td><strong>3,585.9</strong></td>
+<td>기준선</td>
+</tr>
+<tr class="even">
+<td>Instanced (<code>DrawIndexedInstanced</code> × M)</td>
+<td><strong>8</strong></td>
+<td><strong>34.8</strong></td>
+<td><strong>80.3</strong></td>
+<td>메시 종류 수 = 8</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>CPU time이 단축된 것이 가장 큰 효과입니다. 병목이었던 Draw Call 수가 극적으로 줄어든 덕분에, 4640번의 <code>DrawIndexed</code>마다 반복되던 IA 상태 변경, PerObject 상수 버퍼 Map/Unmap, 드라이버 검증 비용이 메시 종류당 1회로 축소되었습니다. 한 프레임의 16ms budget 중 던전 렌더링이 차지하던 약 8ms가 35μs로 줄어 다른 시스템(전투 효과, UI, 네트워크 처리)에 여유 시간을 확보할 수 있었습니다.</p>
+</section>
+</section>
+<section id="sec-effect-renderer" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="sec-effect-renderer"><span class="header-section-number">4.3</span> 이펙트 셰이더</h3>
+<p>텍스쳐 기반 이펙트 대신, <code>effect.hlsl</code>에서 코드로 이펙트를 생성합니다.</p>
+<p>기본 공격(좌클릭) 흐름은 발사체 → 적중 두 단계로 구성됩니다. <code>CombatManager::HandleFire()</code>가 <code>Projectile</code>을 생성해 매 프레임 직선 이동·벽 충돌을 처리하고, <code>HandleDamage()</code>가 적중 시 <code>HitEffect</code>를 타겟 위치에 등록합니다. 이 두 종류가 <code>EffectRenderer</code>를 거쳐 빌보드 쿼드로 렌더링되며, 셰이더의 <code>EffectType</code> 값으로 분기됩니다.</p>
+<div id="tbl-effects" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-effects-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;7: 기본 공격에 사용되는 프로시저럴 이펙트
+</figcaption>
+<div aria-describedby="tbl-effects-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>EffectType</th>
+<th>용도</th>
+<th>셰이더 기법</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>3 (Bullet)</td>
+<td>발사체 본체</td>
+<td>코어 + 방사형 글로우</td>
+</tr>
+<tr class="even">
+<td>4 (Hit)</td>
+<td>적중 순간</td>
+<td>확장 링 + 중앙 플래시</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><code>EffectRenderer</code>는 카메라의 Right/Up 벡터로 빌보드 쿼드를 구성합니다. 버텍스 셰이더는 월드 좌표 변환만 수행하고, 모든 형태는 픽셀 셰이더의 UV 기반 수식으로 만들어집니다. <code>EffectTime</code>(0→1 정규화 수명)이 알파에 직접 곱해져 자동 페이드 아웃됩니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>effect.hlsl — 빌보드 정점 변환</strong></pre>
+</div>
+<pre class="hlsl" data-filename="effect.hlsl — 빌보드 정점 변환"><code>float3 worldPos = EffectPos
+    + CameraRight * i.Pos.x * EffectScale
+    + CameraUp    * i.Pos.y * EffectScale;</code></pre>
+</div>
+<p><strong>Bullet</strong> — 중앙 코어, 방사형 글로우, 그리고 발사 방향 반대쪽으로 늘어지는 트레일을 합성합니다. 트레일은 <code>centered.x</code>(-0.5~+0.5)에 대한 비대칭 <code>smoothstep</code>으로 만들어, 한 방향으로만 늘어진 모양이 자연스럽게 표현됩니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>effect.hlsl — Bullet</strong></pre>
+</div>
+<pre class="hlsl" data-filename="effect.hlsl — Bullet"><code>float4 Bullet(float2 uv, float t)
+{
+    float2 centered = uv - 0.5;
+    float d = length(centered) * 2.0;
+
+    float core  = 1.0 - smoothstep(0.0, 0.3, d);
+    float glow  = 1.0 - smoothstep(0.1, 0.8, d);
+    float trail = saturate(1.0 - smoothstep(-0.5, 0.1, centered.x))
+                * smoothstep(0.3, 0.0, abs(centered.y));
+
+    float3 col = float3(1,1,0.9) * core
+               + float3(1,0.7,0.2) * glow * 0.6
+               + float3(1,0.5,0.1) * trail * 0.4;
+    float alpha = saturate(core + glow * 0.5 + trail * 0.3);
+    return float4(col, alpha);
+}</code></pre>
+</div>
+<p><strong>Hit</strong> — 적중 순간의 시각 강조를 위해 세 개의 레이어를 합성합니다. 시간에 비례해 반지름이 커지는 링(<code>ringRadius = t·0.8</code>), 빠르게 사라지는 중앙 플래시(<code>saturate(1 - t·4)</code>), 그리고 6방향으로 뻗어 나가는 스파크입니다. 스파크는 픽셀의 <code>atan2(y, x)</code> 각도를 6등분(<code>i·π/3</code>)한 기준 각도와 비교해 가까운 픽셀만 활성화합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>effect.hlsl — Hit</strong></pre>
+</div>
+<pre class="hlsl" data-filename="effect.hlsl — Hit"><code>float4 Hit(float2 uv, float t)
+{
+    float2 centered = uv - 0.5;
+    float d = length(centered) * 2.0;
+
+    float ringRadius = t * 0.8;
+    float ring = smoothstep(ringRadius - 0.15, ringRadius, d)
+               * smoothstep(ringRadius + 0.15, ringRadius, d);
+    float flash = (1.0 - smoothstep(0.0, 0.4, d)) * saturate(1.0 - t * 4.0);
+
+    float angle = atan2(centered.y, centered.x);
+    float sparks = 0.0;
+    for (int i = 0; i &lt; 6; i++) {
+        float a = (float)i * 1.0472;  // 2π/6
+        float sparkD = abs(angle - a);
+        sparkD = min(sparkD, 6.2832 - sparkD);
+        float sparkRadius = t * 0.7;
+        sparks += smoothstep(0.15, 0.0, sparkD)
+                * smoothstep(sparkRadius - 0.1, sparkRadius, d)
+                * smoothstep(sparkRadius + 0.1, sparkRadius, d);
+    }
+
+    float fadeOut = 1.0 - t;
+    float3 col = float3(1,0.6,0.2) * ring
+               + float3(1,1,0.8) * flash
+               + float3(1,0.4,0.1) * sparks * 0.5;
+    return float4(col, saturate(ring + flash + sparks * 0.5) * fadeOut);
+}</code></pre>
+</div>
+<p>투명 파티클이 서로를 가리지 않도록 깊이 쓰기를 비활성화하고(<code>DepthWriteMask = ZERO</code>), 가산 블렌딩(<code>SrcBlend = SRC_ALPHA</code>, <code>DestBlend = ONE</code>)으로 겹칠수록 밝아지는 효과를 만듭니다. 렌더링 전후로 이전 BlendState와 DepthStencilState를 저장·복원해 다른 렌더링 경로에 영향을 주지 않습니다.</p>
+</section>
+<section id="sec-mesh-material" class="level3" data-number="4.4">
+<h3 data-number="4.4" class="anchored" data-anchor-id="sec-mesh-material"><span class="header-section-number">4.4</span> 메시 캐시와 머티리얼</h3>
+<p><code>MeshCache</code>는 초기화 시 <code>assets/models/</code> 디렉토리의 모든 <code>.obj</code> 파일을 자동 로드하고, 캐릭터(Box 0.4×0.9×0.4)와 발사체(Sphere 반지름 0.5)를 프로시저럴 메시로 추가 생성합니다. <code>ObjLoader</code>는 Wavefront OBJ의 정점 위치, UV, 법선을 파싱하며, 면 인덱싱 중복을 자동 제거합니다.</p>
+<p>Kenney 3D 던전 에셋의 OBJ 파일은 표준 Wavefront OBJ 사양에 없는 정점 컬러 값을 <code>v</code> 라인 뒤쪽에 추가로 붙여 두는 비표준 확장을 사용합니다. 정점 위치는 <code>std::istringstream</code>으로 앞 세 float만 읽어 뒤따르는 컬러 값이 자연스럽게 무시되도록 파서를 작성했습니다. 더 큰 문제는 일부 face가 삼각형이 아닌 N-gon(4개 이상 정점)으로 구성된 점이었는데, 삼각형 가정의 인덱스 버퍼 생성이 깨지므로 face 라인의 정점 토큰을 모두 읽은 뒤 <code>(0, i-1, i)</code> 패턴의 triangle fan으로 분할하는 처리를 넣어 해결했습니다. OBJ에 법선이 포함되지 않은 경우에는 face normal을 cross product로 계산해 정점별로 누적·정규화하는 방식으로 smooth shading을 적용합니다.</p>
+<p><code>MaterialManager</code>는 OBJ의 MTL 파일에서 텍스처 경로를 읽어 <code>ID3D11ShaderResourceView</code>를 생성하고, PS의 <code>t0</code> 슬롯에 바인딩합니다. MTL이 없거나 텍스처 로드에 실패하면 마젠타색 fallback 텍스처가 적용됩니다.</p>
+<p><strong>로드된 모델 (29종)</strong>: 캐릭터 3종(human, orc, character-a), 던전 구조 3종(floor, floor-detail, wall), 소품 23종(barrel, banner, chest, column, coin, dirt, gate, rocks, stairs, stones, torch, trap, wall-half, wall-narrow, wall-opening, wood-structure, wood-support 등 — Kenney 3D 던전 에셋)</p>
+</section>
+</section>
+<section id="sec-isometric-math" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="sec-isometric-math"><span class="header-section-number">5</span> 공간</h2>
+<section id="sec-camera" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="sec-camera"><span class="header-section-number">5.1</span> 카메라</h3>
+<p>정사영(Orthographic) 투영으로 아이소메트릭 시점을 구현합니다. 투영 행렬은 <code>Width = orthoSize × aspect × 2</code>, <code>Height = orthoSize × 2</code>, Z범위 [-200, 500]으로 구성됩니다. Pitch 30°, Yaw 45°의 고정 각도에서 타겟 위치를 추적하며, Smoothing을 적용해 카메라를 자연스럽게 이동시킵니다. 빌보드 이펙트를 위해 매 프레임 카메라 Right/Up 벡터를 재계산합니다.</p>
+<div id="tbl-camera" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-camera-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;8: 카메라 파라미터
+</figcaption>
+<div aria-describedby="tbl-camera-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>파라미터</th>
+<th>값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pitch</td>
+<td>30°</td>
+<td>수직 관찰 각도</td>
+</tr>
+<tr class="even">
+<td>Yaw</td>
+<td>45°</td>
+<td>수평 회전 각도</td>
+</tr>
+<tr class="odd">
+<td>Distance</td>
+<td>20</td>
+<td>카메라-타겟 거리</td>
+</tr>
+<tr class="even">
+<td>OrthoSize</td>
+<td>15 (기본), 5~40 (줌 범위)</td>
+<td>정사영 반높이</td>
+</tr>
+<tr class="odd">
+<td>SmoothTime</td>
+<td>0.15s</td>
+<td>추적 감쇠 시간</td>
+</tr>
+<tr class="even">
+<td>ZoomSpeed</td>
+<td>2.0</td>
+<td>스크롤 줌 속도</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>카메라 위치는 다음 공식으로 결정됩니다.</p>
+<pre><code>카메라 위치 = 타겟 + (d·cos(pitch)·sin(yaw), d·sin(pitch), -d·cos(pitch)·cos(yaw))</code></pre>
+<p>매 프레임 <code>t = dt / kSmoothTime(0.15s)</code>로 보간 계수를 계산하고, 현재 위치를 타겟을 향해 <code>pos += (target - pos) * t</code>로 이동시킵니다. 초기 진입 시에는 <code>SnapTo()</code>로 즉시 이동합니다.</p>
+<p>마우스 스크롤 델타에 <code>kZoomSpeed</code>(2.0)를 곱해 orthoSize를 조정하며, [5, 40] 범위로 클램프해 극단적 확대/축소를 방지합니다.</p>
+</section>
+<section id="sec-screen-to-ground" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="sec-screen-to-ground"><span class="header-section-number">5.2</span> ScreenToGround 역투영</h3>
+<p>마우스 클릭 위치를 월드 좌표로 변환해 공격 방향을 결정해야 합니다. 정사영 카메라에서 스크린 좌표를 지면 교차점으로 변환하는 역투영 알고리즘을 구현했습니다.</p>
+<p>스크린 좌표 (x, y)를 NDC로 변환합니다: <code>ndcX = 2x/w - 1</code>, <code>ndcY = 1 - 2y/h</code>.</p>
+<p>NDC near(z=0)과 far(z=1) 좌표를 <code>invViewProj</code> 행렬로 월드 공간에 역투영해 두 점을 얻습니다.</p>
+<p>near→far 방향의 레이와 y=groundY 수평면의 교차점 <code>t = (groundY - originY) / dirY</code>를 계산합니다.</p>
+<p><code>dirY ≈ 0</code>인 경우(시선과 지면이 거의 평행) <code>t = 0</code>으로 폴백합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Camera.cpp — ScreenToGround()</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" data-filename="Camera.cpp — ScreenToGround()"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>XMFLOAT3 Camera<span class="op">::</span>ScreenToGround<span class="op">(</span><span class="dt">float</span> mouseX<span class="op">,</span> <span class="dt">float</span> mouseY<span class="op">,</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="dt">float</span> screenW<span class="op">,</span> <span class="dt">float</span> screenH<span class="op">,</span> <span class="dt">float</span> groundY<span class="op">)</span> <span class="at">const</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> ndcX <span class="op">=</span> <span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> mouseX <span class="op">/</span> screenW <span class="op">-</span> <span class="fl">1.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> ndcY <span class="op">=</span> <span class="fl">1.0</span><span class="bu">f</span> <span class="op">-</span> <span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> mouseY <span class="op">/</span> screenH<span class="op">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    XMMATRIX invVP <span class="op">=</span> XMMatrixInverse<span class="op">(</span><span class="kw">nullptr</span><span class="op">,</span> GetViewProj<span class="op">());</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    XMVECTOR nearPt <span class="op">=</span> XMVector3TransformCoord<span class="op">(</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        XMVectorSet<span class="op">(</span>ndcX<span class="op">,</span> ndcY<span class="op">,</span> <span class="fl">0.0</span><span class="bu">f</span><span class="op">,</span> <span class="fl">1.0</span><span class="bu">f</span><span class="op">),</span> invVP<span class="op">);</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    XMVECTOR farPt  <span class="op">=</span> XMVector3TransformCoord<span class="op">(</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>        XMVectorSet<span class="op">(</span>ndcX<span class="op">,</span> ndcY<span class="op">,</span> <span class="fl">1.0</span><span class="bu">f</span><span class="op">,</span> <span class="fl">1.0</span><span class="bu">f</span><span class="op">),</span> invVP<span class="op">);</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    XMVECTOR rayDir <span class="op">=</span> XMVectorSubtract<span class="op">(</span>farPt<span class="op">,</span> nearPt<span class="op">);</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> originY <span class="op">=</span> XMVectorGetY<span class="op">(</span>nearPt<span class="op">);</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> dirY <span class="op">=</span> XMVectorGetY<span class="op">(</span>rayDir<span class="op">);</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> t <span class="op">=</span> <span class="op">(</span>dirY <span class="op">!=</span> <span class="fl">0.0</span><span class="bu">f</span><span class="op">)</span> <span class="op">?</span> <span class="op">(</span>groundY <span class="op">-</span> originY<span class="op">)</span> <span class="op">/</span> dirY <span class="op">:</span> <span class="fl">0.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    XMVECTOR hit <span class="op">=</span> XMVectorAdd<span class="op">(</span>nearPt<span class="op">,</span> XMVectorScale<span class="op">(</span>rayDir<span class="op">,</span> t<span class="op">));</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    XMFLOAT3 result<span class="op">;</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    XMStoreFloat3<span class="op">(&amp;</span>result<span class="op">,</span> hit<span class="op">);</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> result<span class="op">;</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-move-send" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="sec-move-send"><span class="header-section-number">5.3</span> 이동 송신 최적화</h3>
+<p>이동 속도는 Walk 5.0 m/s, Run(Shift) 8.0 m/s이며, 20Hz(50ms 간격)로 서버에 위치를 동기화합니다. 위치 변화 제곱 거리가 0.0001 미만이고 회전 변화가 0.5° 미만이면 전송을 건너뛰어 정지 상태의 불필요한 트래픽을 차단합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>PlayerController.cpp — 20Hz 전송 최적화</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" data-filename="PlayerController.cpp — 20Hz 전송 최적화"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="va">sendTimer_</span> <span class="op">+=</span> dt<span class="op">;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span><span class="va">sendTimer_</span> <span class="op">&gt;=</span> kSendRate<span class="op">)</span> <span class="op">{</span>    <span class="co">// kSendRate = 0.05s</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">sendTimer_</span> <span class="op">-=</span> kSendRate<span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> distSq <span class="op">=</span> dx<span class="op">*</span>dx <span class="op">+</span> dy<span class="op">*</span>dy <span class="op">+</span> dz<span class="op">*</span>dz<span class="op">;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> rotDiff <span class="op">=</span> fabsf<span class="op">(</span><span class="va">data_</span><span class="op">-&gt;</span>rotationY <span class="op">-</span> <span class="va">lastSentRot_</span><span class="op">);</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>distSq <span class="op">&gt;</span> <span class="fl">0.0001</span><span class="bu">f</span> <span class="op">||</span> rotDiff <span class="op">&gt;</span> <span class="fl">0.5</span><span class="bu">f</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">sendPending_</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">lastSentPos_</span> <span class="op">=</span> <span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">lastSentRot_</span> <span class="op">=</span> <span class="va">data_</span><span class="op">-&gt;</span>rotationY<span class="op">;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="sec-network" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="sec-network"><span class="header-section-number">6</span> 네트워크 아키텍처</h2>
+<section id="sec-flow-control-impl" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="sec-flow-control-impl"><span class="header-section-number">6.1</span> 서버 주도 흐름 제어 구현</h3>
+<p>두 가지 씬 전환 방법을 고민헀습니다. 클라이언트가 패킷을 직접 버퍼링했다가 씬 전환 후 드레인하는 방법, 그리고 서버가 브로드캐스트를 보류하는 방법입니다. 전자는 씬마다 “어디까지 버퍼링하고 언제 실시간으로 전환할지”를 판단해야 해서 같은 로직이 반복되고, 전환 도중 도착한 패킷이 다음 씬의 핸들러 등록 전에 파싱되어 상태가 어긋날 여지가 있었습니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-flow-control" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-flow-control-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-flow-control">sequenceDiagram
+    participant C as Client (LobbyScene)
+    participant S as GameServer (Room)
+
+    C-&gt;&gt;S: C_JOIN_ROOM
+    S--&gt;&gt;C: S_JOIN_ROOM + MapData
+    Note over C: LobbyScene → GameScene 전환 (지연)
+    Note over C: GameScene::OnEnter()
+    Note over C: 26종 핸들러 등록
+    C-&gt;&gt;S: C_SCENE_READY
+    Note over S: HandleSceneReady → Room::MarkPlayerReady
+    Note over S: PlayerState.scene_ready = true, ++ready_count_
+    S--&gt;&gt;C: S_PLAYER_LIST (기존 플레이어/봇 전체 상태)
+    Note over S: SetSessionsSceneReady(ready_count_) 메트릭 갱신
+    Note over S: 이후 BroadcastAll/Except 가 ps.scene_ready 만 필터링
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-flow-control-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;5: 서버 주도 흐름 제어 흐름
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>서버가 <code>C_SCENE_READY</code> 수신 전까지 해당 플레이어로 가는 브로드캐스트를 필터링하면, 클라이언트는 준비 완료를 한 번 알리기만 하면 되고 버퍼링·드레인 로직 자체가 사라집니다. 서버 측 브로드캐스트 경로는 이미 <code>Room::BroadcastAll</code>/<code>BroadcastExcept</code>로 중앙집중화되어 있어, <code>PlayerState::scene_ready</code> 플래그 하나를 기존 루프에 끼워넣는 것만으로 모든 송신 사이트가 자동으로 수혜를 받습니다. 플레이어별로 상태를 추적하는 이유는, 한 명의 느린 씬 전환이 같은 룸의 다른 플레이어를 블록하지 않도록 하기 위함입니다.</p>
+<p>초기 구현은 준비 완료 플레이어를 별도 <code>std::unordered_set&lt;PlayerId&gt;</code>에 담는 방식이었지만, 브로드캐스트 루프가 어차피 <code>players_</code> 맵을 순회하므로 같은 순회 안에서 <code>ps.scene_ready</code>를 확인하면 별도 해시 lookup 없이 분기가 끝나고, “방에 있는가”와 “수신 가능한가”를 단일 <code>PlayerState</code>로 통합해 두 컨테이너 간 동기화 문제와 ID 재사용 race를 함께 없앨 수 있었습니다.</p>
+</section>
+</section>
+<section id="sec-game-systems" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="sec-game-systems"><span class="header-section-number">7</span> 게임 시스템</h2>
+<section id="sec-combat" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="sec-combat"><span class="header-section-number">7.1</span> 전투 시스템</h3>
+<p>모든 데미지 판정은 서버에서 수행하며, 클라이언트는 시각 효과만 담당합니다. 전투는 두 가지 경로로 나뉩니다.</p>
+<p><strong>발사체 공격 (좌클릭)</strong></p>
+<p>좌클릭 시 0.4초 쿨다운을 확인한 뒤 <code>ScreenToGround</code>로 조준 방향을 계산합니다. 플레이어 위치에서 조준 방향으로 0.6 오프셋된 지점(y+0.9)에 로컬 탄환을 즉시 스폰하고 <code>C_FIRE</code> 패킷을 전송합니다. 로컬 즉시 스폰으로 시각적 반응성을 확보하면서, 실제 히트 판정은 서버 <code>ProjectileManager</code>가 수행합니다.</p>
+<p><code>CombatManager</code>는 4종의 전투 시각 요소를 관리합니다.</p>
+<div id="tbl-combat" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-combat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;9: 전투 효과 요소
+</figcaption>
+<div aria-describedby="tbl-combat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>요소</th>
+<th>구현</th>
+<th>수명</th>
+<th>물리</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Projectile</strong></td>
+<td>80 m/s 직진 + <code>IsWalkable()</code> 벽 충돌</td>
+<td>traveled ≥ 50m 또는 벽 충돌 시 소멸</td>
+<td>위치 누적 이동</td>
+</tr>
+<tr class="even">
+<td><strong>AttackEffect</strong></td>
+<td>skillId별 이펙트 (Slash 셰이더)</td>
+<td>0.3s (근접) / 0.6s (힐)</td>
+<td>스케일 1.0→1.5 ease-out 감쇠</td>
+</tr>
+<tr class="odd">
+<td><strong>DamagePopup</strong></td>
+<td>ImGui 텍스트 (월드→스크린 투영)</td>
+<td>1.5s</td>
+<td>y += 2.0·dt 상승 + 알파 감쇠</td>
+</tr>
+<tr class="even">
+<td><strong>HitEffect</strong></td>
+<td>타겟 위치 확장 링 (Hit 셰이더)</td>
+<td>0.3s</td>
+<td>y+0.9 오프셋</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-combat-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-combat-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-combat-flow">graph LR
+    classDef input fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef server fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef visual fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    Click["좌클릭"]:::input
+    Fire["C_FIRE / C_ATTACK"]:::input
+    SRV["서버 판정&lt;br/&gt;(ProjectileManager)"]:::server
+    DMG["S_DAMAGE&lt;br/&gt;(targetId, hp, isDead)"]:::server
+
+    Click --&gt; Fire
+    Fire --&gt; SRV
+    SRV --&gt; DMG
+
+    DMG --&gt; Popup["DamagePopup&lt;br/&gt;(숫자 표시)"]:::visual
+    DMG --&gt; Hit["HitEffect&lt;br/&gt;(확장 링)"]:::visual
+    DMG --&gt; Flash["HitFlash&lt;br/&gt;(셰이더 빨간 플래시)"]:::visual
+    Fire --&gt; Local["로컬 Projectile&lt;br/&gt;(즉시 스폰)"]:::visual
+    Fire --&gt; AtkEff["AttackEffect&lt;br/&gt;(skillId 분기)"]:::visual
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-combat-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;6: 전투 이벤트 처리 흐름
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-dungeon" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="sec-dungeon"><span class="header-section-number">7.2</span> 던전 생성</h3>
+<p><code>DungeonGenerator</code>는 서버에서 수신한 <code>MapData</code>를 파싱하여 던전 메시 인스턴스를 생성합니다. 레이아웃(grid), props(barrel/chest/rocks/banner/trap), lights, portals는 모두 서버가 이미 결정한 상태로 내려오고, 클라이언트는 각 항목을 순회하면서 해당 메시와 world matrix를 만들어 <code>InstanceRenderer</code>에 넘기기만 합니다. 바닥 타일의 <code>floor-detail</code> variant 선택과 90° 회전만 클라이언트에서 셀 좌표 해시로 정해, 동일한 <code>BuildFromMapData()</code> 호출이 항상 같은 결과를 내도록 했습니다.</p>
+<div id="tbl-grid" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-grid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;10: 그리드 셀 해석
+</figcaption>
+<div aria-describedby="tbl-grid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>셀 값</th>
+<th>의미</th>
+<th>처리</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>바닥</td>
+<td><code>floor</code> / <code>floor-detail</code> 메시 + 90° 단위 회전</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>벽</td>
+<td>인접 4방향 검사 → 바닥이 있는 방향으로 회전</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>벽은 인접 셀만 보면 회전이 결정되므로 클라이언트마다 자연스럽게 일치합니다. 초기 구현에서 벽 메시를 회전 없이 배치했을 때 face normal이 플레이어 반대쪽을 향해 backface culling으로 벽이 보이지 않는 현상이 있었고, 인접한 바닥 셀 방향으로 회전시켜(North=0°, East=90°, South=180°, West=270°) 정면이 항상 통로를 향하도록 했습니다. 사방이 모두 벽이면 내부 벽으로 간주해 스폰 자체를 생략합니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>DungeonGenerator.cpp — 벽 인접성과 회전</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" data-filename="DungeonGenerator.cpp — 벽 인접성과 회전"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> adjN <span class="op">=</span> IsFloor<span class="op">(</span>grid<span class="op">,</span> gw<span class="op">,</span> gh<span class="op">,</span> x<span class="op">,</span> z <span class="op">-</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> adjS <span class="op">=</span> IsFloor<span class="op">(</span>grid<span class="op">,</span> gw<span class="op">,</span> gh<span class="op">,</span> x<span class="op">,</span> z <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> adjE <span class="op">=</span> IsFloor<span class="op">(</span>grid<span class="op">,</span> gw<span class="op">,</span> gh<span class="op">,</span> x <span class="op">+</span> <span class="dv">1</span><span class="op">,</span> z<span class="op">);</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> adjW <span class="op">=</span> IsFloor<span class="op">(</span>grid<span class="op">,</span> gw<span class="op">,</span> gh<span class="op">,</span> x <span class="op">-</span> <span class="dv">1</span><span class="op">,</span> z<span class="op">);</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>adjN <span class="op">||</span> adjS <span class="op">||</span> adjE <span class="op">||</span> adjW<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> rotY <span class="op">=</span> <span class="fl">0.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>adjN<span class="op">)</span>      rotY <span class="op">=</span> <span class="fl">0.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>adjE<span class="op">)</span> rotY <span class="op">=</span> <span class="fl">90.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>adjS<span class="op">)</span> rotY <span class="op">=</span> <span class="fl">180.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>adjW<span class="op">)</span> rotY <span class="op">=</span> <span class="fl">270.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ... wall 메시 스폰</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>서버 <code>MapData</code>의 <code>props</code> 배열에서 5종(barrel, chest, rocks, banner, trap)의 위치와 <code>rotation_y</code>를 그대로 읽어 World Matrix를 구성합니다. <code>MapLight</code>에서는 위치(y+1.5 오프셋), RGB, intensity, range를 추출해 포인트 라이트 배열로 셰이더에 전달하고, <code>MapPortal</code>에서는 위치·portal_id·target_name을 읽어 포털 엔티티를 생성합니다. 서버가 <code>S_JOIN_ROOM</code> 응답에 <code>MapData</code>를 포함해 전송하면, 클라이언트는 <code>BuildFromMapData()</code> 한 번으로 모든 인스턴스 목록을 만들어 <code>InstanceRenderer</code>에 넘기는 것으로 던전 로딩이 끝납니다.</p>
+</section>
+<section id="sec-interpolation" class="level3" data-number="7.3">
+<h3 data-number="7.3" class="anchored" data-anchor-id="sec-interpolation"><span class="header-section-number">7.3</span> 원격 엔티티 보간</h3>
+<p><code>EntityManager</code>는 서버에서 수신한 원격 플레이어의 위치를 즉시 적용하지 않고, <code>targetPos</code>/<code>targetRotY</code>에 저장한 뒤 매 프레임 선형 보간(Lerp)합니다. 20Hz 네트워크 업데이트를 60fps 렌더링으로 부드럽게 표현합니다.</p>
+<p>회전 보간에서 단순히 <code>current + (target - current) * t</code>를 적용하면, 359° → 1° 전환 시 차이가 -358°로 계산되어 거의 한 바퀴를 역회전하는 문제가 발생합니다. 실제로는 2°만 정방향으로 회전해야 하므로, 차이를 <code>[-180°, +180°]</code> 범위로 정규화해 항상 최단 경로로 회전하도록 했습니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>EntityManager.cpp — 보간과 히트 타이머</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" data-filename="EntityManager.cpp — 보간과 히트 타이머"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> t <span class="op">=</span> <span class="bu">std::</span>min<span class="op">(</span>dt <span class="op">*</span> kLerpSpeed<span class="op">,</span> <span class="fl">1.0</span><span class="bu">f</span><span class="op">);</span>  <span class="co">// kLerpSpeed = 10.0</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="kw">auto</span><span class="op">&amp;</span> <span class="op">[</span>id<span class="op">,</span> e<span class="op">]</span> <span class="op">:</span> <span class="va">entities_</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    e<span class="op">.</span>data<span class="op">.</span>position<span class="op">.</span>x <span class="op">+=</span> <span class="op">(</span>e<span class="op">.</span>targetPos<span class="op">.</span>x <span class="op">-</span> e<span class="op">.</span>data<span class="op">.</span>position<span class="op">.</span>x<span class="op">)</span> <span class="op">*</span> t<span class="op">;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    e<span class="op">.</span>data<span class="op">.</span>position<span class="op">.</span>z <span class="op">+=</span> <span class="op">(</span>e<span class="op">.</span>targetPos<span class="op">.</span>z <span class="op">-</span> e<span class="op">.</span>data<span class="op">.</span>position<span class="op">.</span>z<span class="op">)</span> <span class="op">*</span> t<span class="op">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>e<span class="op">.</span>hitTimer <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> e<span class="op">.</span>hitTimer <span class="op">-=</span> dt<span class="op">;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 회전 보간: ±180° 정규화로 최단 경로 회전</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> diff <span class="op">=</span> e<span class="op">.</span>targetRotY <span class="op">-</span> e<span class="op">.</span>data<span class="op">.</span>rotationY<span class="op">;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>diff <span class="op">&gt;</span> <span class="fl">180.0</span><span class="bu">f</span><span class="op">)</span> diff <span class="op">-=</span> <span class="fl">360.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>diff <span class="op">&lt;</span> <span class="op">-</span><span class="fl">180.0</span><span class="bu">f</span><span class="op">)</span> diff <span class="op">+=</span> <span class="fl">360.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    e<span class="op">.</span>data<span class="op">.</span>rotationY <span class="op">+=</span> diff <span class="op">*</span> t<span class="op">;</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>isDead</code> 플래그가 설정된 엔티티는 렌더링에서 제외하고, <code>hitTimer</code>가 0보다 크면 <code>HitFlash</code> 파라미터로 전달해 피격 효과를 표시합니다. <code>moveState</code>(0=idle, 1=walk, 2=run)에 따라 메시 스케일 등 시각적 피드백을 조정합니다.</p>
+</section>
+</section>
+<section id="sec-extensions" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="sec-extensions"><span class="header-section-number">8</span> 확장 기능</h2>
+<section id="sec-minimap" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="sec-minimap"><span class="header-section-number">8.1</span> 미니맵 셰이더</h3>
+<p>우측 상단에 <code>minimap.hlsl</code> 전용 셰이더로 던전 전체 지도를 렌더링합니다. 서버 그리드를 <code>R8_UNORM</code> 텍스처로 업로드하고, 플레이어 중심 시점으로 <code>ViewRadius</code>만큼 표시합니다. Vertex Shader에서 <code>SV_VertexID</code>만으로 쿼드를 생성하므로 정점 버퍼가 불필요합니다.</p>
+<p>로컬 플레이어(하늘색)와 원격 플레이어(빨간 점)를 <code>EntityPositions[16]</code> 상수 배열로 전달해 셰이더에서 직접 렌더링합니다. 가장자리 <code>smoothstep</code> 페이드아웃과 알파 블렌딩으로 게임 화면 위에 반투명하게 오버레이됩니다.</p>
+</section>
+<section id="sec-aimline" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="sec-aimline"><span class="header-section-number">8.2</span> LoL 스타일 에임 라인</h3>
+<p>플레이어 위치에서 마우스 에임 방향으로 8유닛 길이의 지면 라인을 16세그먼트로 월드→스크린 투영합니다. <code>DungeonGenerator::IsWalkable()</code>로 벽 충돌을 체크해 벽에서 라인이 끊기며, 거리에 따라 알파가 감쇠합니다. 에임 지점에는 정사영 투영된 타원형 조준원이 표시됩니다.</p>
+</section>
+<section id="sec-wall-collision" class="level3" data-number="8.3">
+<h3 data-number="8.3" class="anchored" data-anchor-id="sec-wall-collision"><span class="header-section-number">8.3</span> 벽 충돌 시스템</h3>
+<p>클라이언트와 서버 양쪽에서 벽 충돌을 확인합니다.</p>
+<div id="tbl-wall-collision" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-wall-collision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;11: 벽 충돌 확인 레이어
+</figcaption>
+<div aria-describedby="tbl-wall-collision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 40%">
+<col style="width: 30%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>레이어</th>
+<th>구현</th>
+<th>목적</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>클라이언트 <code>PlayerController</code></td>
+<td><code>IsWalkable()</code> + 축 분리 슬라이딩</td>
+<td>즉각적 반응 UX</td>
+</tr>
+<tr class="even">
+<td>클라이언트 <code>CombatManager</code></td>
+<td>탄환 매 프레임 <code>IsWalkable()</code> 체크</td>
+<td>벽 관통 탄환 방지</td>
+</tr>
+<tr class="odd">
+<td>서버 <code>HandleMove()</code></td>
+<td><code>GetTile()</code> 체크, 벽이면 이동 거부</td>
+<td>치트 방지</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>초기 벽 충돌 구현에서는 이동 목표가 벽이면 단순히 이동을 차단했습니다. W+D(대각선)로 벽을 향해 달리면 벽 앞에서 완전히 정지하여, 벽을 따라 이동하려면 정확히 한 방향 키만 눌러야 하는 답답한 조작감이 생겼습니다. <code>PlayerController</code>는 3단계 폴백 축 분리(Axis-Separated) 슬라이딩으로 이를 해결합니다. 대각선 이동이 벽에 막히면 X축 단독, Z축 단독 순서로 시도해 이동 가능한 축으로 미끄러집니다.</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>PlayerController.cpp — 축 분리 슬라이딩</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" data-filename="PlayerController.cpp — 축 분리 슬라이딩"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> newX <span class="op">=</span> <span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">.</span>x <span class="op">+</span> moveDir<span class="op">.</span>x <span class="op">*</span> speed <span class="op">*</span> dt<span class="op">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> newZ <span class="op">=</span> <span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">.</span>z <span class="op">+</span> moveDir<span class="op">.</span>z <span class="op">*</span> speed <span class="op">*</span> dt<span class="op">;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span><span class="va">dungeon_</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 1. 전체 이동 시도</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span><span class="va">dungeon_</span><span class="op">-&gt;</span>IsWalkable<span class="op">(</span>newX<span class="op">,</span> newZ<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">.</span>x <span class="op">=</span> newX<span class="op">;</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">.</span>z <span class="op">=</span> newZ<span class="op">;</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 2. X축 단독 슬라이드</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span><span class="va">dungeon_</span><span class="op">-&gt;</span>IsWalkable<span class="op">(</span>newX<span class="op">,</span> <span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">.</span>z<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">.</span>x <span class="op">=</span> newX<span class="op">;</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 3. Z축 단독 슬라이드</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span><span class="va">dungeon_</span><span class="op">-&gt;</span>IsWalkable<span class="op">(</span><span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">.</span>x<span class="op">,</span> newZ<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">data_</span><span class="op">-&gt;</span>position<span class="op">.</span>z <span class="op">=</span> newZ<span class="op">;</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 4. 양축 모두 차단 — 정지</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="sec-scoreboard" class="level3" data-number="8.4">
+<h3 data-number="8.4" class="anchored" data-anchor-id="sec-scoreboard"><span class="header-section-number">8.4</span> 킬/데스 리더보드</h3>
+<p>서버가 <code>PlayerState</code>에 <code>kills</code>/<code>deaths</code> 카운터를 관리하고, Room 틱에서 5초마다 <code>S_SCOREBOARD</code>를 브로드캐스트합니다. 클라이언트는 Tab 키를 누르고 있을 때 화면 중앙에 킬 수 내림차순으로 정렬된 리더보드를 표시하며, 로컬 플레이어를 하늘색으로 강조합니다.</p>
+</section>
+<section id="sec-killfeed" class="level3" data-number="8.5">
+<h3 data-number="8.5" class="anchored" data-anchor-id="sec-killfeed"><span class="header-section-number">8.5</span> 킬피드 + 이름표</h3>
+<p>사망 이벤트(<code>S_DAMAGE</code>의 <code>is_dead=true</code>) 발생 시 우측에 “A &gt; B” 형식의 킬피드를 5초간 표시합니다. 최대 5개까지 스택되며 0.5초에 걸쳐 페이드 아웃됩니다.</p>
+<p>원격 플레이어의 이름은 항상 머리 위에 표시되며, HP바는 피격 후 3초간만 나타납니다. <code>hpBarTimer</code>와 <code>hitFlashTimer</code>를 분리해 셰이더 피격 플래시(0.25초)와 UI HP바 표시(3초)가 독립적으로 동작합니다.</p>
+</section>
+<section id="sec-fbx" class="level3" data-number="8.6">
+<h3 data-number="8.6" class="anchored" data-anchor-id="sec-fbx"><span class="header-section-number">8.6</span> FBX 로딩 (Assimp)</h3>
+<p><code>MeshCache</code>가 Assimp 라이브러리(<code>aiProcess_Triangulate | aiProcess_GenSmoothNormals</code>)로 <code>assets/fbx/</code> 디렉토리의 FBX 파일을 자동 로드합니다. OBJ가 유효한 메시(인덱스 &gt; 0)면 OBJ를 우선하고, placeholder(빈 파일)면 FBX를 사용합니다. FBX 로드 시 모든 서브메시를 합치고, 바운딩 박스 높이를 <code>uniformScale = 2.7 / (maxY - minY)</code>로 정규화하며, UV의 V 좌표를 <code>1.0 - v</code>로 플립합니다.</p>
+</section>
+<section id="sec-portal" class="level3" data-number="8.7">
+<h3 data-number="8.7" class="anchored" data-anchor-id="sec-portal"><span class="header-section-number">8.7</span> 그래프 기반 존 전환 (포탈)</h3>
+<p>Room 간 연결을 방향 없는 그래프로 관리합니다. 포탈 진입 시 서버가 양방향 링크를 생성하므로 순환 경로(R1→R2→R3→R1)가 가능합니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-portal-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-portal-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-portal-flow">sequenceDiagram
+    participant C as 클라이언트
+    participant S as GameServer
+
+    Note over C: 포탈 2m 이내 접근&lt;br/&gt;"Press [F]" 프롬프트
+    C-&gt;&gt;S: C_PORTAL (portal_id)
+    S-&gt;&gt;S: connections[portal_id] 조회
+    alt 기존 연결
+        S-&gt;&gt;S: 기존 Room으로 이동
+    else 새 연결
+        S-&gt;&gt;S: CreateRoom + Generate(depth+1)
+        S-&gt;&gt;S: 양방향 링크 설정
+    end
+    S-&gt;&gt;S: 역링크 포탈 좌표 근처에 스폰 위치 결정
+    S--&gt;&gt;C: S_PORTAL (new MapData + PlayerInfo)
+
+    Note over C: dungeon_.BuildFromMapData(newMap)&lt;br/&gt;entityMgr_.DespawnAll()&lt;br/&gt;minimap 재생성&lt;br/&gt;camera SnapTo(portalPos)
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-portal-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;7: 포탈 존 전환 흐름
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>클라이언트는 씬 전환 없이 <code>GameScene</code> 내부 상태만 리셋합니다. 포탈 위치에 column 메시를 렌더링하고, 미니맵에 노란 점으로 표시합니다. Zone depth 정보를 추적해 방문 기록을 유지합니다.</p>
+</section>
+<section id="sec-fullmap" class="level3" data-number="8.8">
+<h3 data-number="8.8" class="anchored" data-anchor-id="sec-fullmap"><span class="header-section-number">8.8</span> 전체 지도 (M키)</h3>
+<p>M키로 토글하는 전체 던전 지도를 화면 중앙에 오버레이합니다. <code>ImGui::GetForegroundDrawList()</code>로 렌더링하며, 각 그리드 셀을 4px 사각형으로 표시합니다.</p>
+<div id="tbl-fullmap" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fullmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;12: 전체 지도 요소
+</figcaption>
+<div aria-describedby="tbl-fullmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>요소</th>
+<th>표시</th>
+<th>색상</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>벽</td>
+<td>어두운 사각형</td>
+<td>(60, 50, 70)</td>
+</tr>
+<tr class="even">
+<td>바닥</td>
+<td>밝은 사각형</td>
+<td>(140, 130, 150)</td>
+</tr>
+<tr class="odd">
+<td>전진 포탈</td>
+<td>사각형 + 라벨</td>
+<td>노란색</td>
+</tr>
+<tr class="even">
+<td>후진 포탈</td>
+<td>사각형 + 라벨</td>
+<td>하늘색</td>
+</tr>
+<tr class="odd">
+<td>로컬 플레이어</td>
+<td>원(r=4)</td>
+<td>하늘색</td>
+</tr>
+<tr class="even">
+<td>원격 엔티티</td>
+<td>원(r=2.5)</td>
+<td>빨간색</td>
+</tr>
+<tr class="odd">
+<td>바닥 아이템</td>
+<td>원(r=2)</td>
+<td>주황색</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="sec-inventory-list" class="level3" data-number="8.9">
+<h3 data-number="8.9" class="anchored" data-anchor-id="sec-inventory-list"><span class="header-section-number">8.9</span> 인벤토리 목록형 UI</h3>
+<p>10×10 그리드에서 목록형으로 전환하여 빈 슬롯을 숨기고, 보유 아이템만 <code>ImGui::Selectable</code>로 표시합니다. 독텍(Dog Tag)은 <code>GetItemName()</code>에서 전용 이름을 반환하며, 우클릭 컨텍스트 메뉴로 Use/Drop이 가능합니다.</p>
+</section>
+<section id="sec-login-flow" class="level3" data-number="8.10">
+<h3 data-number="8.10" class="anchored" data-anchor-id="sec-login-flow"><span class="header-section-number">8.10</span> 로그인 흐름 개선</h3>
+<p>TCP 접속과 계정 로그인을 분리했습니다.</p>
+<ol type="1">
+<li>로그인 화면에 서버 주소/포트 입력 필드 표시</li>
+<li>Connect 버튼으로 TCP 연결 → 연결 성공 후 Login/Register 버튼 활성화</li>
+<li><code>TcpClient::Connect()</code>에서 <code>getaddrinfo()</code>로 도메인 이름 resolve 지원</li>
+<li>연결 실패 시 <code>lastError_</code>에 원인 저장 → UI에 표시</li>
+</ol>
+<p>이전에는 Login 버튼이 접속+로그인을 동시에 시도해 첫 접속 시 패킷이 유실되는 타이밍 문제가 있었습니다.</p>
+</section>
+<section id="sec-dogtag" class="level3" data-number="8.11">
+<h3 data-number="8.11" class="anchored" data-anchor-id="sec-dogtag"><span class="header-section-number">8.11</span> 독텍 루팅 시스템</h3>
+<p>적 사망 시 사망 위치에 독텍이 스폰되어 10m 이내에서 라벨이 표시되고, 3m 이내에서 “Press [E]” 프롬프트가 나타납니다. E키 입력 시 <code>C_PICKUP</code> 전송 → 서버 거리 검증 → <code>S_ITEM_ADD</code>로 인벤토리 추가 + <code>S_GROUND_ITEM_DESPAWN</code>으로 모든 클라이언트에서 제거됩니다.</p>
+<p>바닥 아이템은 coin 메시로 렌더링되며, 최대 5개까지만 라벨을 표시해 성능을 유지합니다. 사망 중에는 프롬프트가 숨겨집니다.</p>
+</section>
+<section id="sec-death-drop" class="level3" data-number="8.12">
+<h3 data-number="8.12" class="anchored" data-anchor-id="sec-death-drop"><span class="header-section-number">8.12</span> 사망 드롭 + 재화</h3>
+<p>사망 시 서버가 공격자에게 골드 10~50을 즉시 보상(<code>S_CURRENCY_UPDATE</code>)하고, 30% 확률로 랜덤 아이템을 지급(<code>S_ITEM_ADD</code>)합니다. 재화는 Gold만 유지하며, HP바 아래에 표시됩니다. 독텍 아이템 사용 시 +50 Gold 보상입니다.</p>
+</section>
+<section id="sec-ui-components" class="level3" data-number="8.13">
+<h3 data-number="8.13" class="anchored" data-anchor-id="sec-ui-components"><span class="header-section-number">8.13</span> GameScene UI 컴포넌트 구성</h3>
+<p><code>GameScene::OnUI()</code>는 13개의 전용 드로우 함수로 분리되어 각 UI 요소의 표시 조건과 렌더링을 독립적으로 관리합니다.</p>
+<div id="tbl-ui-components" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ui-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;13: GameScene UI 컴포넌트
+</figcaption>
+<div aria-describedby="tbl-ui-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>함수</th>
+<th>표시 조건</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DrawHPBar</td>
+<td>항상</td>
+<td>HP·레벨·골드, 스킬 쿨다운</td>
+</tr>
+<tr class="even">
+<td>DrawCrosshair</td>
+<td>항상</td>
+<td>LoL 스타일 에임 라인 + 조준원</td>
+</tr>
+<tr class="odd">
+<td>DrawMinimap</td>
+<td>항상</td>
+<td>셰이더 기반 우측 상단 미니맵</td>
+</tr>
+<tr class="even">
+<td>DrawRemoteHPBars</td>
+<td>피격 후 3s</td>
+<td>원격 플레이어 이름표 + HP바</td>
+</tr>
+<tr class="odd">
+<td>DrawDamagePopups</td>
+<td>피격 시 1.5s</td>
+<td>부유 데미지 숫자</td>
+</tr>
+<tr class="even">
+<td>DrawChat</td>
+<td>항상</td>
+<td>채널별 채팅 (All/Party/Whisper)</td>
+</tr>
+<tr class="odd">
+<td>DrawInventory</td>
+<td>I키 토글</td>
+<td>목록형 아이템 UI + 컨텍스트 메뉴</td>
+</tr>
+<tr class="even">
+<td>DrawPartyPanel</td>
+<td>파티 참가 시</td>
+<td>파티원 HP·레벨</td>
+</tr>
+<tr class="odd">
+<td>DrawLeaderboard</td>
+<td>Tab 누르는 동안</td>
+<td>K/D 리더보드</td>
+</tr>
+<tr class="even">
+<td>DrawKillFeed</td>
+<td>킬 발생 시 5s</td>
+<td>우측 킬피드 스택</td>
+</tr>
+<tr class="odd">
+<td>DrawFullMap</td>
+<td>M키 토글</td>
+<td>전체 던전 지도 오버레이</td>
+</tr>
+<tr class="even">
+<td>DrawDeathOverlay</td>
+<td>사망 시</td>
+<td>리스폰 카운트다운</td>
+</tr>
+<tr class="odd">
+<td>DrawExitMenu</td>
+<td>ESC 토글</td>
+<td>방 나가기 메뉴</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><code>WndProc</code>에서 <code>ImGui::GetIO().WantTextInput</code>과 <code>WantCaptureMouse</code>를 체크하여 게임 입력과 UI 입력을 분리합니다. 채팅 입력 중에는 키보드 이벤트가 게임으로 전달되지 않고, 인벤토리 위에서는 마우스 클릭이 게임 입력으로 처리되지 않습니다. 마우스 UP 이벤트는 항상 게임에 전달하여 버튼이 눌린 채 고착되는 현상을 방지합니다.</p>
+</section>
+<section id="sec-imgui-focus" class="level3" data-number="8.14">
+<h3 data-number="8.14" class="anchored" data-anchor-id="sec-imgui-focus"><span class="header-section-number">8.14</span> ImGui 윈도우 포커스 수정</h3>
+<p>ImGui는 윈도우를 생성하면 자동으로 해당 윈도우에 포커스를 부여합니다. 데미지 팝업은 피격 시마다 <code>ImGui::Begin()</code>으로 생성되는데, 인벤토리(I키)를 열어둔 상태에서 피격되면 팝업이 매 프레임 포커스를 가져가면서 인벤토리의 <code>Selectable</code> 클릭이 무시되는 버그가 발생했습니다. 원인은 ImGui의 윈도우 생성 시 기본 동작인 자동 포커스 이동이었습니다. HP바, 채팅, 리더보드, 파티, 데미지팝업 등 상호작용이 불필요한 모든 HUD 윈도우에 <code>ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing</code> 플래그를 적용해, 포커스를 가져가지 않도록 했습니다.</p>
+</section>
+<section id="sec-cross-ref" class="level3" data-number="8.15">
+<h3 data-number="8.15" class="anchored" data-anchor-id="sec-cross-ref"><span class="header-section-number">8.15</span> 서버 포트폴리오 연관성</h3>
+<div id="tbl-cross-ref" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-cross-ref-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;14: 클라이언트-서버 연관 기술
+</figcaption>
+<div aria-describedby="tbl-cross-ref-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 28%">
+<col style="width: 28%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>클라이언트 요소</th>
+<th>서버 요소</th>
+<th>연관 기술</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TcpClient + PacketFramer</td>
+<td>Session + RecvBuffer</td>
+<td>Binary Header + Protobuf 프로토콜</td>
+</tr>
+<tr class="even">
+<td>DungeonGenerator.BuildFromMapData()</td>
+<td>DungeonGenerator (서버)</td>
+<td>MapData 직렬화·동기화</td>
+</tr>
+<tr class="odd">
+<td>C_FIRE → 로컬 스폰 → S_DAMAGE</td>
+<td>ProjectileManager</td>
+<td>클라이언트 예측 + 서버 권위적 판정</td>
+</tr>
+<tr class="even">
+<td>EntityManager 보간</td>
+<td>Room 20Hz 브로드캐스트</td>
+<td>이동 동기화</td>
+</tr>
+<tr class="odd">
+<td>HandleMove 벽 충돌 거부</td>
+<td>DungeonGenerator.GetTile()</td>
+<td>서버 권위적 이동 확인</td>
+</tr>
+<tr class="even">
+<td>S_SCOREBOARD → 리더보드</td>
+<td>PlayerState kills/deaths</td>
+<td>서버 권위적 킬/데스 추적</td>
+</tr>
+<tr class="odd">
+<td>C_PORTAL → 그래프 존 전환</td>
+<td>Room.Connections() 양방향 링크</td>
+<td>그래프 기반 Room 이동</td>
+</tr>
+<tr class="even">
+<td>S_GROUND_ITEM_SPAWN → E키 줍기</td>
+<td>Room.SpawnGroundItem()</td>
+<td>독텍 루팅 시스템</td>
+</tr>
+<tr class="odd">
+<td>S_CURRENCY_UPDATE + S_ITEM_ADD</td>
+<td>GrantKillReward()</td>
+<td>사망 보상 + DB 영속화</td>
+</tr>
+<tr class="even">
+<td>DrawFullMap (M키)</td>
+<td>MapData 그리드 + 포탈</td>
+<td>전체 지도 시각화</td>
+</tr>
+<tr class="odd">
+<td>getaddrinfo() 도메인 접속</td>
+<td>Listener 0.0.0.0:7777</td>
+<td>원격 서버 접속</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>서버 아키텍처 상세(io_uring 네트워크 엔진, JobQueue 공정 스케줄링, BufferPool, 벤치마크 등)는 <a href="../server/ServerCorePortfolio.html">ServerCore 포트폴리오</a>를 참조하시기 바랍니다.</p>
+</section>
+</section>
+<section id="관련-레포" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="관련-레포"><span class="header-section-number">9</span> 관련 레포</h2>
+<div class="repo-links">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>레포</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://github.com/mint-cocoa/game-client">game-client</a></td>
+<td>DirectX 11 클라이언트 구현</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/mint-cocoa/iouring-runtime">iouring-runtime</a></td>
+<td><code>RuntimeGame</code>과 <code>dungeon_full_server</code> 기준 서버</td>
+</tr>
+<tr class="odd">
+<td><a href="https://github.com/mint-cocoa/multiplayer-dungeon-rpg-server">multiplayer-dungeon-rpg-server</a></td>
+<td>통합 이전 연동 게임 서버 히스토리</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/mint-cocoa/libiouring-core">libiouring-core</a></td>
+<td>통합 이전 서버 런타임 히스토리</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="다음-문서" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="다음-문서"><span class="header-section-number">10</span> 다음 문서</h2>
+<div class="next-docs">
+<p><a href="../index.html">포트폴리오 문서 인덱스</a> · <a href="../server/ServerCorePortfolio.html">서버 구현 포트폴리오</a> · <a href="../devops/DevOpsPortfolio.html">홈랩 DevOps 포트폴리오</a></p>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "복사완료!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "복사완료!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

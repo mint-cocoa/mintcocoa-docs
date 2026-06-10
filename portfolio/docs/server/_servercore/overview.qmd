@@ -1,0 +1,156 @@
+## 프로젝트 개요 {#sec-overview}
+
+`iouring-runtime`은 Linux `io_uring`을 직접 사용해 만든 C++ 서버 런타임입니다.
+TCP 서버를 만들 때 반복되는 연결 수락, 비동기 수신/송신, disconnect, timeout,
+cancel, backpressure, 세션 수명관리를 공통 transport 계층으로 분리하고, 그 위에
+Web, Proxy, Game 모듈을 선택적으로 올릴 수 있게 구성했습니다.
+
+::: {.summary-grid}
+::: {.summary-card}
+**Runtime**
+
+프로토콜에 독립적인 C++ 서버 엔진이 추상화된 io_uring 라이브러리 제공
+:::
+
+::: {.summary-card}
+**I/O**
+
+Multishot Accept/Recv, Provided Buffer, MSG_RING 기반 이벤트 처리
+:::
+
+::: {.summary-card}
+**Lifecycle**
+
+owned op context와 auto-delete로 CQE 지연, cancel race, UAF 문제 대응
+:::
+
+::: {.summary-card}
+**Modules**
+
+Web/Proxy/Game은 같은 Core 위에 올라가는 모듈로 분리
+:::
+:::
+
+::: {.callout-note title="문서 읽는 순서"}
+전체 계층은 @fig-runtime-layering, Core loop는 @fig-core-runtime-loop 에서 먼저 확인할 수 있습니다.
+이후 수명관리(@sec-session), 버퍼 관리(@sec-buffer-management), IoWorker 실행 모델(@sec-ioworker), 벤치마크(@sec-benchmark) 순서로 읽으면 설계 결정과 검증 결과가 자연스럽게 이어집니다.
+:::
+
+### 런타임을 분리한 이유
+
+기존에도 Linux와 서버 구조에 관심이 많았고, 소켓 프로그래밍을 공부하면서 Linux의
+최신 I/O API인 `io_uring`으로 직접 서버를 만들어보고 싶었습니다. 처음에는
+TCP/Protobuf를 사용하는 게임 서버 구현으로 시작했습니다. 
+
+초기 ServerCore는 런타임 계층(`IoRing`, `Session`, `BufferPool`)과 애플리케이션
+계층(`IoLoop`, `GameRoom`, `PacketSession`)이 한 레이어에 섞여 있었습니다.
+
+구현 중 TCP 연결 수락, 수신, 송신 등 기반 기능들은 다른 서버에서도 백엔드로 사용될 수 있는 기반 기능이고 재사용성을 
+생각하게 되었고,목표를 애플리케이션 하나가 아니라 여러 프로토콜이 올라갈 수 있는 transport runtime으로 잡았습니다.
+
+
+정리하면서 게임 로직은 Runtime의 소비자가 되고, Core Runtime은 TCP byte stream과
+session lifecycle만 책임지도록 방향을 바꿨습니다.
+
+### epoll이 아니라 io_uring을 고른 이유
+
+`epoll`은 fd가 읽거나 쓸 준비가 되었다는 readiness를 알려줍니다. 이후 실제
+`read`/`write` 호출, 버퍼 소유권, 세션 수명, close 이후 남는 작업 정리는
+애플리케이션이 별도로 구성해야 합니다. 반면 `io_uring`은 SQE로 작업을 제출하고
+CQE로 완료를 받으므로, operation context를 중심으로 서버 구조를 잡기 좋았습니다.
+
+### 목표: protocol runtime이 아니라 transport runtime
+
+계속 구현해나가며 Runtime이 직접 해결하려는 문제는 "어떤 메시지를 처리할 것인가"가 아니라
+"연결과 I/O 완료를 어떻게 안전하게 끝까지 관리할 것인가" 형태로 생각하게 되었고, 이 기준을 세운 뒤
+`include/iouring_runtime/core`와 `src/runtime`에는 네트워크 I/O, 세션 관리, 버퍼
+관리, 이벤트 디스패치, 타이머와 작업 큐 같은 범용 기능만 남겼습니다.
+
+HTTP 라우팅과 정적 파일 응답은 `RuntimeWeb`, TCP/TLS 중계는 `RuntimeProxy`, 패킷
+프레이밍과 Room 계층은 `RuntimeGame`이 담당합니다. 예제 앱들은 같은 Runtime이 웹
+서버, 프록시, 게임 서버, 운영용 서비스로 확장될 수 있음을 알 수 있게되었습니다.
+
+### 구현 계층과 문서 범위
+
+```{mermaid}
+%%| label: fig-runtime-layering
+%%| fig-cap: "io_uring 런타임과 애플리케이션 계층"
+graph TD
+    classDef runtime fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef app fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef external fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    Core["Runtime<br/>IoRing · Listener · Session<br/>RingBuffer · SendQueue<br/>GlobalQueue · JobQueue"]:::runtime
+
+
+    Web["RuntimeWeb<br/>HTTP parser · Router · HttpSession"]:::app
+    Proxy["RuntimeProxy<br/>TcpProxyServer · bridge · TLS/SNI"]:::app
+    GameRuntime["RuntimeGame<br/>PacketSession · Room · RoomManager"]:::app
+    Examples["app/examples<br/>module smoke and integration apps"]:::external
+
+
+    Core --> Web
+    Core --> Proxy
+    Core --> GameRuntime
+    Web --> Examples
+    Proxy --> Examples
+    GameRuntime --> Examples
+```
+
+
+### 현재 런타임 모듈 {#sec-current-modules}
+
+| 모듈 | CMake 타깃 | 구현 위치 | 책임 |
+|------|-----------|-----------|------|
+| Core runtime | `iouring_runtime::Runtime` | `src/runtime`, `include/iouring_runtime/core` | `io_uring` 전체 라이프사이클 관리|
+| Web | `iouring_runtime_web::RuntimeWeb` | `src/modules/web` | HTTP 파싱, 라우팅, 파일/스트리밍 응답|
+| Proxy | `iouring_runtime_proxy::RuntimeProxy` | `src/modules/proxy` | tcp 브릿지 및 라우팅 |
+| Game | `iouring_runtime_game::RuntimeGame` | `src/modules/game` | 패킷 프레이밍, room 단위 직렬화|
+
+: 현재 런타임 모듈 {#tbl-runtime-modules}
+
+### 기본 Runtime 책임 경계 {#sec-core-responsibility}
+
+코어를 직접 사용할 때의 흐름은 `IoRing::Create` → `BufferPool` → `SessionFactory` → `Listener::Start` 이후 `ring.Dispatch` 루프 안에서 CQE를 꺼내고, 완료 이벤트를 분기한 뒤 `Session::OnRecv`/`Session::Send`와 다음 SQE 재등록으로 이어집니다. 종료 요청이 들어오면 `Disconnect` 또는 `DisconnectAfterFlush`로 전환하고 남은 완료 이벤트를 정리합니다.
+
+
+worker는 서버 루프가 반복되어 서버가 돌아가는 최소한의 단위입니다. 각 worker는 하나의 스레드에서 자기 `IoRing`을 소유하고, `Listener`가 제출한 accept 작업과 세션별 recv/send 작업의 완료를 같은 dispatch 루프에서 처리합니다. 세션의 수신 버퍼와 송신 버퍼는 worker의 I/O 흐름 안에서 재사용되며, 완료 이벤트가 도착할 때마다 다음 SQE 제출 여부가 결정됩니다.
+
+
+
+```{mermaid}
+%%| label: fig-core-runtime-init
+%%| fig-cap: "Core Runtime 초기화 흐름"
+flowchart LR
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+
+    Create["IoRing::Create<br/>io_uring 생성"]:::core
+    Pool["BufferPool<br/>recv buffer 준비"]:::core
+    Factory["SessionFactory<br/>세션 생성 정책 연결"]:::core
+    Start["Listener::Start<br/>accept SQE 제출"]:::core
+    DispatchStart["ring.Dispatch 진입"]:::core
+
+    Create --> Pool --> Factory --> Start --> DispatchStart
+```
+
+```{mermaid}
+%%| label: fig-core-runtime-loop
+%%| fig-cap: "WorkerLoop"
+flowchart LR
+    classDef loop fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef endstate fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    subgraph WorkerLoop["Worker Loop"]
+        direction LR
+        Dispatch["(1) ring.Dispatch<br/>CQE wait / drain"]:::loop
+        Complete["(2) 완료 이벤트 분기<br/>accept · recv · send · timeout"]:::loop
+        Callback["(3) 세션 콜백 실행<br/>Session::OnRecv / Send"]:::loop
+        Submit["(4) 다음 SQE 제출<br/>accept · recv · send 재등록"]:::loop
+    end
+
+    Close["Disconnect<br/>DisconnectAfterFlush"]:::endstate
+
+    Dispatch --> Complete --> Callback --> Submit --> Dispatch
+    Callback -->|"종료 요청"| Close
+    Close -->|"남은 CQE drain 후 정리"| Dispatch
+```

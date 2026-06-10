@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="배진후">
+
+<title>RuntimeGame 모듈 구현 포트폴리오</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="RuntimeGamePortfolio_files/libs/clipboard/clipboard.min.js"></script>
+<script src="RuntimeGamePortfolio_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="RuntimeGamePortfolio_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="RuntimeGamePortfolio_files/libs/quarto-html/popper.min.js"></script>
+<script src="RuntimeGamePortfolio_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="RuntimeGamePortfolio_files/libs/quarto-html/anchor.min.js"></script>
+<link href="RuntimeGamePortfolio_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="RuntimeGamePortfolio_files/libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="RuntimeGamePortfolio_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="RuntimeGamePortfolio_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="RuntimeGamePortfolio_files/libs/bootstrap/bootstrap-7f30639710f116130999550e0f11b8b7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<meta name="mermaid-theme" content="neutral">
+<script src="RuntimeGamePortfolio_files/libs/quarto-diagram/mermaid.min.js"></script>
+<script src="RuntimeGamePortfolio_files/libs/quarto-diagram/mermaid-init.js"></script>
+<link href="RuntimeGamePortfolio_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../portfolio.css">
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">목차</h2>
+   
+  <ul>
+  <li><a href="#핵심-요약" id="toc-핵심-요약" class="nav-link active" data-scroll-target="#핵심-요약"><span class="header-section-number">1</span> 핵심 요약</a></li>
+  <li><a href="#sec-overview" id="toc-sec-overview" class="nav-link" data-scroll-target="#sec-overview"><span class="header-section-number">2</span> 모듈 개요</a></li>
+  <li><a href="#sec-components" id="toc-sec-components" class="nav-link" data-scroll-target="#sec-components"><span class="header-section-number">3</span> 구성 요소</a></li>
+  <li><a href="#sec-packet-session" id="toc-sec-packet-session" class="nav-link" data-scroll-target="#sec-packet-session"><span class="header-section-number">4</span> PacketSession과 패킷 경계</a></li>
+  <li><a href="#sec-room-jobqueue" id="toc-sec-room-jobqueue" class="nav-link" data-scroll-target="#sec-room-jobqueue"><span class="header-section-number">5</span> Room과 JobQueue 실행 모델</a></li>
+  <li><a href="#sec-registry-manager" id="toc-sec-registry-manager" class="nav-link" data-scroll-target="#sec-registry-manager"><span class="header-section-number">6</span> PlayerRegistry와 RoomManager</a></li>
+  <li><a href="#sec-consumers" id="toc-sec-consumers" class="nav-link" data-scroll-target="#sec-consumers"><span class="header-section-number">7</span> 소비 앱의 역할</a></li>
+  <li><a href="#sec-comparison" id="toc-sec-comparison" class="nav-link" data-scroll-target="#sec-comparison"><span class="header-section-number">8</span> Web/Proxy 모듈과의 차이</a></li>
+  <li><a href="#sec-related" id="toc-sec-related" class="nav-link" data-scroll-target="#sec-related"><span class="header-section-number">9</span> 본문 문서와의 관계</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">RuntimeGame 모듈 구현 포트폴리오</h1>
+<p class="subtitle lead">io_uring Runtime 위에 분리한 C++ packet session과 Room 실행 계층</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">저자</div>
+    <div class="quarto-title-meta-contents">
+             <p>배진후 </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="핵심-요약" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="핵심-요약"><span class="header-section-number">1</span> 핵심 요약</h2>
+<div class="summary-grid">
+<div class="summary-card">
+<p><strong>PacketSession</strong></p>
+<p>TCP stream 위에서 <code>[size:uint16][msgId:uint16]</code> binary packet framing을 처리</p>
+</div>
+<div class="summary-card">
+<p><strong>Room</strong></p>
+<p><code>Room</code>을 <code>JobQueue</code>로 만들어 게임 로직을 직렬 실행하고 worker 간 작업을 분배</p>
+</div>
+<div class="summary-card">
+<p><strong>Registry</strong></p>
+<p><code>PlayerRegistry</code>와 <code>RoomManager</code>로 player-room 소속과 Room 목록을 모듈화</p>
+</div>
+<div class="summary-card">
+<p><strong>Game Surface</strong></p>
+<p>도메인 전체가 아니라 packet, player, room 실행 모델만 제공하는 얇은 게임 계층</p>
+</div>
+</div>
+</section>
+<section id="sec-overview" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="sec-overview"><span class="header-section-number">2</span> 모듈 개요</h2>
+<p><code>RuntimeGame</code>은 기본 <code>Runtime</code> 위에 붙인 게임 서버용 선택 모듈입니다. 게임 콘텐츠, 전투 규칙, DB, 인증, 던전 생성 전체를 포함하지 않고, 네트워크 게임 서버에서 반복되는 packet framing, player registry, room lifecycle, room job queue 실행 모델만 묶습니다.</p>
+<div id="tbl-runtime-game-overview" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-game-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;1: RuntimeGame 프로젝트 경계
+</figcaption>
+<div aria-describedby="tbl-runtime-game-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>CMake 타깃</strong></td>
+<td><code>iouring_runtime_game::RuntimeGame</code></td>
+</tr>
+<tr class="even">
+<td><strong>공개 헤더</strong></td>
+<td><code>include/iouring_runtime/game</code></td>
+</tr>
+<tr class="odd">
+<td><strong>구현 위치</strong></td>
+<td><code>src/modules/game</code></td>
+</tr>
+<tr class="even">
+<td><strong>기반 타깃</strong></td>
+<td><code>iouring_runtime::Runtime</code></td>
+</tr>
+<tr class="odd">
+<td><strong>패킷 형식</strong></td>
+<td><code>[size:uint16][msgId:uint16] + payload</code></td>
+</tr>
+<tr class="even">
+<td><strong>소비 예제</strong></td>
+<td><code>dungeon_packet_echo</code>, <code>dungeon_full_server</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><code>RuntimeGame</code>의 기준은 게임 도메인을 코어 런타임에서 분리하는 것입니다. 코어 <code>Runtime</code>은 socket I/O, buffer, session lifecycle, worker, timer, queue만 담당합니다. <code>RuntimeGame</code>은 그 위에서 packet 단위 수신과 Room 단위 직렬 실행 모델을 제공하고, 실제 인증/전투/채팅/던전/DB는 소비 앱이 구현합니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-runtime-game-layering" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-runtime-game-layering-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-runtime-game-layering">graph TD
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef game fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef app fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    Core["Runtime&lt;br/&gt;Session · BufferPool · SendQueue&lt;br/&gt;GlobalQueue · JobQueue · JobTimer"]:::core
+    Packet["PacketSession&lt;br/&gt;framing · reassembly · OnPacket"]:::game
+    Builder["PacketBuilder&lt;br/&gt;header + payload"]:::game
+    Registry["PlayerRegistry&lt;br/&gt;player-room mapping"]:::game
+    Room["Room&lt;br/&gt;RoomLike + JobQueue"]:::game
+    Manager["RoomManager&lt;br/&gt;create/find/remove/list"]:::game
+    Apps["dungeon examples&lt;br/&gt;packet echo · full server"]:::app
+
+    Core --&gt; Packet
+    Core --&gt; Room
+    Packet --&gt; Builder
+    Room --&gt; Registry
+    Manager --&gt; Room
+    Apps --&gt; Packet
+    Apps --&gt; Room
+    Apps --&gt; Manager
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-runtime-game-layering-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;1: RuntimeGame와 core Runtime의 책임 분리
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-components" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="sec-components"><span class="header-section-number">3</span> 구성 요소</h2>
+<div id="tbl-runtime-game-components" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-game-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;2: RuntimeGame 내부 구성
+</figcaption>
+<div aria-describedby="tbl-runtime-game-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 26%">
+<col style="width: 28%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>구성 요소</th>
+<th>공개 API</th>
+<th>구현 파일</th>
+<th>책임</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>PacketSession</code></td>
+<td><code>PacketSession.h</code></td>
+<td><code>PacketSession.cpp</code></td>
+<td>TCP stream 재조립, packet size/msgId 읽기, <code>OnPacket()</code> dispatch</td>
+</tr>
+<tr class="even">
+<td><code>PacketBuilder</code></td>
+<td><code>PacketBuilder.h</code></td>
+<td>header-only</td>
+<td>protobuf 등 payload 앞에 size/msgId header를 붙인 send buffer 생성</td>
+</tr>
+<tr class="odd">
+<td><code>PlayerRegistry</code></td>
+<td><code>PlayerRegistry.h</code></td>
+<td><code>PlayerRegistry.cpp</code></td>
+<td>player id와 room/session 관계 등록, 조회, 제거</td>
+</tr>
+<tr class="even">
+<td><code>Room</code></td>
+<td><code>Room.h</code></td>
+<td><code>Room.cpp</code></td>
+<td><code>JobQueue</code> 기반 Room 실행 단위, player add/remove, packet enqueue</td>
+</tr>
+<tr class="odd">
+<td><code>RoomManager</code></td>
+<td><code>RoomManager.h</code></td>
+<td><code>RoomManager.cpp</code></td>
+<td>Room 생성, 추가, 검색, 제거, 목록 조회</td>
+</tr>
+<tr class="even">
+<td>공통 타입</td>
+<td><code>Types.h</code></td>
+<td>header-only</td>
+<td><code>PlayerId</code>, <code>RoomId</code>, <code>PacketId</code>, <code>PartyId</code> 등 모듈 타입</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="sec-packet-session" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="sec-packet-session"><span class="header-section-number">4</span> PacketSession과 패킷 경계</h2>
+<p>TCP는 message boundary가 없는 stream이므로 게임 패킷은 여러 recv CQE에 나뉘어 도착할 수 있습니다. <code>PacketSession</code>은 코어 <code>Session::OnRecv()</code>에서 받은 bytes를 내부 <code>RecvBuffer</code>에 누적하고, 완전한 패킷이 만들어졌을 때만 <code>OnPacket(packet_id, payload)</code>를 호출합니다.</p>
+<p>패킷 header는 little-endian <code>uint16</code> 두 개입니다.</p>
+<div id="tbl-runtime-game-packet" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-game-packet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;3: RuntimeGame packet framing
+</figcaption>
+<div aria-describedby="tbl-runtime-game-packet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>필드</th>
+<th>크기</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>size</code></td>
+<td>2 bytes</td>
+<td>header를 포함한 전체 packet 크기</td>
+</tr>
+<tr class="even">
+<td><code>msgId</code></td>
+<td>2 bytes</td>
+<td>application message id</td>
+</tr>
+<tr class="odd">
+<td><code>payload</code></td>
+<td><code>size - 4</code></td>
+<td>protobuf 등 상위 payload</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>이 경계를 모듈에 둔 이유는 코어 <code>Session</code>이 게임 프로토콜을 몰라야 하기 때문입니다. <code>RuntimeWeb</code>이 HTTP parser를 코어 밖에 둔 것처럼, <code>RuntimeGame</code>도 packet framing을 코어 밖에 둡니다. 코어 입장에서는 여전히 bytes를 받고 bytes를 보내는 TCP 세션이고, 게임 모듈만 그 bytes를 packet으로 해석합니다.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-runtime-game-packet-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-runtime-game-packet-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-runtime-game-packet-flow">sequenceDiagram
+    participant K as Kernel CQE
+    participant S as core Session
+    participant P as PacketSession
+    participant B as RecvBuffer
+    participant G as Game Handler
+    participant Q as SendQueue
+
+    K--&gt;&gt;S: recv CQE + bytes
+    S-&gt;&gt;P: OnRecv(bytes)
+    P-&gt;&gt;B: append
+    loop complete packet exists
+        P-&gt;&gt;P: read size/msgId
+        P-&gt;&gt;G: OnPacket(msgId, payload)
+    end
+    G-&gt;&gt;P: SendPacket(msgId, protobuf)
+    P-&gt;&gt;Q: PacketBuilder buffer
+    Q--&gt;&gt;K: send SQE/CQE
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-runtime-game-packet-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;2: PacketSession packet 처리 흐름
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>PacketBuilder</code>는 반대 방향을 담당합니다. payload 크기와 message id를 받아 header를 붙이고, 코어 <code>BufferPool</code>에서 할당한 send buffer에 기록합니다. 그래서 소비 앱은 protobuf message를 직렬화한 뒤 <code>SendPacket()</code>을 호출하면 되고, send queue와 partial send 처리는 코어 <code>Session</code>에 남습니다.</p>
+</section>
+<section id="sec-room-jobqueue" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="sec-room-jobqueue"><span class="header-section-number">5</span> Room과 JobQueue 실행 모델</h2>
+<p><code>Room</code>은 <code>RoomLike</code>이면서 코어 <code>JobQueue</code>를 상속합니다. 이 설계의 목적은 Room 내부 게임 상태를 여러 worker가 동시에 만지지 않도록 하는 것입니다. 외부 세션이 패킷을 받으면 Room에 job을 push하고, 실제 게임 로직은 <code>GlobalQueue</code>에서 꺼내진 Room job queue가 직렬로 실행합니다.</p>
+<p>Room이 <code>JobQueue</code> 위에 있기 때문에 얻는 효과는 세 가지입니다.</p>
+<ul>
+<li>같은 Room 안의 player list, position, combat state는 한 번에 하나의 worker에서만 갱신됩니다.</li>
+<li>서로 다른 Room은 <code>GlobalQueue</code>를 통해 여러 worker에 분산될 수 있습니다.</li>
+<li>deadline 기반 <code>Execute()</code>를 사용하면 한 Room이 worker를 오래 독점하지 않고 다시 queue에 등록될 수 있습니다.</li>
+</ul>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-runtime-game-room-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-runtime-game-room-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-runtime-game-room-flow">sequenceDiagram
+    participant S as PacketSession
+    participant R as Room JobQueue
+    participant GQ as GlobalQueue
+    participant W as IoWorker
+    participant B as Broadcast
+
+    S-&gt;&gt;R: Push(packet job)
+    R-&gt;&gt;GQ: first push registers queue
+    W-&gt;&gt;GQ: TryPop()
+    W-&gt;&gt;R: Execute(deadline)
+    R-&gt;&gt;R: update room state
+    R-&gt;&gt;B: Send/Broadcast via sessions
+    alt jobs remain
+        R-&gt;&gt;GQ: re-register
+    end
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-runtime-game-room-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+그림&nbsp;3: Room JobQueue packet 실행 흐름
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>RuntimeGame</code>의 <code>Room</code>은 구체적인 전투나 던전 규칙을 알지 않습니다. player add/remove, packet enqueue, Room id/name 같은 실행 단위만 제공합니다. <code>dungeon_full_server</code>는 이 Room을 상속하거나 감싸서 던전 생성, projectile, combat, chat, party 같은 도메인 기능을 얹습니다.</p>
+</section>
+<section id="sec-registry-manager" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="sec-registry-manager"><span class="header-section-number">6</span> PlayerRegistry와 RoomManager</h2>
+<p><code>PlayerRegistry</code>는 player가 어느 Room에 속하는지, 어떤 RoomLike와 연결되는지 추적하는 작은 registry입니다. <code>RoomManager</code>는 <code>GlobalQueue</code>를 받아 Room을 만들고, id 기준 검색과 목록 조회를 제공합니다.</p>
+<div id="tbl-runtime-game-registry" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-game-registry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;4: RuntimeGame registry/manager 역할
+</figcaption>
+<div aria-describedby="tbl-runtime-game-registry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>객체</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>PlayerRegistry</code></td>
+<td>player id 등록/제거, player record 조회, room membership 관리</td>
+</tr>
+<tr class="even">
+<td><code>RoomManager</code></td>
+<td>Room id 발급, Room 생성/추가/검색/삭제, Room 목록 조회</td>
+</tr>
+<tr class="odd">
+<td><code>RoomInfo</code></td>
+<td>lobby나 운영 화면에서 사용할 Room id/name/count 요약</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>이 계층은 게임 서버의 lobby, room list, matchmaking, instance dungeon 같은 구조를 만들 때 반복되는 최소 상태입니다. DB나 인증 결과를 직접 저장하지 않고, 네트워크 세션과 Room 실행 단위를 이어주는 runtime-side registry로만 남겼습니다.</p>
+</section>
+<section id="sec-consumers" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="sec-consumers"><span class="header-section-number">7</span> 소비 앱의 역할</h2>
+<p><code>RuntimeGame</code>의 소비 앱은 packet/room 경계를 사용하는 예제입니다.</p>
+<div id="tbl-runtime-game-consumers" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-game-consumers-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;5: RuntimeGame 소비 앱과 사용 범위
+</figcaption>
+<div aria-describedby="tbl-runtime-game-consumers-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 75%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>소비 앱</th>
+<th>사용하는 RuntimeGame 범위</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>dungeon_packet_echo</code></td>
+<td><code>PacketSession</code>, protobuf packet decode/encode, <code>PlayerRegistry</code>, <code>RoomManager</code>, Room broadcast 기본 흐름</td>
+</tr>
+<tr class="even">
+<td><code>dungeon_full_server</code></td>
+<td><code>PacketSession</code> 기반 login/character/room/game packet 처리, 2 worker Room 실행, <code>JobTimer</code>, SQLite/Memory DB facade, combat/chat/party/dungeon 도메인 결합</td>
+</tr>
+<tr class="odd">
+<td><code>dungeon_protocol_probe</code></td>
+<td>protobuf protocol 생성물과 packet payload 확인용 probe</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><code>dungeon_full_server</code>에는 인증, 캐릭터, Room 생성/입장, 절차적 던전, 전투, 투사체, 채팅, 파티, 인벤토리 일부, SQLite/Memory DB 백엔드가 들어 있습니다. 하지만 포트폴리오에서 <code>RuntimeGame</code> 구현으로 설명할 부분은 이 도메인 기능 전체가 아니라, 이 기능들이 공통으로 올라탄 packet session과 Room job queue 경계입니다.</p>
+</section>
+<section id="sec-comparison" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="sec-comparison"><span class="header-section-number">8</span> Web/Proxy 모듈과의 차이</h2>
+<p>세 선택 모듈은 모두 기본 <code>Runtime</code> 위에 올라가지만, 추상화하는 프로토콜 경계가 다릅니다.</p>
+<div id="tbl-runtime-game-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-game-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+표&nbsp;6: 선택 모듈 경계 비교
+</figcaption>
+<div aria-describedby="tbl-runtime-game-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 56%">
+<col style="width: 28%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>모듈</th>
+<th>bytes 위에 얹는 경계</th>
+<th>핵심 객체</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>RuntimeWeb</code></td>
+<td>HTTP request/response</td>
+<td><code>HttpSession</code>, <code>Router</code>, <code>HttpResponse</code></td>
+</tr>
+<tr class="even">
+<td><code>RuntimeProxy</code></td>
+<td>TCP stream bridge</td>
+<td><code>TcpProxyServer</code>, <code>ProxyBridge</code>, <code>ProxyConnector</code></td>
+</tr>
+<tr class="odd">
+<td><code>RuntimeGame</code></td>
+<td>binary packet + Room job</td>
+<td><code>PacketSession</code>, <code>Room</code>, <code>RoomManager</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>이 비교가 중요한 이유는 코어 <code>Runtime</code>이 특정 앱 형태로 굳지 않았다는 점을 보여주기 때문입니다. 같은 accept/recv/send/session lifecycle 위에서 HTTP 서버, TCP proxy, packet game server가 서로 다른 모듈로 분리됩니다.</p>
+</section>
+<section id="sec-related" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="sec-related"><span class="header-section-number">9</span> 본문 문서와의 관계</h2>
+<p>이 문서는 서버 런타임 본문에서 분리한 Game 모듈 상세 설명입니다. 코어 <code>io_uring</code> 엔진, 세션 수명관리, <code>GlobalQueue</code>와 <code>JobQueue</code> 자체의 구현, 벤치마크는 본문 문서에서 다룹니다.</p>
+<div class="next-docs">
+<p><a href="./ServerCorePortfolio.html">서버 런타임 구현 포트폴리오</a> · <a href="./RuntimeWebPortfolio.html">RuntimeWeb 모듈 구현</a> · <a href="./RuntimeProxyPortfolio.html">RuntimeProxy 모듈 구현</a> · <a href="../index.html">포트폴리오 문서 인덱스</a></p>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "복사완료!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "복사완료!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

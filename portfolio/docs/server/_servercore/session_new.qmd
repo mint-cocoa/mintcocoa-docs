@@ -1,0 +1,578 @@
+---
+title: "Session 수명관리 재작성안"
+subtitle: "io_uring completion 경계별 생존 보장"
+description: "SessionManager, IoEvent.owner, IoRing::keep_alive, pending_io_가 각각 어떤 비동기 경계를 보호하는지 정리한 설계 문서"
+lang: ko
+date-modified: "2026-05-26"
+categories:
+  - C++
+  - io_uring
+  - server-runtime
+  - lifecycle
+toc-title: "문서 목차"
+number-sections: true
+fig-align: center
+tbl-cap-location: bottom
+code-line-numbers: true
+code-overflow: wrap
+format:
+  html:
+    toc-depth: 4
+    code-tools: true
+    anchor-sections: true
+    smooth-scroll: true
+---
+
+::: {.callout-note title="문서의 핵심"}
+이 문서는 session 수명을 하나의 owner 이동 문제가 아니라, accept, SQE submit, CQE dispatch, disconnect drain이라는 비동기 경계별 생존 보장 문제로 설명합니다.
+:::
+
+## 수명관리 {#sec-session}
+
+세션과 여러 객체들을 관리하며 가장 어려웠던 점은  세션이 accept, I/O submit, CQE dispatch, disconnect, drain 같은 여러 비동기 경계를 지나가면서 각 구간마다 서로 다른 생존 조건을 가진다는 점이었습니다.
+
+초기에는 `Session*` 하나를 `user_data`에 넣고, 연결이 끝나면 manager에서 제거하면 충분할 것처럼 보였습니다. 하지만 `io_uring`에서는 이미 제출한 작업의 completion이 close 이후에도 늦게 도착할 수 있고, callback 실행 중에도 release가 발생할 수 있고, 하나의 owner나 소유권을 이전하는것으로는 부족했습니다.
+
+이 구조는 그 문제를 해결하기 위해 비동기 경계마다 별도의 역할을 두었습니다. @tbl-session-boundaries 는 각 경계에서 어떤 문제가 생겼고 어떤 장치가 그 문제를 맡는지 요약합니다.
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.callout-important title="핵심 판단"}
+`SessionManager::Release()`는 객체 파괴가 아니라 connected owner를 놓는 사건입니다.
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-tip title="읽는 방법"}
+먼저 @fig-session-lifetime-boundaries 로 큰 흐름을 보고, 이후 각 장치의 책임을 따로 따라가면 됩니다.
+:::
+:::
+::::
+
+::: {.summary-grid}
+::: {.summary-card}
+**SessionManager**
+
+connected session의 장기 owner
+:::
+
+::: {.summary-card}
+**IoEvent.owner**
+
+submitted I/O callback safety owner
+:::
+
+::: {.summary-card}
+**IoRing::keep_alive**
+
+current dispatch stack owner
+:::
+
+::: {.summary-card}
+**pending_io_**
+
+release 가능 시점을 결정하는 drain gate
+:::
+:::
+
+| 경계                   | 발생한 문제                                                              | 도입한 장치               | 해결한 것                            |
+| -------------------- | ------------------------------------------------------------------- | -------------------- | -------------------------------- |
+| accept 이후 연결 유지      | accept scope가 끝난 뒤에도 연결된 세션을 누가 유지하는지 불명확함                          | `SessionManager`     | connected session의 장기 소유권        |
+| SQE submit 이후 CQE 도착 | close 이후 늦게 도착한 CQE가 이미 해제된 session을 접근할 수 있음                       | `IoEvent.owner`      | submitted I/O callback 대상의 생존 보장 |
+| CQE callback 실행 중    | callback 내부에서 disconnect/release가 발생하면 현재 stack에서 session이 사라질 수 있음 | `IoRing::keep_alive` | 현재 dispatch stack 동안의 생존 보장      |
+| disconnect 이후 정리     | shutdown, cancel, recv, send, app 작업이 서로 다른 시점에 끝남                  | `pending_io_`        | manager owner를 언제 놓아도 되는지 결정     |
+
+: 비동기 경계별 수명관리 책임 {#tbl-session-boundaries}
+
+이 네 가지는 같은 일을 중복해서 하는 장치가 아닙니다. 각각 다른 비동기 경계에서 발생한 문제를 해결합니다.
+
+```text
+SessionManager      = connected session을 유지한다.
+IoEvent.owner       = 제출된 I/O가 callback으로 돌아올 때까지 session을 유지한다.
+IoRing::keep_alive  = callback 실행 중 session을 유지한다.
+pending_io_         = 모든 pending 작업이 끝났는지 판단해 release 시점을 결정한다.
+```
+
+::: {.panel-tabset}
+## Owner 관점
+
+`SessionManager`, `IoEvent.owner`, `IoRing::keep_alive`는 모두 strong ref를 다루지만 각자 붙잡는 시간이 다릅니다. connected lifetime, submitted operation lifetime, current callback stack lifetime이 서로 겹치면서 session을 보호합니다.
+
+## Gate 관점
+
+`pending_io_`는 strong ref가 아닙니다. 남은 작업 수를 기준으로 `SessionManager`의 connected owner를 언제 놓을 수 있는지 판단하는 release gate입니다.
+
+## 실패 관점
+
+네 장치 중 하나라도 빠지면 실패 양상이 달라집니다. manager owner가 없으면 accept 이후 장기 생존이 흔들리고, event owner가 없으면 늦은 CQE에서 UAF가 가능하며, keep_alive가 없으면 callback 중 release가 위험하고, pending gate가 없으면 disconnect 통지 순서가 깨질 수 있습니다.
+:::
+
+---
+
+## raw `Session*`만으로는 왜 부족했는가 {#sec-session-raw-pointer-problem}
+
+초기 구조에서는 SQE의 `user_data`에 `Session*`를 넣는 방식으로도 충분해 보였습니다. session은 manager에 등록되어 있고, 연결이 끝나면 manager에서 제거하면 된다고 생각할 수 있습니다.
+
+하지만 이 방식은 `io_uring`의 completion 모델과 맞지 않습니다.
+
+::: {.column-margin}
+`close()`는 fd 상태를 바꾸지만, 이미 제출된 operation의 CQE 생성을 즉시 없애지는 않습니다.
+:::
+
+::: {.callout-warning collapse="true" title="raw pointer 기반 UAF 시나리오"}
+```{mermaid}
+%%| label: fig-session-raw-pointer-failure
+%%| fig-cap: "raw Session* 기반 구조의 UAF 위험"
+sequenceDiagram
+    participant S as Session
+    participant K as Kernel
+    participant R as IoRing
+    participant M as SessionManager
+
+    S->>K: SQE submit with raw Session*
+    S->>M: Disconnect and Release
+    M-->>S: manager owner 해제
+    K-->>R: 늦게 도착한 CQE
+    R->>S: user_data의 raw Session* 접근
+    Note over R,S: session이 이미 해제되었다면 UAF
+```
+:::
+
+문제의 핵심은 close가 completion보다 먼저 일어날 수 있다는 점입니다. recv, send, timeout, cancel은 submit된 뒤 kernel이 나중에 CQE로 돌려줍니다. 사용자가 disconnect를 호출했거나 manager에서 session을 제거했더라도, 이미 제출된 작업의 CQE는 뒤늦게 도착할 수 있습니다.
+
+또한 cancel도 단순하지 않습니다. cancel CQE는 “취소 요청이 처리되었다”는 뜻이지, target recv/send 작업의 수명이 끝났다는 뜻이 아닙니다. target operation은 별도의 CQE로 다시 돌아올 수 있습니다.
+
+따라서 raw pointer 방식은 다음 질문에 답하지 못합니다.
+
+* close 이후 늦게 도착한 CQE가 접근할 session은 누가 살려두는가?
+* callback 실행 중 manager release가 일어나면 현재 stack의 session 접근은 안전한가?
+* cancel CQE와 target CQE가 서로 다른 시점에 오면 언제 release해야 하는가?
+* graceful close 중 send queue나 app async work가 남아 있으면 disconnect notification을 언제 보내야 하는가?
+
+이 질문들에 답하기 위해 `SessionManager`, `IoEvent.owner`, `IoRing::keep_alive`, `pending_io_`가 각각 도입되었습니다.
+
+---
+
+## 전체 흐름 {#sec-session-overall-flow}
+
+세션의 수명은 하나의 owner가 순서대로 넘겨받는 흐름이 아닙니다. 각 비동기 경계에 진입할 때 필요한 strong owner가 추가되고, 그 경계가 끝나면 제거됩니다.
+
+```{mermaid}
+%%| label: fig-session-lifetime-boundaries
+%%| fig-cap: "비동기 경계별 세션 생존 보장"
+flowchart TD
+    classDef accept fill:#f8f9fa,stroke:#6c757d,stroke-width:2px,color:#111
+    classDef manager fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#111
+    classDef event fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#111
+    classDef dispatch fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#111
+    classDef release fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#111
+
+    Accept["Accept
+factory/local shared_ptr"]:::accept
+    Start["Start
+SessionManager Add"]:::manager
+    Submit["I/O submit
+IoEvent.owner 등록
+pending_io_ 증가"]:::event
+    Cqe["CQE dispatch
+keep_alive 보호"]:::dispatch
+    Continue["연결 유지
+다음 I/O submit"]:::event
+    Disconnect["Disconnect
+종료 상태 전환"]:::release
+    Drain["Drain
+남은 CQE/app work 정리"]:::release
+    Release["SessionManager Release
+connected owner 해제"]:::release
+    Destroy["Destroy
+마지막 strong ref 해제 후"]:::release
+
+    Accept --> Start --> Submit --> Cqe
+    Cqe -->|계속 수신| Continue --> Submit
+    Cqe -->|종료 요청| Disconnect --> Drain --> Release --> Destroy
+```
+
+이 흐름에서 중요한 점은 `Release()`와 destructor가 같은 사건이 아니라는 것입니다. `SessionManager::Release()`는 connected session 목록에서 owner를 제거하는 일입니다. 실제 객체 소멸은 그 뒤에도 남아 있을 수 있는 event owner, dispatch `keep_alive`, 외부 `shared_ptr`가 모두 사라진 뒤에 일어납니다.
+
+---
+
+## `SessionManager`: connected session의 장기 owner {#sec-session-manager}
+
+### accept 이후 사라지는 임시 owner
+
+accept 직후 session은 factory나 accept 처리 scope 안의 local `shared_ptr`에 의해 잠시 살아 있습니다. 하지만 이 local owner는 accept 처리가 끝나면 사라집니다. 연결된 세션은 그 이후에도 recv를 등록하고, send를 처리하고, timeout을 관리해야 하므로 별도의 장기 owner가 필요합니다.
+
+초기 구조에서 이 경계가 명확하지 않으면 다음 문제가 생깁니다.
+
+```text
+Listener::OnAccept()
+  -> Session 생성
+  -> recv 등록 또는 callback 등록
+  -> local shared_ptr scope 종료
+  -> 이후 세션을 누가 유지하는지 불명확
+```
+
+즉 accept 단계의 owner는 “생성 중 임시 생존”만 보장할 뿐, connected session의 생존을 보장하지 않습니다.
+
+### connected owner 등록
+
+`SessionManager`는 session이 연결 상태로 존재하는 동안 strong ref를 보관합니다. `Start()` 시점에 session을 manager에 등록함으로써 accept scope가 끝난 뒤에도 session이 유지됩니다.
+
+```cpp
+auto self = std::static_pointer_cast<Session>(shared_from_this());
+ring_.Sessions().Add(self);
+OnConnected();
+RegisterRecv();
+ArmWatchdog();
+```
+
+이후 session은 manager에 등록되어 있으므로 연결된 동안 외부에서 live session으로 조회할 수 있고, recv/watchdog/send 같은 연결 단위 작업을 이어갈 수 있습니다.
+
+---
+
+## `IoEvent.owner`: submitted I/O의 callback safety owner {#sec-session-ioevent-owner}
+
+### 늦게 도착하는 CQE
+
+`io_uring`에 SQE를 submit하면 completion 시점은 kernel이 결정합니다. session이 disconnect되었는지, manager에서 release되었는지와 무관하게 이미 제출된 작업은 나중에 CQE로 돌아올 수 있습니다.
+
+이때 `user_data`에 raw `Session*`만 들어 있다면, CQE가 늦게 도착했을 때 이미 해제된 session을 접근할 수 있습니다.
+
+```text
+1. recv SQE submit
+2. session disconnect
+3. manager release
+4. recv CQE가 늦게 도착
+5. raw Session* 접근
+6. UAF 발생 가능
+```
+
+이 문제는 recv에만 한정되지 않습니다. send, timeout, shutdown, cancel 모두 같은 문제를 가집니다. 한 번 submit된 작업은 completion이 오기 전까지 callback 대상의 생존을 따로 보장해야 합니다.
+
+### event owner를 통한 안전한 dispatch
+
+이를 해결하기 위해 각 `IoEvent`가 callback 대상 session의 strong owner를 들도록 했습니다.
+
+```{.cpp code-line-numbers="true"}
+auto* recv_ev = new ring::RecvEvent();        // <1>
+recv_ev->SetStrongOwner(shared_from_this());  // <2>
+recv_ev->SetAutoDelete(true);                 // <3>
+++pending_io_;                               // <4>
+ring_.PrepRecvMultishot(*recv_ev, Fd());      // <5>
+```
+
+1. CQE가 돌아올 때 다시 찾을 operation context를 만듭니다.
+2. submitted I/O 경계가 끝날 때까지 session을 strong ref로 붙잡습니다.
+3. final CQE 이후 event context를 자동 정리하게 합니다.
+4. manager owner를 놓아도 되는지 판단할 drain counter를 올립니다.
+5. SQE의 `user_data`에는 session raw pointer가 아니라 event pointer가 들어갑니다.
+
+이제 SQE의 `user_data`에는 session raw pointer가 아니라 `IoEvent*`가 들어갑니다. CQE가 도착하면 ring은 event를 꺼내고, event가 들고 있는 owner를 통해 session에 dispatch합니다.
+
+```{mermaid}
+%%| label: fig-session-ioevent-owner-flow
+%%| fig-cap: "IoEvent.owner가 submitted I/O 경계를 보호하는 흐름"
+sequenceDiagram
+    participant S as Session
+    participant E as IoEvent
+    participant K as Kernel
+    participant R as IoRing
+
+    S->>E: SetStrongOwner(session)
+    S->>K: SQE submit with IoEvent*
+    K-->>R: CQE 도착
+    R->>E: owner 조회
+    R->>S: owner를 통해 Dispatch
+```
+
+이 구조에서 `IoEvent.owner`는 “해당 I/O가 CQE로 돌아와 callback에 진입할 수 있을 때까지” session을 붙잡습니다. close가 먼저 일어나더라도 event owner가 남아 있으므로 늦게 도착한 CQE는 해제된 session을 접근하지 않습니다.
+
+### cancel과 multishot에서의 의미
+
+cancel은 특히 이 owner가 필요한 이유를 잘 보여줍니다. cancel request CQE는 cancel 요청 자체의 완료입니다. target recv/send CQE는 별도로 올 수 있습니다.
+
+```text
+CancelEvent.owner      = cancel request callback 안전성 보장
+RecvEvent.owner        = target recv callback 안전성 보장
+```
+
+둘은 서로 다른 submitted operation입니다. cancel CQE가 먼저 왔다고 target recv event owner를 놓으면, 나중에 target CQE가 도착했을 때 다시 UAF 위험이 생깁니다.
+
+multishot recv도 마찬가지입니다. 한 번 submit한 recv에서 여러 CQE가 발생할 수 있으므로 중간 CQE마다 event owner를 해제하면 안 됩니다. `IORING_CQE_F_MORE`가 사라진 final CQE에서만 해당 submitted operation이 끝났다고 볼 수 있습니다.
+
+```cpp
+if (!more) {
+    recv_armed_ = false;
+    active_recv_ev_ = nullptr;
+    --pending_io_;
+}
+```
+
+---
+
+## `IoRing::keep_alive`: current dispatch stack owner {#sec-session-keep-alive}
+
+### callback 실행 중 release 가능성
+
+CQE가 도착해서 callback에 진입하는 순간까지는 `IoEvent.owner`가 session을 살려줍니다. 그러나 callback이 실행되는 동안에도 session의 소유권 상태는 변할 수 있습니다.
+
+대표적인 경우는 callback 내부에서 disconnect가 발생하는 흐름입니다.
+
+```text
+1. CQE dispatch 시작
+2. Session::OnRecv() 실행
+3. OnRecv() 내부에서 오류 감지
+4. Disconnect() 호출
+5. TryRelease() 성공
+6. SessionManager::Release(self) 호출
+7. callback stack은 아직 Session 멤버에 접근 중
+```
+
+이때 현재 stack frame이 session을 strong ref로 붙잡고 있지 않다면, release 과정에서 마지막 참조가 사라질 수 있습니다. 그러면 callback이 아직 끝나지 않았는데 session destructor가 실행될 수 있습니다.
+
+### dispatch stack 보호
+
+`IoRing::keep_alive`는 CQE dispatch가 시작될 때 event owner를 복사해 현재 dispatch stack 동안 보관합니다.
+
+```cpp
+auto* ev = reinterpret_cast<IoEvent*>(data);
+auto owner = ev->Owner();
+
+if (owner) {
+    keep_alive.push_back(owner);
+    owner->Dispatch(ev, result, flags);
+}
+```
+
+이렇게 하면 callback 내부에서 manager release가 일어나거나 event owner가 정리되더라도, `keep_alive`에 들어간 strong ref가 현재 dispatch 구간이 끝날 때까지 session을 살려둡니다.
+
+```{mermaid}
+%%| label: fig-session-keep-alive-flow
+%%| fig-cap: "keep_alive가 callback 실행 중 release를 막는 흐름"
+sequenceDiagram
+    participant R as IoRing
+    participant E as IoEvent
+    participant S as Session
+    participant M as SessionManager
+
+    R->>E: owner 조회
+    R->>R: keep_alive에 owner 보관
+    R->>S: Dispatch callback 실행
+    S->>S: Disconnect / TryRelease
+    S->>M: Release connected owner
+    Note over R,S: keep_alive가 callback 종료까지 session 생존 보장
+    R->>R: dispatch 구간 종료 후 keep_alive 해제
+```
+
+### `IoEvent.owner`와의 경계 차이
+
+`IoEvent.owner`와 `keep_alive`는 모두 strong owner를 다루지만 보호하는 경계가 다릅니다.
+
+| 장치                   | 보호하는 구간                           | 필요한 이유                                            |
+| -------------------- | --------------------------------- | ------------------------------------------------- |
+| `IoEvent.owner`      | SQE submit 이후 CQE callback 진입 전까지 | 늦게 도착한 CQE가 해제된 session을 접근하지 않게 함                |
+| `IoRing::keep_alive` | CQE callback 실행 중                 | callback 내부 release로 현재 stack의 session이 사라지지 않게 함 |
+
+: `IoEvent.owner`와 `keep_alive`의 보호 경계 차이 {#tbl-session-owner-vs-keepalive}
+
+따라서 `IoEvent.owner`는 “submitted operation의 callback safety”이고, `keep_alive`는 “current dispatch stack safety”입니다.
+
+---
+
+## `pending_io_`: release 시점을 결정하는 drain gate {#sec-session-pending-io}
+
+### disconnect는 여러 completion이 정리되는 과정
+
+disconnect는 하나의 순간에 끝나는 작업이 아닙니다. session 종료를 요청한 뒤에도 이미 제출된 recv, send, timeout, cancel, shutdown 작업의 CQE가 남아 있을 수 있습니다. graceful close라면 send queue나 app-level async work도 남아 있을 수 있습니다.
+
+단순히 `disconnecting_ = true`만으로는 언제 manager owner를 놓아도 되는지 알 수 없습니다.
+
+```text
+Disconnect 호출
+  -> recv cancel submit
+  -> timeout cancel submit
+  -> active send completion 대기
+  -> app async work 대기
+  -> 각 작업의 CQE가 서로 다른 시점에 도착
+```
+
+이 상태에서 manager owner를 너무 빨리 놓으면 아직 처리해야 할 completion이나 callback이 남아 있을 수 있습니다. 반대로 너무 늦게 놓으면 session이 manager에 계속 남아 leak처럼 보일 수 있습니다.
+
+따라서 “객체 생존”과 별개로 “release 가능한 시점”을 판단하는 기준이 필요했습니다.
+
+### pending count 기반 release gate
+
+`pending_io_`는 아직 final completion을 받지 못한 작업 수를 셉니다.
+
+```text
+I/O submit 성공      -> pending_io_++
+해당 작업 final CQE  -> pending_io_--
+app async 시작       -> BeginAppIo(), pending_io_++
+app async 완료       -> EndAppIo(), pending_io_--
+```
+
+::: {.panel-tabset}
+## Kernel I/O
+
+recv, send, timeout, shutdown, cancel처럼 SQE로 제출된 작업은 final CQE가 도착할 때까지 drain 대상입니다. multishot recv는 `IORING_CQE_F_MORE`가 사라지는 마지막 CQE에서만 작업이 끝난 것으로 봅니다.
+
+## App Work
+
+DB, file, task callback처럼 kernel CQE가 아니어도 session 순서에 영향을 주는 작업은 `BeginAppIo()`와 `EndAppIo()`로 같은 gate에 올립니다.
+
+## Release
+
+`pending_io_ == 0`은 "객체를 삭제해도 된다"가 아니라 "`SessionManager`가 connected owner를 놓아도 된다"는 뜻입니다.
+:::
+
+`TryRelease()`는 이 값을 기준으로 disconnect 이후 모든 작업이 정리되었는지 확인합니다.
+
+```{.cpp code-line-numbers="true"}
+if (!disconnecting_ || pending_io_ > 0)  // <1>
+    return;
+
+if (disconnected_notified_)              // <2>
+    return;
+
+disconnected_notified_ = true;           // <3>
+
+OnDisconnected();                        // <4>
+on_disconnect_(self);                    // <5>
+ring_.Sessions().Release(self);          // <6>
+```
+
+1. 종료 상태가 아니거나 drain이 남아 있으면 manager owner를 유지합니다.
+2. disconnect notification과 release가 중복 실행되지 않게 막습니다.
+3. 이후 callback 재진입에서도 한 번만 통지하도록 상태를 고정합니다.
+4. session 내부 종료 hook을 먼저 실행합니다.
+5. 애플리케이션 레벨 disconnect callback을 호출합니다.
+6. connected session 목록에서 strong owner를 제거합니다.
+
+이 구조에서 `pending_io_`는 owner가 아닙니다. session을 살려두는 것은 `SessionManager`, `IoEvent.owner`, `keep_alive` 같은 strong ref입니다. `pending_io_`는 그 strong ref 중 connected owner를 언제 해제해도 되는지 결정하는 gate입니다.
+
+### disconnect notification 순서 보장
+
+`pending_io_`가 없으면 disconnect notification이 너무 빨리 나갈 수 있습니다.
+
+예를 들어 graceful close 중 아직 send queue에 응답이 남아 있는데 `OnDisconnected()`가 먼저 호출되면 application 입장에서는 “응답 전송이 끝나기 전에 연결 종료가 통지된” 상태가 됩니다.
+
+또는 DB callback 같은 app-level async work가 남아 있는데 session을 release하면, callback이 돌아왔을 때 session 상태를 정리할 기준이 사라질 수 있습니다.
+
+그래서 app-level 작업도 같은 drain gate에 포함합니다.
+
+| 작업                 | 왜 drain에 포함해야 하는가                                      |
+| ------------------ | ------------------------------------------------------ |
+| recv final CQE     | 더 이상 해당 recv event가 callback을 만들지 않는지 확인해야 함           |
+| send completion    | queued response 전송 완료 전 disconnect notification을 막아야 함 |
+| timeout/cancel CQE | 종료 과정에서 등록한 작업도 completion이 돌아와야 함                     |
+| app async work     | DB/file/task callback이 session 순서보다 늦게 돌아오는 것을 막아야 함   |
+
+: drain gate에 포함되는 작업 범위 {#tbl-session-drain-work}
+
+### cancel request와 target operation 분리
+
+cancel에서는 `pending_io_`가 특히 중요합니다. cancel request와 target operation은 서로 다른 작업이므로 각각 pending 대상입니다.
+
+::: {.callout-caution title="cancel CQE를 해석할 때의 함정"}
+cancel request CQE는 "취소 요청 처리 결과"입니다. target recv/send operation의 final CQE와 같은 사건으로 합치면 `pending_io_`와 실제 kernel completion 상태가 어긋납니다.
+:::
+
+```text
+기존 recv submit
+  -> RecvEvent pending_io_++
+
+Disconnect 중 recv cancel submit
+  -> CancelEvent pending_io_++
+
+CancelEvent CQE 도착
+  -> cancel request 작업 pending_io_--
+  -> target recv pending은 아직 유지
+
+RecvEvent target CQE 도착
+  -> recv 작업 pending_io_--
+```
+
+cancel CQE에서 target operation까지 끝났다고 처리하면 pending count와 실제 kernel completion 상태가 어긋납니다. 반대로 target CQE가 먼저 오더라도 cancel request CQE는 별도 작업이므로 따로 정리되어야 합니다.
+
+---
+
+## 네 장치가 함께 해결하는 종료 흐름 {#sec-session-combined-shutdown}
+
+이제 disconnect 흐름을 네 장치의 역할로 다시 보면 다음과 같습니다.
+
+```{mermaid}
+%%| label: fig-session-combined-shutdown
+%%| fig-cap: "종료 흐름에서 각 장치의 역할"
+sequenceDiagram
+    participant M as SessionManager
+    participant S as Session
+    participant E as IoEvent.owner
+    participant R as IoRing::keep_alive
+    participant P as pending_io_
+    participant K as Kernel
+
+    M->>S: connected owner로 session 유지
+    S->>E: I/O submit 시 event owner 등록
+    S->>P: pending_io_ 증가
+    S->>K: SQE submit
+    S->>S: Disconnect 상태 전환
+    K-->>S: CQE 도착
+    S->>R: dispatch 동안 keep_alive 보관
+    R->>S: callback 실행
+    S->>P: final CQE마다 pending_io_ 감소
+    P->>S: pending_io_ == 0 확인
+    S->>M: SessionManager::Release(self)
+```
+
+각 장치의 책임은 다음처럼 분리됩니다.
+
+| 장치                   | 책임                                 | 책임이 아닌 것                             |
+| -------------------- | ---------------------------------- | ------------------------------------ |
+| `SessionManager`     | connected session을 장기 보관           | submitted I/O completion까지 보호하지 않음   |
+| `IoEvent.owner`      | CQE가 callback으로 들어올 때까지 session 보호 | callback 실행 중 release까지 단독으로 책임지지 않음 |
+| `IoRing::keep_alive` | callback 실행 중 session 보호           | 연결 목록 유지나 pending 작업 수 판단은 하지 않음     |
+| `pending_io_`        | release 가능 시점 판단                   | session을 직접 소유하지 않음                  |
+
+: 종료 흐름에서 네 장치의 책임 분리 {#tbl-session-shutdown-responsibility}
+
+따라서 이 구조에서 close는 객체 파괴가 아닙니다. close 또는 disconnect는 종료 상태로 전환하는 요청입니다. 실제 객체 소멸은 다음 조건이 모두 만족된 뒤에야 가능합니다.
+
+```text
+1. 새 작업을 더 이상 등록하지 않는다.
+2. 이미 제출된 작업의 final CQE가 모두 도착한다.
+3. app-level async work가 모두 끝난다.
+4. pending_io_가 0이 된다.
+5. SessionManager가 connected owner를 놓는다.
+6. event owner, keep_alive, external shared_ptr가 모두 사라진다.
+```
+
+---
+
+## 결과 {#sec-session-result}
+
+이 구조를 도입한 결과, session 종료는 단순한 `delete`나 manager removal이 아니라 drain 가능한 상태 전환으로 바뀌었습니다.
+
+raw `Session*` 기반 구조에서는 close 이후 늦게 도착한 CQE가 UAF로 이어질 수 있었습니다. `SessionManager`만으로는 connected owner는 설명할 수 있어도 submitted I/O와 dispatch stack의 생존은 설명할 수 없었습니다. `IoEvent.owner`만으로는 callback 진입 전까지는 안전해졌지만, callback 실행 중 release가 발생하는 문제는 남았습니다. 그리고 owner들이 있어도 disconnect notification과 manager release를 언제 실행해야 하는지는 별도의 drain 기준이 필요했습니다.
+
+::: {.callout-note title="설계가 통과해야 하는 체크리스트"}
+- [x] accept scope가 끝난 뒤에도 connected session이 유지된다.
+- [x] close 이후 늦게 도착한 CQE가 해제된 session을 접근하지 않는다.
+- [x] callback 실행 중 release가 발생해도 현재 stack이 안전하다.
+- [x] cancel request CQE와 target operation CQE를 분리해서 처리한다.
+- [x] app async work까지 drain한 뒤 disconnect notification을 보낸다.
+:::
+
+그래서 최종 구조는 다음처럼 정리됩니다.
+
+```text
+SessionManager는 connected session을 소유한다.
+IoEvent.owner는 submitted I/O callback safety를 보장한다.
+IoRing::keep_alive는 current dispatch stack safety를 보장한다.
+pending_io_는 모든 pending 작업이 정리된 뒤 connected owner를 놓도록 release 시점을 결정한다.
+```
+
+이 네 가지를 분리했기 때문에 accept 이후 connected owner 등록, SQE submit 이후 늦은 CQE 처리, callback 실행 중 release, disconnect 이후 drain과 manager release를 각각 안전하게 처리할 수 있습니다.
+
+::: {.callout-tip title="면접에서 설명할 핵심 문장"}
+이 구조의 핵심은 session을 하나의 owner가 끝까지 들고 있는 것이 아니라, 비동기 경계마다 필요한 생존 보장을 따로 둔 것입니다. `SessionManager`는 연결 상태의 장기 owner이고, `IoEvent.owner`는 제출된 I/O가 callback으로 돌아오기 위한 owner이며, `keep_alive`는 callback 실행 중 소멸을 막는 owner입니다. `pending_io_`는 owner가 아니라 이 모든 작업이 drain된 뒤 manager owner를 놓아도 되는지 판단하는 release gate입니다.
+:::

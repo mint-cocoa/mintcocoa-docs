@@ -1,0 +1,15 @@
+format:
+  html:
+    lang: ko
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-copy: true
+    code-fold: false
+    link-external-newwindow: true
+    page-layout: article
+    grid:
+      body-width: 900px
+      margin-width: 280px
+      gutter-width: 1.5rem
