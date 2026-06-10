@@ -97,7 +97,7 @@ ul.task-list li input[type="checkbox"] {
 <h2 data-number="1" class="anchored" data-anchor-id="문서-서빙-위치"><span class="header-section-number">1</span> 문서 서빙 위치</h2>
 <div class="exposure-map pages-note">
 <p><strong>현재 canonical 문서 경로</strong></p>
-<p><code>https://mint-cocoa.github.io/portfolio/</code>는 이 저장소의 GitHub Actions가 <code>docs/</code> 빌드 결과를 <code>_site/</code> Pages artifact로 배포한 상세 포트폴리오 기준 경로입니다. <code>https://portfolio.mintcocoa.cc/</code>는 <code>https://mint-cocoa.github.io/</code> 루트 허브를 C++ <code>RuntimeWeb</code> 컨테이너로 서빙하는 홈랩 미러 경로이며, 상세 문서는 <code>https://portfolio.mintcocoa.cc/portfolio/</code> 아래에 함께 제공합니다.</p>
+<p><code>https://docs.mintcocoa.dev/</code>는 이 저장소의 GitHub Actions가 <code>_site/</code> 산출물을 컨테이너 이미지로 빌드하고, OCI OKE production 클러스터의 Ingress/TLS 경로로 배포하는 기준 경로입니다. GitHub Pages는 같은 산출물을 확인할 수 있는 공개 미러로 유지합니다.</p>
 </div>
 </section>
 <section id="문서-구성" class="level2" data-number="2">
@@ -109,8 +109,8 @@ ul.task-list li input[type="checkbox"] {
 <p><code>iouring-runtime</code>의 core Runtime과 선택 모듈 구조를 설명한 문서입니다. <code>io_uring</code> 비동기 I/O, 세션 수명관리, 버퍼 관리, 작업 큐, 모듈 경계, 벤치마크를 중심으로 정리했습니다.</p>
 <div class="serve-path">
 <p><strong>서빙 경로</strong></p>
-<p><code>mint-cocoa.github.io/portfolio/server/ServerCorePortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>_site/portfolio</code> → <code>GitHub Pages</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/server/ServerCorePortfolio.html</code></p>
+<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
 </div>
 <div class="serve-path runtime-example">
 <p><strong>연결 문서와 런타임 예제</strong></p>
@@ -133,8 +133,8 @@ ul.task-list li input[type="checkbox"] {
 <p><code>RuntimeWeb</code>을 서비스 앱이 아니라 HTTP 서버 선택 모듈 기준으로 분리해 설명한 문서입니다. <code>WebServer</code>, <code>HttpSession</code>, <code>HttpParser</code>, <code>Router</code>, <code>RadixTree</code>, <code>HttpResponse</code>, 파일/스트리밍 응답, timeout/backpressure 정책을 다룹니다.</p>
 <div class="serve-path">
 <p><strong>서빙 경로</strong></p>
-<p><code>mint-cocoa.github.io/portfolio/server/RuntimeWebPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>_site/portfolio</code> → <code>GitHub Pages</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/server/RuntimeWebPortfolio.html</code></p>
+<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
 </div>
 <div class="tag-row">
 <p><code>C++</code> <code>RuntimeWeb</code> <code>HTTP</code> <code>Streaming</code> <code>Backpressure</code></p>
@@ -145,8 +145,8 @@ ul.task-list li input[type="checkbox"] {
 <p><code>RuntimeProxy</code>를 TCP reverse proxy 선택 모듈 기준으로 분리해 설명한 문서입니다. <code>TcpProxyServer</code>, <code>ProxyBridge</code>, <code>ProxyConnector</code>, TLS/SNI 라우팅, ACME challenge, metrics snapshot, stream backpressure 정책을 다룹니다.</p>
 <div class="serve-path">
 <p><strong>서빙 경로</strong></p>
-<p><code>mint-cocoa.github.io/portfolio/server/RuntimeProxyPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>_site/portfolio</code> → <code>GitHub Pages</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/server/RuntimeProxyPortfolio.html</code></p>
+<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
 </div>
 <div class="tag-row">
 <p><code>C++</code> <code>RuntimeProxy</code> <code>TCP</code> <code>TLS</code> <code>SNI</code></p>
@@ -157,8 +157,8 @@ ul.task-list li input[type="checkbox"] {
 <p><code>RuntimeGame</code>을 게임 서비스 앱이 아니라 packet session과 Room 실행 모듈 기준으로 분리해 설명한 문서입니다. <code>PacketSession</code>, <code>PacketBuilder</code>, <code>PlayerRegistry</code>, <code>Room</code>, <code>RoomManager</code>, <code>JobQueue</code> 기반 Room 직렬 실행을 다룹니다.</p>
 <div class="serve-path">
 <p><strong>서빙 경로</strong></p>
-<p><code>mint-cocoa.github.io/portfolio/server/RuntimeGamePortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>_site/portfolio</code> → <code>GitHub Pages</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/server/RuntimeGamePortfolio.html</code></p>
+<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
 </div>
 <div class="tag-row">
 <p><code>C++</code> <code>RuntimeGame</code> <code>PacketSession</code> <code>Room</code> <code>JobQueue</code></p>
@@ -169,8 +169,8 @@ ul.task-list li input[type="checkbox"] {
 <p><code>RuntimeGame</code> 기반 던전 서버와 TCP/Protobuf 패킷을 주고받는 DirectX 11 클라이언트 문서입니다. 렌더링, 씬 전환, 네트워크 처리, 게임 UI를 다룹니다.</p>
 <div class="serve-path">
 <p><strong>서빙 경로</strong></p>
-<p><code>mint-cocoa.github.io/portfolio/client/ClientPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>_site/portfolio</code> → <code>GitHub Pages</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/client/ClientPortfolio.html</code></p>
+<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
 </div>
 <div class="tag-row">
 <p><code>C++</code> <code>DirectX 11</code> <code>Protobuf</code> <code>RPG Client</code></p>
@@ -181,8 +181,8 @@ ul.task-list li input[type="checkbox"] {
 <p>RuntimeWeb 기반 포트폴리오 서버와 관련 서비스를 컨테이너 이미지, GitOps, Argo CD, Kubernetes 경로로 배포한 내용을 정리한 문서입니다.</p>
 <div class="serve-path">
 <p><strong>서빙 경로</strong></p>
-<p><code>mint-cocoa.github.io/portfolio/devops/DevOpsPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>_site/portfolio</code> → <code>GitHub Pages</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/devops/DevOpsPortfolio.html</code></p>
+<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
 </div>
 <div class="tag-row">
 <p><code>Kubernetes</code> <code>GitOps</code> <code>Argo CD</code> <code>GHCR</code></p>
@@ -190,11 +190,11 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="oci-oke-프로덕션-gitops" class="level3 doc-card devops" data-number="2.7">
 <h3 data-number="2.7" class="anchored" data-anchor-id="oci-oke-프로덕션-gitops"><span class="header-section-number">2.7</span> <a href="devops/OciOkeGitOpsPortfolio.html">OCI OKE 프로덕션 GitOps</a></h3>
-<p>OCI OKE를 production 클러스터로 구성하고 홈랩 k3s에서 검증한 뒤 OKE로 승격하는 GitOps 파이프라인을 정리한 문서입니다. <code>RuntimeWeb</code> 기반 <code>dropapp</code>을 <code>drop.mintcocoa.cc</code>로 공개하는 Ingress/TLS 경로, kubeconfig, 접근 권한, 관측성, 장애 대응 판단까지 포함합니다.</p>
+<p>OCI OKE를 production 클러스터로 구성하고 홈랩 k3s에서 검증한 뒤 OKE로 승격하는 GitOps 파이프라인을 정리한 문서입니다. <code>RuntimeWeb</code> 기반 <code>dropapp</code>을 <code>drop.mintcocoa.dev</code>로 공개하는 Ingress/TLS 경로, kubeconfig, 접근 권한, 관측성, 장애 대응 판단까지 포함합니다.</p>
 <div class="serve-path">
 <p><strong>서빙 경로</strong></p>
-<p><code>mint-cocoa.github.io/portfolio/devops/OciOkeGitOpsPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>_site/portfolio</code> → <code>GitHub Pages</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/devops/OciOkeGitOpsPortfolio.html</code></p>
+<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
 </div>
 <div class="tag-row">
 <p><code>OCI</code> <code>OKE</code> <code>GitOps</code> <code>RuntimeWeb</code> <code>Ingress</code></p>
@@ -205,8 +205,8 @@ ul.task-list li input[type="checkbox"] {
 <p><code>ops-api.mintcocoa.cc</code>를 통해 Prometheus target, Kubernetes workload, Proxmox node/VM 상태를 실시간으로 읽는 대시보드입니다.</p>
 <div class="serve-path">
 <p><strong>서빙/조회 경로</strong></p>
-<p><code>mint-cocoa.github.io/portfolio/devops/OpsDashboard.html</code></p>
-<p><code>browser</code> → <code>GitHub Pages static page</code> → <code>https://ops-api.mintcocoa.cc/api/*</code></p>
+<p><code>docs.mintcocoa.dev/portfolio/devops/OpsDashboard.html</code></p>
+<p><code>browser</code> → <code>OKE static docs page</code> → <code>https://ops-api.mintcocoa.cc/api/*</code></p>
 </div>
 <div class="tag-row">
 <p><code>Quarto Dashboard</code> <code>Prometheus</code> <code>Proxmox</code> <code>Cloudflare Tunnel</code></p>
@@ -215,8 +215,9 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="exposure-map">
 <p><strong>공개 문서 노출 경로</strong></p>
-<p><code>GitHub push</code> → <code>GitHub Actions</code> → <code>docs/</code> render → <code>_site/</code> Pages artifact → <code>https://mint-cocoa.github.io/portfolio/</code></p>
-<p><code>portfolio.mintcocoa.cc</code>는 GitHub Pages custom domain이 아니라 홈랩 edge proxy 뒤의 C++ <code>RuntimeWeb</code> 미러입니다. 루트는 <code>mint-cocoa.github.io</code> 허브 앱과 같은 React/Vite 산출물을 서빙하고, 상세 문서는 같은 컨테이너의 <code>/portfolio/</code> 아래에 포함합니다. Live Ops Dashboard는 GitHub Pages와 홈랩 미러 두 경로 모두에서 <code>https://ops-api.mintcocoa.cc/api/*</code>를 호출해 Prometheus와 Proxmox 상태를 읽습니다.</p>
+<p><code>GitHub push</code> → <code>GitHub Actions</code> → <code>_site/</code> render → <code>GHCR image</code> → <code>Argo CD</code> → <code>https://docs.mintcocoa.dev/</code></p>
+<p>GitHub Pages mirror: <code>https://mint-cocoa.github.io/mintcocoa-docs/</code></p>
+<p><code>https://docs.mintcocoa.dev/</code>는 OCI OKE production의 canonical 문서 경로입니다. GitHub Pages는 공개 미러로 유지하며, Live Ops Dashboard는 두 경로 모두에서 <code>https://ops-api.mintcocoa.cc/api/*</code>를 호출해 Prometheus와 Proxmox 상태를 읽습니다.</p>
 </div>
 </section>
 <section id="관련-레포" class="level2" data-number="3">
@@ -230,8 +231,8 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="https://github.com/mint-cocoa/portfolio">portfolio</a></td>
-<td>이 문서 묶음과 C++ 정적 파일 서버 이미지</td>
+<td><a href="https://github.com/mint-cocoa/mintcocoa-docs">mintcocoa-docs</a></td>
+<td>문서 허브, 상세 포트폴리오, OKE 배포용 정적 사이트 이미지</td>
 </tr>
 <tr class="even">
 <td><a href="https://github.com/mint-cocoa/iouring-runtime">iouring-runtime</a></td>

@@ -1,6 +1,8 @@
-# mintcocoa-site
+# mintcocoa-docs
 
-Unified source for the `mint-cocoa.github.io` hub and the `/portfolio/` technical documents.
+Unified source for the MintCocoa docs hub and the `/portfolio/` technical documents.
+
+Production URL: `https://docs.mintcocoa.dev`
 
 ## Layout
 
@@ -10,7 +12,8 @@ portfolio/  Quarto documents and the DevOps dashboard served at /portfolio/
 scripts/    Unified build scripts
 ```
 
-The generated GitHub Pages artifact is `_site/`.
+The generated static site artifact is `_site/`. GitHub Pages is kept as a public
+mirror, and the OCI OKE deployment serves the same artifact from a container.
 
 ## Build
 
@@ -36,3 +39,16 @@ This repository consolidates content that previously lived in:
 - `mint-cocoa/mint-cocoa.github.io`
 - `mint-cocoa/portfolio`
 
+## Container
+
+```bash
+bash scripts/build-site.sh
+docker build -t ghcr.io/mint-cocoa/mintcocoa-docs:local .
+docker run --rm -p 8080:8080 ghcr.io/mint-cocoa/mintcocoa-docs:local
+```
+
+Health check:
+
+```bash
+curl http://localhost:8080/healthz
+```

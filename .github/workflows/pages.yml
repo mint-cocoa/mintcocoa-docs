@@ -1,4 +1,4 @@
-name: Build and deploy unified site
+name: Build and deploy docs site
 
 on:
   push:
@@ -8,14 +8,16 @@ on:
 
 permissions:
   contents: read
+  packages: write
   pages: write
   id-token: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  IMAGE_NAME: ghcr.io/mint-cocoa/mintcocoa-docs
 
 concurrency:
-  group: pages
+  group: docs-site
   cancel-in-progress: true
 
 jobs:
@@ -41,6 +43,51 @@ jobs:
 
       - name: Build unified Pages site
         run: bash scripts/build-site.sh
+
+      - name: Login to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push docs image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:main
+
+      - name: Checkout ops repo
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/checkout@v4
+        with:
+          repository: mint-cocoa/mintcocoa-ops
+          token: ${{ secrets.OPS_REPO_TOKEN }}
+          path: mintcocoa-ops
+
+      - name: Promote docs image to OKE
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          file="mintcocoa-ops/apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml"
+          if [ ! -f "$file" ]; then
+            echo "GitOps overlay is not present yet; skipping promotion."
+            exit 0
+          fi
+          sed -i "s|newName: .*|newName: ${IMAGE_NAME}|" "$file"
+          sed -i "s|newTag: .*|newTag: ${GITHUB_SHA}|" "$file"
+          cd mintcocoa-ops
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml
+          git diff --cached --quiet && exit 0
+          git commit -m "Promote mintcocoa-docs to ${GITHUB_SHA}"
+          git push
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
