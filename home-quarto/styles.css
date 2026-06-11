@@ -1,16 +1,13 @@
 :root {
-  --mc-ink: #17212b;
-  --mc-muted: #5f6b7a;
-  --mc-line: #d8dee7;
-  --mc-panel: #ffffff;
-  --mc-soft: #f4f7fb;
-  --mc-accent: #0f766e;
-  --mc-accent-strong: #0b5f59;
-  --mc-warm: #a15c28;
+  --mc-ink: #1f2933;
+  --mc-muted: #667085;
+  --mc-line: #d9dee7;
+  --mc-link: #0f5f8c;
+  --mc-bg: #ffffff;
 }
 
 body {
-  background: #f7f8fa;
+  background: var(--mc-bg);
   color: var(--mc-ink);
 }
 
@@ -23,191 +20,58 @@ body {
 }
 
 .content {
-  max-width: 1180px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 0 22px 54px;
+  padding: 72px 22px 88px;
 }
 
-.hero {
-  min-height: 42vh;
-  display: flex;
-  align-items: end;
-  padding: 72px 0 42px;
-  border-bottom: 1px solid var(--mc-line);
+.home h2 {
+  margin: 0 0 14px;
+  font-size: 2.35rem;
+  line-height: 1.15;
+  letter-spacing: 0;
 }
 
-.hero-copy {
-  max-width: 780px;
+.home h3 {
+  margin: 38px 0 12px;
+  padding-top: 22px;
+  border-top: 1px solid var(--mc-line);
+  font-size: 1.15rem;
+  letter-spacing: 0;
 }
 
-.hero h2 {
-  font-size: clamp(2.35rem, 6vw, 4.8rem);
-  line-height: 1;
+.home p {
   margin: 0 0 18px;
-  letter-spacing: 0;
-}
-
-.hero p {
-  max-width: 720px;
-  margin: 0;
-  font-size: 1.08rem;
+  color: var(--mc-muted);
   line-height: 1.75;
-  color: var(--mc-muted);
 }
 
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 24px;
-}
-
-.hero-actions a,
-.card-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 6px;
-  font-weight: 700;
-  text-decoration: none;
-  border: 1px solid var(--mc-line);
-}
-
-.primary-action,
-.card-link {
-  color: #ffffff;
-  background: var(--mc-accent);
-  border-color: var(--mc-accent);
-}
-
-.primary-action:hover,
-.card-link:hover {
-  color: #ffffff;
-  background: var(--mc-accent-strong);
-  border-color: var(--mc-accent-strong);
-}
-
-.secondary-action,
-.card-link.secondary {
-  color: var(--mc-ink);
-  background: #ffffff;
-}
-
-.secondary-action:hover,
-.card-link.secondary:hover {
-  color: var(--mc-accent-strong);
-  border-color: var(--mc-accent);
-  background: #eef8f6;
-}
-
-.project-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  padding: 28px 0;
-}
-
-.project-card {
-  min-height: 280px;
-  padding: 18px;
-  border: 1px solid var(--mc-line);
-  border-radius: 8px;
-  background: var(--mc-panel);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.project-card.featured {
-  grid-column: span 2;
-}
-
-.project-card h3 {
+.home ul {
   margin: 0;
-  font-size: 1.35rem;
-  letter-spacing: 0;
+  padding-left: 1.2rem;
 }
 
-.project-card p {
-  margin: 0;
-  color: var(--mc-muted);
+.home li {
+  margin: 8px 0;
   line-height: 1.65;
 }
 
-.project-card .card-link {
-  width: fit-content;
-  margin-top: auto;
+.home a {
+  color: var(--mc-link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
-.card-image {
-  width: 100%;
-  height: 168px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--mc-line);
-  background: var(--mc-soft);
-}
-
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip-row code {
-  padding: 4px 8px;
-  border-radius: 999px;
-  color: #2f3a45;
-  background: #edf2f7;
-  border: 1px solid #dfe7f0;
-  font-size: 0.82rem;
-}
-
-.exposure-band {
-  margin: 4px 0 0;
-  padding: 18px 20px;
-  border-left: 4px solid var(--mc-warm);
-  background: #fff8f1;
-  color: #614126;
-  line-height: 1.7;
-}
-
-.exposure-band p {
-  margin: 0 0 8px;
-}
-
-@media (max-width: 960px) {
-  .project-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .project-card.featured {
-    grid-column: span 2;
-  }
+.home a:hover {
+  color: #093f5d;
 }
 
 @media (max-width: 640px) {
   .content {
-    padding-inline: 16px;
+    padding: 48px 18px 64px;
   }
 
-  .hero {
-    min-height: auto;
-    padding: 48px 0 30px;
-  }
-
-  .project-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .project-card,
-  .project-card.featured {
-    grid-column: span 1;
-  }
-
-  .card-image {
-    height: 148px;
+  .home h2 {
+    font-size: 2rem;
   }
 }

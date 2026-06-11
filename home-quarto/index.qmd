@@ -1,109 +1,26 @@
 ---
-title: "배진후 포트폴리오"
-subtitle: "C++ io_uring 런타임부터 게임 클라이언트, Kubernetes 운영 문서까지"
+title: "MintCocoa Docs"
+subtitle: "포트폴리오와 운영 문서"
 ---
 
-::: {.hero}
-::: {.hero-copy}
-## 주요 프로젝트
+::: {.home}
+## MintCocoa Docs
 
-C++ 서버 런타임 구현, RuntimeWeb/Proxy/Game 모듈, DirectX 클라이언트,
-홈랩 DevOps와 운영 관측성 문서를 한 곳에서 연결합니다.
+개인 포트폴리오와 운영 문서를 모아 둔 정적 문서 사이트입니다.
 
-::: {.hero-actions}
-<a class="primary-action" href="/portfolio/">포트폴리오 문서 보기</a>
-<a class="secondary-action" href="/portfolio/servercore/chapters/01-overview.html">ServerCore 바로가기</a>
-:::
-:::
-:::
+### 문서
 
-::: {.project-grid}
-::: {.project-card .featured}
-![](assets/server-core-iouring-section.png){.card-image fig-alt=""}
+- [포트폴리오 문서](/portfolio/)
+- [ServerCore](/portfolio/servercore/)
+- [RuntimeWeb](/portfolio/runtime-web/)
+- [RuntimeProxy](/portfolio/runtime-proxy/)
+- [RuntimeGame](/portfolio/runtime-game/)
+- [DirectX 클라이언트](/portfolio/client/)
+- [DevOps](/portfolio/devops/)
 
-### Server Core
+### 바로가기
 
-`io_uring` 기반 C++ 런타임의 세션 수명관리, 버퍼 관리, 작업 큐,
-backpressure, RuntimeWeb/Proxy/Game 모듈 경계를 정리한 문서입니다.
-
-::: {.chip-row}
-`C++` `io_uring` `Runtime` `Web` `Proxy` `Game`
-:::
-
-<a class="card-link" href="/portfolio/servercore/chapters/01-overview.html">상세 문서</a>
-:::
-
-::: {.project-card}
-![](assets/server-runtime-diagram.png){.card-image fig-alt=""}
-
-### RuntimeWeb
-
-HTTP 라우팅, 파일 서빙, streaming response, timeout과 backpressure 정책을
-RuntimeWeb 선택 모듈 기준으로 설명합니다.
-
-::: {.chip-row}
-`HTTP` `Router` `Streaming`
-:::
-
-<a class="card-link" href="/portfolio/runtime-web/">상세 문서</a>
-:::
-
-::: {.project-card}
-### RuntimeProxy
-
-TCP reverse proxy, TLS 종료, SNI 기반 라우팅, ACME challenge와 metrics
-snapshot 구조를 RuntimeProxy 모듈 기준으로 정리했습니다.
-
-::: {.chip-row}
-`TCP` `TLS` `SNI` `Metrics`
-:::
-
-<a class="card-link" href="/portfolio/runtime-proxy/">상세 문서</a>
-:::
-
-::: {.project-card}
-### RuntimeGame
-
-PacketSession, PacketBuilder, Room, RoomManager, JobQueue 기반 Room 직렬
-실행 구조를 멀티플레이 게임 서버 관점에서 다룹니다.
-
-::: {.chip-row}
-`Packet` `Room` `JobQueue`
-:::
-
-<a class="card-link" href="/portfolio/runtime-game/">상세 문서</a>
-:::
-
-::: {.project-card}
-### DirectX 클라이언트
-
-RuntimeGame 서버와 Protobuf 패킷을 주고받는 DirectX 11 아이소메트릭
-던전 RPG 클라이언트의 렌더링, 씬 전환, 네트워크 처리를 정리합니다.
-
-::: {.chip-row}
-`DirectX 11` `Protobuf` `RPG Client`
-:::
-
-<a class="card-link" href="/portfolio/client/">상세 문서</a>
-:::
-
-::: {.project-card .featured}
-![](assets/devops-dashboard.png){.card-image fig-alt=""}
-
-### DevOps와 운영 관측성
-
-GitHub Actions, GHCR, Argo CD, Kubernetes Ingress/TLS, OKE production 배포
-경로와 운영 관측성 구현 기록을 정적 Quarto 문서로 제공합니다.
-
-::: {.chip-row}
-`Kubernetes` `GitOps` `Argo CD` `Observability`
-:::
-
-<a class="card-link" href="/portfolio/devops/">DevOps 문서</a>
-<a class="card-link secondary" href="/portfolio/devops/chapters/04-observability-access.html">운영 관측성</a>
-:::
-:::
-
-::: {.exposure-band}
-`GitHub push` -> `GitHub Actions` -> `_site/` render -> `GHCR image` -> `Argo CD` -> `https://docs.mintcocoa.dev/`
+- [ServerCore 01. Overview](/portfolio/servercore/chapters/01-overview.html)
+- [DevOps 01. OKE Production GitOps](/portfolio/devops/chapters/01-oke-production-gitops.html)
+- [DevOps 03. Docs Site Deployment](/portfolio/devops/chapters/03-docs-site-deployment.html)
 :::
