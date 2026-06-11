@@ -13,6 +13,14 @@ body {
   color: var(--mc-ink);
 }
 
+.navbar-nav .nav-link {
+  white-space: normal;
+}
+
+.navbar .navbar-nav {
+  gap: 4px;
+}
+
 .quarto-title-block {
   display: none;
 }
@@ -114,7 +122,7 @@ body {
 }
 
 .doc-row {
-  min-height: 150px;
+  min-height: 170px;
   padding: 20px 22px;
   border-right: 1px solid var(--mc-line);
   border-bottom: 1px solid var(--mc-line);
@@ -123,7 +131,8 @@ body {
 
 .doc-row h4 {
   margin: 0 0 9px;
-  font-size: 1.05rem;
+  font-size: 1.12rem;
+  line-height: 1.45;
   letter-spacing: 0;
 }
 

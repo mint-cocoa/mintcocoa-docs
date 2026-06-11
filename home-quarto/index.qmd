@@ -7,55 +7,30 @@ subtitle: "포트폴리오와 운영 문서"
 ::: {.intro}
 ## MintCocoa Docs
 
-개인 포트폴리오와 운영 문서를 모아 둔 정적 문서 사이트입니다. 서버 런타임,
-클라이언트 구현, OKE production 운영 기록을 프로젝트별 문서로 정리합니다.
+개인 포트폴리오와 운영 문서를 모아 둔 정적 문서 사이트입니다. 서버 런타임과
+클라우드·홈랩 운영 파이프라인 문서를 중심으로 정리합니다.
 
 ::: {.intro-links}
-[전체 포트폴리오](/portfolio/){.primary-link}
-[ServerCore](/portfolio/servercore/){.plain-link}
-[DevOps](/portfolio/devops/){.plain-link}
+[io_uring 기반 C++ 서버 런타임 개발](/portfolio/servercore/){.primary-link}
+[오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/){.plain-link}
 :::
 :::
 
 ::: {.section-heading}
 ### 문서
 
-프로젝트별 진입점입니다.
+공개 진입점으로 유지하는 문서입니다.
 :::
 
 ::: {.doc-list}
 ::: {.doc-row}
-#### [ServerCore](/portfolio/servercore/)
+#### [io_uring 기반 C++ 서버 런타임 개발](/portfolio/servercore/)
 
 `io_uring` 기반 C++ 서버 런타임의 수명관리, 버퍼, 직렬화, backpressure를 정리한 문서입니다.
 :::
 
 ::: {.doc-row}
-#### [RuntimeWeb](/portfolio/runtime-web/)
-
-HTTP routing, file serving, streaming response, timeout 정책을 RuntimeWeb 모듈 기준으로 정리합니다.
-:::
-
-::: {.doc-row}
-#### [RuntimeProxy](/portfolio/runtime-proxy/)
-
-TCP reverse proxy, TLS 종료, SNI routing, metrics snapshot 구조를 설명합니다.
-:::
-
-::: {.doc-row}
-#### [RuntimeGame](/portfolio/runtime-game/)
-
-PacketSession, Room, RoomManager, JobQueue 기반 멀티플레이 게임 서버 구조를 다룹니다.
-:::
-
-::: {.doc-row}
-#### [DirectX 클라이언트](/portfolio/client/)
-
-DirectX 11 클라이언트의 rendering, scene transition, network 처리 흐름을 정리합니다.
-:::
-
-::: {.doc-row}
-#### [DevOps](/portfolio/devops/)
+#### [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/)
 
 GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영 관측성 문서입니다.
 :::
@@ -68,9 +43,8 @@ GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영 관측성 문서�
 :::
 
 ::: {.chapter-list}
-- [ServerCore 01. Overview](/portfolio/servercore/chapters/01-overview.html)
-- [ServerCore 06. 선택 모듈로 확장한 결과](/portfolio/servercore/chapters/06-summary.html)
-- [DevOps 01. OKE Production GitOps](/portfolio/devops/chapters/01-oke-production-gitops.html)
-- [DevOps 03. Docs Site Deployment](/portfolio/devops/chapters/03-docs-site-deployment.html)
+- [io_uring 기반 C++ 서버 런타임 개발: Overview](/portfolio/servercore/chapters/01-overview.html)
+- [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축: OKE Production GitOps](/portfolio/devops/chapters/01-oke-production-gitops.html)
+- [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축: Docs Site Deployment](/portfolio/devops/chapters/03-docs-site-deployment.html)
 :::
 :::
