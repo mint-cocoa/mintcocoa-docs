@@ -35,9 +35,6 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install hub dependencies
-        run: npm ci --prefix hub
-
       - name: Build unified Pages site
         run: bash scripts/build-site.sh
 

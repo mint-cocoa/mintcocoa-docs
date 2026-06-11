@@ -1,15 +1,15 @@
 # mintcocoa-docs
 
-Unified source for the MintCocoa docs hub and the `/portfolio/` technical documents.
+Unified Quarto source for the MintCocoa docs hub and the `/portfolio/` technical documents.
 
 Production URL: `https://docs.mintcocoa.dev`
 
 ## Layout
 
 ```text
-hub/         React + Vite landing hub served at /
-portfolio/  Quarto documents and DevOps documentation served at /portfolio/
-scripts/    Unified build scripts
+home-quarto/  Quarto landing hub served at /
+portfolio/    Quarto documents and DevOps documentation served at /portfolio/
+scripts/      Unified build scripts
 ```
 
 The generated static site artifact is `_site/`. GitHub Pages is kept as a public
@@ -18,7 +18,6 @@ mirror, and the OCI OKE deployment serves the same artifact from a container.
 ## Build
 
 ```bash
-npm ci --prefix hub
 bash scripts/build-site.sh
 ```
 

@@ -3,16 +3,27 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 site_dir="$repo_root/_site"
+quarto_bin="${QUARTO_BIN:-quarto}"
+
+if ! command -v "$quarto_bin" >/dev/null 2>&1; then
+  if [[ -x "/c/Program Files/Quarto/bin/quarto" ]]; then
+    quarto_bin="/c/Program Files/Quarto/bin/quarto"
+  elif [[ -f "/mnt/c/Program Files/Quarto/bin/quarto.exe" ]]; then
+    quarto_bin="/mnt/c/Program Files/Quarto/bin/quarto.exe"
+  elif [[ -x "C:/Program Files/Quarto/bin/quarto.exe" ]]; then
+    quarto_bin="C:/Program Files/Quarto/bin/quarto.exe"
+  else
+    echo "quarto executable not found" >&2
+    exit 127
+  fi
+fi
 
 rm -rf "$site_dir"
 mkdir -p "$site_dir"
 
-echo "==> Build hub"
-(
-  cd "$repo_root/hub"
-  npm run build
-)
-cp -a "$repo_root/hub/_site/." "$site_dir/"
+echo "==> Render Quarto home"
+"$quarto_bin" render "$repo_root/home-quarto"
+perl -0pi -e 's/href="\.\/portfolio\//href="\/portfolio\//g' "$site_dir/index.html"
 
 echo "==> Render portfolio documents"
 (

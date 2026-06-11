@@ -1,0 +1,37 @@
+project:
+  type: website
+  output-dir: ../_site
+  render:
+    - index.qmd
+  resources:
+    - assets/
+
+website:
+  title: "배진후 포트폴리오"
+  site-url: "https://docs.mintcocoa.dev"
+  page-navigation: true
+  navbar:
+    title: "MintCocoa Docs"
+    left:
+      - text: "Portfolio"
+        href: /portfolio/
+      - text: "ServerCore"
+        href: /portfolio/servercore/docs/1.overview.html
+      - text: "DevOps"
+        href: /portfolio/devops/
+    right:
+      - text: "GitHub"
+        href: https://github.com/mint-cocoa/mintcocoa-docs
+
+format:
+  html:
+    lang: ko
+    theme: cosmo
+    toc: false
+    page-layout: full
+    code-copy: true
+    link-external-newwindow: true
+    css: styles.css
+    include-in-header:
+      text: |
+        <meta name="description" content="C++ 런타임, 게임 서버, DirectX 클라이언트, Kubernetes 운영 문서를 연결한 Quarto 포트폴리오 허브">
