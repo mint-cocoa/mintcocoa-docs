@@ -1,0 +1,68 @@
+---
+title: "3. docs.mintcocoa.dev 배포 경로"
+order: 3
+description: "mintcocoa-docs가 개인 도메인에서 서빙되기까지의 CI와 GitOps 경로"
+---
+
+## 문서 사이트의 실행 단위
+
+`docs.mintcocoa.dev`는 GitHub Pages를 기준으로 삼지 않고, `_site` 산출물을 Nginx 컨테이너 이미지에 넣어 OKE production에서 서빙합니다. 문서 저장소는 HTML을 생성하고 이미지를 빌드하며, 운영 저장소는 해당 이미지를 production workload로 선언합니다.
+
+| 경계 | 파일 근거 | 역할 |
+| --- | --- | --- |
+| site render | `scripts/build-site.sh` | home과 portfolio 문서 산출물 생성 |
+| image build | `.github/workflows/pages.yml` | GHCR image push |
+| runtime image | `Dockerfile`, `nginx.conf` | `_site`를 Nginx root로 서빙 |
+| GitOps overlay | `apps/mintcocoa-docs/overlays/oke-prod` | production image tag와 Ingress 선언 |
+| Argo CD app | `prod-mintcocoa-docs` | OKE cluster에 desired state 반영 |
+
+## GitHub Pages를 배포 대상에서 제외하는 이유
+
+이 작업 이후 최신 문서의 canonical 경로는 개인 도메인입니다. GitHub Pages까지 동시에 최신화하면 두 배포면이 같은 책임을 갖게 되고, 경로 정리 시 어느 쪽이 기준인지 다시 흐려집니다.
+
+따라서 workflow는 Pages artifact upload와 Pages deploy 단계를 제거하고, GHCR 이미지와 OKE promotion만 유지합니다.
+
+```text
+GitHub push
+  -> Quarto render
+  -> _site build
+  -> GHCR image
+  -> mintcocoa-ops image tag update
+  -> Argo CD sync
+  -> docs.mintcocoa.dev
+```
+
+## OKE production Ingress
+
+`mintcocoa-ops`의 `apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml`은 `docs.mintcocoa.dev` host를 `mintcocoa-docs` service로 연결합니다. TLS는 `letsencrypt-prod` ClusterIssuer annotation으로 관리합니다.
+
+공개 문서에서는 Kubernetes API endpoint나 load balancer IP를 노출하지 않고, 도메인과 GitOps 경로만 남깁니다.
+
+| 항목 | 공개 가능한 값 |
+| --- | --- |
+| host | `docs.mintcocoa.dev` |
+| image | `ghcr.io/mint-cocoa/mintcocoa-docs:<sha>` |
+| 최신 확인 tag | `c699eef3538cc8c9ae585ac19c3869b2f8793383` |
+| Argo CD application | `prod-mintcocoa-docs` |
+| namespace | `prod-services` |
+
+## clean URL 조립
+
+Quarto는 일부 문서를 `RuntimeWebPortfolio.html`처럼 렌더링하지만, 공개 산출물에서는 이를 `runtime-web/index.html`로 조립합니다. 이 단계는 문서 작성 형식과 공개 URL 정책을 분리합니다.
+
+| 원본 렌더 산출물 | 공개 경로 |
+| --- | --- |
+| `docs/server/RuntimeWebPortfolio.html` | `/portfolio/runtime-web/` |
+| `docs/server/RuntimeProxyPortfolio.html` | `/portfolio/runtime-proxy/` |
+| `docs/server/RuntimeGamePortfolio.html` | `/portfolio/runtime-game/` |
+| `docs/client/ClientPortfolio.html` | `/portfolio/client/` |
+| `docs/devops/chapters/*.html` | `/portfolio/devops/chapters/*.html` |
+
+## 확인 명령
+
+```bash
+git -C /home/cocoa/mintcocoa-ops show --stat c8c64c0
+git -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml
+git -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml
+bash scripts/build-site.sh
+```

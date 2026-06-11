@@ -18,6 +18,6 @@ if ! command -v "$quarto_bin" >/dev/null 2>&1; then
 fi
 
 rm -rf "$repo_root/docs/devops"
-"$quarto_bin" render "$repo_root/devops-quarto"
+"$quarto_bin" render "$repo_root/content/devops"
 
 find "$repo_root/docs/devops" -type f -name '*.html' -exec perl -pi -e 's/[ \t]+$//' {} +

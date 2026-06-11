@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.9.37">
@@ -37,7 +37,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="index_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="index_files/libs/bootstrap/bootstrap-b266025aee7dee100f5553a3ab926a66.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="index_files/libs/bootstrap/bootstrap-69c83bd1a7ed0927adb42d778558edae.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 <link rel="stylesheet" href="portfolio.css">
@@ -52,7 +52,7 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">포트폴리오 문서</h1>
-<p class="subtitle lead">서버, 클라이언트, 홈랩 DevOps 구현 문서 모음</p>
+<p class="subtitle lead">서버 런타임, 클라이언트, OKE production 운영 문서</p>
 </div>
 
 
@@ -60,7 +60,7 @@ ul.task-list li input[type="checkbox"] {
 <div class="quarto-title-meta column-page">
 
     <div>
-    <div class="quarto-title-meta-heading">저자</div>
+    <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
              <p>배진후 </p>
           </div>
@@ -75,192 +75,110 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<div class="summary-grid">
-<div class="summary-card">
-<p><strong>서버</strong></p>
-<p><code>io_uring</code> 기반 C++ 서버 Runtime과 Web/Proxy/Game 모듈</p>
-</div>
-<div class="summary-card">
-<p><strong>클라이언트</strong></p>
-<p>DirectX 11 아이소메트릭 멀티플레이 던전 RPG 클라이언트</p>
-</div>
-<div class="summary-card">
-<p><strong>운영</strong></p>
-<p>GHCR, GitOps, Argo CD, Kubernetes Ingress 배포 경로</p>
-</div>
-<div class="summary-card">
-<p><strong>대시보드</strong></p>
-<p>Cloudflare Tunnel 뒤의 Ops API로 Prometheus와 Proxmox 상태 표시</p>
-</div>
-</div>
-<section id="문서-서빙-위치" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="문서-서빙-위치"><span class="header-section-number">1</span> 문서 서빙 위치</h2>
-<div class="exposure-map pages-note">
-<p><strong>현재 canonical 문서 경로</strong></p>
-<p><code>https://docs.mintcocoa.dev/</code>는 이 저장소의 GitHub Actions가 <code>_site/</code> 산출물을 컨테이너 이미지로 빌드하고, OCI OKE production 클러스터의 Ingress/TLS 경로로 배포하는 기준 경로입니다. GitHub Pages는 같은 산출물을 확인할 수 있는 공개 미러로 유지합니다.</p>
-</div>
-</section>
-<section id="문서-구성" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="문서-구성"><span class="header-section-number">2</span> 문서 구성</h2>
-<p>이 문서는 C++ 네트워크 서버 구현을 중심으로 정리했습니다. TCP Echo와 게임 서버 구현에서 시작해 <code>io_uring</code> 기반 Runtime, HTTP/Web 모듈, TCP Proxy 모듈, Packet Game 모듈로 책임을 나누었습니다. 클라이언트 문서는 <code>RuntimeGame</code> 기반 서버와 패킷을 주고받는 소비자 관점이고, DevOps 문서는 RuntimeWeb 기반 포트폴리오 서버의 배포 경로를 다룹니다.</p>
-<div class="doc-grid">
-<section id="서버-구현-포트폴리오" class="level3 doc-card" data-number="2.1">
-<h3 data-number="2.1" class="anchored" data-anchor-id="서버-구현-포트폴리오"><span class="header-section-number">2.1</span> <a href="servercore/docs/1.overview.html">서버 구현 포트폴리오</a></h3>
-<p><code>iouring-runtime</code>의 core Runtime과 선택 모듈 구조를 설명한 문서입니다. <code>io_uring</code> 비동기 I/O, 세션 수명관리, 버퍼 관리, 작업 큐, 모듈 경계, 벤치마크를 중심으로 정리했습니다.</p>
-<div class="serve-path">
-<p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/servercore/docs/1.overview.html</code></p>
-<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
-</div>
-<div class="serve-path runtime-example">
-<p><strong>연결 문서와 런타임 예제</strong></p>
-<p><a href="server/RuntimeWebPortfolio.html">RuntimeWeb 모듈 구현</a></p>
-<p><a href="server/RuntimeProxyPortfolio.html">RuntimeProxy 모듈 구현</a></p>
-<p><a href="server/RuntimeGamePortfolio.html">RuntimeGame 모듈 구현</a></p>
-<p><a href="server/SessionLifecycleVisualizer.html">Session 수명관리 시각화</a></p>
-<p><a href="https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/web"><code>iouring-runtime/examples/web</code></a></p>
-<p><code>hello_http</code>, <code>status_server</code>, <code>file_store_server</code>, <code>speedtest_server</code>, <code>dropapp</code></p>
-<p><a href="https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/proxy/tcp_reverse_proxy"><code>iouring-runtime/examples/proxy/tcp_reverse_proxy</code></a></p>
-<p><a href="https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/game/dungeon_full_server"><code>iouring-runtime/examples/game/dungeon_full_server</code></a></p>
-<p><a href="https://github.com/mint-cocoa/iouring-runtime/tree/main/examples/game/dungeon_packet_echo"><code>iouring-runtime/examples/game/dungeon_packet_echo</code></a></p>
-</div>
-<div class="tag-row">
-<p><code>C++</code> <code>io_uring</code> <code>Linux</code> <code>Web</code> <code>Proxy</code> <code>Game Server</code></p>
-</div>
-</section>
-<section id="runtimeweb-모듈-구현" class="level3 doc-card" data-number="2.2">
-<h3 data-number="2.2" class="anchored" data-anchor-id="runtimeweb-모듈-구현"><span class="header-section-number">2.2</span> <a href="server/RuntimeWebPortfolio.html">RuntimeWeb 모듈 구현</a></h3>
-<p><code>RuntimeWeb</code>을 서비스 앱이 아니라 HTTP 서버 선택 모듈 기준으로 분리해 설명한 문서입니다. <code>WebServer</code>, <code>HttpSession</code>, <code>HttpParser</code>, <code>Router</code>, <code>RadixTree</code>, <code>HttpResponse</code>, 파일/스트리밍 응답, timeout/backpressure 정책을 다룹니다.</p>
-<div class="serve-path">
-<p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/server/RuntimeWebPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
-</div>
-<div class="tag-row">
-<p><code>C++</code> <code>RuntimeWeb</code> <code>HTTP</code> <code>Streaming</code> <code>Backpressure</code></p>
-</div>
-</section>
-<section id="runtimeproxy-모듈-구현" class="level3 doc-card" data-number="2.3">
-<h3 data-number="2.3" class="anchored" data-anchor-id="runtimeproxy-모듈-구현"><span class="header-section-number">2.3</span> <a href="server/RuntimeProxyPortfolio.html">RuntimeProxy 모듈 구현</a></h3>
-<p><code>RuntimeProxy</code>를 TCP reverse proxy 선택 모듈 기준으로 분리해 설명한 문서입니다. <code>TcpProxyServer</code>, <code>ProxyBridge</code>, <code>ProxyConnector</code>, TLS/SNI 라우팅, ACME challenge, metrics snapshot, stream backpressure 정책을 다룹니다.</p>
-<div class="serve-path">
-<p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/server/RuntimeProxyPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
-</div>
-<div class="tag-row">
-<p><code>C++</code> <code>RuntimeProxy</code> <code>TCP</code> <code>TLS</code> <code>SNI</code></p>
-</div>
-</section>
-<section id="runtimegame-모듈-구현" class="level3 doc-card" data-number="2.4">
-<h3 data-number="2.4" class="anchored" data-anchor-id="runtimegame-모듈-구현"><span class="header-section-number">2.4</span> <a href="server/RuntimeGamePortfolio.html">RuntimeGame 모듈 구현</a></h3>
-<p><code>RuntimeGame</code>을 게임 서비스 앱이 아니라 packet session과 Room 실행 모듈 기준으로 분리해 설명한 문서입니다. <code>PacketSession</code>, <code>PacketBuilder</code>, <code>PlayerRegistry</code>, <code>Room</code>, <code>RoomManager</code>, <code>JobQueue</code> 기반 Room 직렬 실행을 다룹니다.</p>
-<div class="serve-path">
-<p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/server/RuntimeGamePortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
-</div>
-<div class="tag-row">
-<p><code>C++</code> <code>RuntimeGame</code> <code>PacketSession</code> <code>Room</code> <code>JobQueue</code></p>
-</div>
-</section>
-<section id="클라이언트-구현-포트폴리오" class="level3 doc-card client" data-number="2.5">
-<h3 data-number="2.5" class="anchored" data-anchor-id="클라이언트-구현-포트폴리오"><span class="header-section-number">2.5</span> <a href="client/ClientPortfolio.html">클라이언트 구현 포트폴리오</a></h3>
-<p><code>RuntimeGame</code> 기반 던전 서버와 TCP/Protobuf 패킷을 주고받는 DirectX 11 클라이언트 문서입니다. 렌더링, 씬 전환, 네트워크 처리, 게임 UI를 다룹니다.</p>
-<div class="serve-path">
-<p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/client/ClientPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
-</div>
-<div class="tag-row">
-<p><code>C++</code> <code>DirectX 11</code> <code>Protobuf</code> <code>RPG Client</code></p>
-</div>
-</section>
-<section id="홈랩-devops-포트폴리오" class="level3 doc-card devops" data-number="2.6">
-<h3 data-number="2.6" class="anchored" data-anchor-id="홈랩-devops-포트폴리오"><span class="header-section-number">2.6</span> <a href="devops/DevOpsPortfolio.html">홈랩 DevOps 포트폴리오</a></h3>
-<p>RuntimeWeb 기반 포트폴리오 서버와 관련 서비스를 컨테이너 이미지, GitOps, Argo CD, Kubernetes 경로로 배포한 내용을 정리한 문서입니다.</p>
-<div class="serve-path">
-<p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/devops/DevOpsPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
-</div>
-<div class="tag-row">
-<p><code>Kubernetes</code> <code>GitOps</code> <code>Argo CD</code> <code>GHCR</code></p>
-</div>
-</section>
-<section id="oci-oke-프로덕션-gitops" class="level3 doc-card devops" data-number="2.7">
-<h3 data-number="2.7" class="anchored" data-anchor-id="oci-oke-프로덕션-gitops"><span class="header-section-number">2.7</span> <a href="devops/OciOkeGitOpsPortfolio.html">OCI OKE 프로덕션 GitOps</a></h3>
-<p>OCI OKE를 production 클러스터로 구성하고 홈랩 k3s에서 검증한 뒤 OKE로 승격하는 GitOps 파이프라인을 정리한 문서입니다. <code>RuntimeWeb</code> 기반 <code>dropapp</code>을 <code>drop.mintcocoa.dev</code>로 공개하는 Ingress/TLS 경로, kubeconfig, 접근 권한, 관측성, 장애 대응 판단까지 포함합니다.</p>
-<div class="serve-path">
-<p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/devops/OciOkeGitOpsPortfolio.html</code></p>
-<p><code>GitHub Actions</code> → <code>GHCR image</code> → <code>Argo CD</code> → <code>OCI OKE</code></p>
-</div>
-<div class="tag-row">
-<p><code>OCI</code> <code>OKE</code> <code>GitOps</code> <code>RuntimeWeb</code> <code>Ingress</code></p>
-</div>
-</section>
-<section id="운영-관측성-구현-기록" class="level3 doc-card ops" data-number="2.8">
-<h3 data-number="2.8" class="anchored" data-anchor-id="운영-관측성-구현-기록"><span class="header-section-number">2.8</span> <a href="devops/OpsDashboard.html">운영 관측성 구현 기록</a></h3>
-<p>기존 실시간 운영 대시보드는 <code>archive/live-ops-dashboard/</code>에 백업하고, 공개 페이지에서는 Prometheus target, Kubernetes workload, Proxmox node/VM 상태를 어떤 증거로 정리했는지 설명하는 정적 문서로 교체했습니다.</p>
-<div class="serve-path">
-<p><strong>서빙 경로</strong></p>
-<p><code>docs.mintcocoa.dev/portfolio/devops/OpsDashboard.html</code></p>
-<p><code>browser</code> -&gt; <code>OKE static docs page</code> -&gt; <code>Quarto HTML document</code></p>
-</div>
-<div class="tag-row">
-<p><code>Quarto Website</code> <code>Prometheus</code> <code>Proxmox</code> <code>Archived Dashboard</code></p>
-</div>
-</section>
-</div>
-<div class="exposure-map">
-<p><strong>공개 문서 노출 경로</strong></p>
-<p><code>GitHub push</code> → <code>GitHub Actions</code> → <code>_site/</code> render → <code>GHCR image</code> → <code>Argo CD</code> → <code>https://docs.mintcocoa.dev/</code></p>
-<p>GitHub Pages mirror: <code>https://mint-cocoa.github.io/mintcocoa-docs/</code></p>
-<p><code>https://docs.mintcocoa.dev/</code>는 OCI OKE production의 canonical 문서 경로입니다. GitHub Pages는 공개 미러로 유지하며, 운영 관측성 페이지는 실시간 호출 없는 정적 Quarto 문서로 제공합니다.</p>
-</div>
-</section>
-<section id="관련-레포" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="관련-레포"><span class="header-section-number">3</span> 관련 레포</h2>
+<section id="문서-경로" class="level2">
+<h2 class="anchored" data-anchor-id="문서-경로">문서 경로</h2>
+<p>이 사이트의 canonical 경로는 <code>https://docs.mintcocoa.dev/portfolio/</code>입니다. GitHub Pages는 최신 배포 대상으로 사용하지 않고, <code>_site</code> 산출물을 컨테이너 이미지로 빌드해 OKE production에서 서빙합니다.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
-<th>레포</th>
+<th>문서</th>
+<th>공개 경로</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="servercore/">ServerCore</a></td>
+<td><code>/portfolio/servercore/</code></td>
+<td><code>io_uring</code> 기반 Core 런타임 장별 문서</td>
+</tr>
+<tr class="even">
+<td><a href="runtime-web/">RuntimeWeb</a></td>
+<td><code>/portfolio/runtime-web/</code></td>
+<td>HTTP parser, Router, streaming response, backpressure</td>
+</tr>
+<tr class="odd">
+<td><a href="runtime-proxy/">RuntimeProxy</a></td>
+<td><code>/portfolio/runtime-proxy/</code></td>
+<td>TCP reverse proxy, SNI route, TLS, stream backpressure</td>
+</tr>
+<tr class="even">
+<td><a href="runtime-game/">RuntimeGame</a></td>
+<td><code>/portfolio/runtime-game/</code></td>
+<td>packet session, Room, JobQueue, game server runtime</td>
+</tr>
+<tr class="odd">
+<td><a href="client/">Client</a></td>
+<td><code>/portfolio/client/</code></td>
+<td>DirectX 11 클라이언트와 RuntimeGame 서버 연동</td>
+</tr>
+<tr class="even">
+<td><a href="devops/">DevOps</a></td>
+<td><code>/portfolio/devops/</code></td>
+<td><code>mintcocoa-ops</code> 기준 OKE production GitOps 운영 문서</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="문서-구성의-기준" class="level2">
+<h2 class="anchored" data-anchor-id="문서-구성의-기준">문서 구성의 기준</h2>
+<p>서버 구현 문서는 Core와 선택 모듈을 분리합니다. Core는 TCP 연결, 세션 수명주기, 비동기 I/O, 버퍼, 송신 큐, timeout/backpressure를 담당하고, Web/Proxy/Game은 Core 위에서 프로토콜별 의미를 추가합니다.</p>
+<p>DevOps 문서는 <code>mintcocoa-ops</code> 원격 <code>origin/main</code>에서 확인한 구조를 기준으로 작성합니다. OKE production을 운영 기준 환경으로 두고, home k3s는 staging, 개발, 내부 도구, 복구 훈련 역할로 분리합니다. 공개 문서에는 도메인, 저장소명, 앱 이름, 커밋 해시는 남기지만 API IP, private IP, OCID, token, Secret 값은 그대로 노출하지 않습니다.</p>
+</section>
+<section id="현재-공개되는-장" class="level2">
+<h2 class="anchored" data-anchor-id="현재-공개되는-장">현재 공개되는 장</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>영역</th>
+<th>첫 문서</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ServerCore</td>
+<td><a href="servercore/chapters/01-overview.html">전체 구조</a></td>
+</tr>
+<tr class="even">
+<td>DevOps</td>
+<td><a href="devops/chapters/01-oke-production-gitops.html">OKE production GitOps 구조</a></td>
+</tr>
+<tr class="odd">
+<td>문서 배포</td>
+<td><a href="devops/chapters/03-docs-site-deployment.html">docs.mintcocoa.dev 배포 경로</a></td>
+</tr>
+<tr class="even">
+<td>관측성</td>
+<td><a href="devops/chapters/04-observability-access.html">관측성과 운영 접근 경계</a></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="관련-저장소" class="level2">
+<h2 class="anchored" data-anchor-id="관련-저장소">관련 저장소</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>저장소</th>
 <th>역할</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><a href="https://github.com/mint-cocoa/mintcocoa-docs">mintcocoa-docs</a></td>
-<td>문서 허브, 상세 포트폴리오, OKE 배포용 정적 사이트 이미지</td>
+<td>문서 허브, Quarto 렌더, OKE 배포용 정적 사이트 이미지</td>
 </tr>
 <tr class="even">
 <td><a href="https://github.com/mint-cocoa/iouring-runtime">iouring-runtime</a></td>
-<td>최신 <code>io_uring</code> Runtime, <code>RuntimeWeb</code>, <code>RuntimeProxy</code>, <code>RuntimeGame</code>, 웹/프록시/게임 예제</td>
+<td><code>RuntimeWeb</code>, <code>RuntimeProxy</code>, <code>RuntimeGame</code> 구현과 예제 앱</td>
 </tr>
 <tr class="odd">
 <td><a href="https://github.com/mint-cocoa/mintcocoa-ops">mintcocoa-ops</a></td>
-<td>OCI OKE production과 home k3s GitOps 운영 저장소</td>
+<td>OKE production과 home k3s GitOps desired state</td>
 </tr>
 <tr class="even">
-<td><a href="https://github.com/mint-cocoa/libiouring-core">libiouring-core</a></td>
-<td>통합 이전 코어 런타임 히스토리</td>
-</tr>
-<tr class="odd">
-<td><a href="https://github.com/mint-cocoa/libiouringweb">libiouringweb</a></td>
-<td>통합 이전 HTTP/web 계층 히스토리</td>
-</tr>
-<tr class="even">
-<td><a href="https://github.com/mint-cocoa/multiplayer-dungeon-rpg-server">multiplayer-dungeon-rpg-server</a></td>
-<td><code>dungeon_full_server</code>로 흡수된 멀티플레이 던전 RPG 서버 히스토리</td>
-</tr>
-<tr class="odd">
 <td><a href="https://github.com/mint-cocoa/game-client">game-client</a></td>
-<td>DirectX 11 게임 클라이언트</td>
-</tr>
-<tr class="even">
-<td><a href="https://github.com/mint-cocoa/home-k8s-gitops">home-k8s-gitops</a></td>
-<td>홈 Kubernetes desired state</td>
+<td>DirectX 11 클라이언트 구현</td>
 </tr>
 </tbody>
 </table>
@@ -293,12 +211,12 @@ ul.task-list li input[type="checkbox"] {
       // flash "checked"
       button.classList.add('code-copy-button-checked');
       var currentTitle = button.getAttribute("title");
-      button.setAttribute("title", "복사완료!");
+      button.setAttribute("title", "Copied!");
       let tooltip;
       if (window.bootstrap) {
         button.setAttribute("data-bs-toggle", "tooltip");
         button.setAttribute("data-bs-placement", "left");
-        button.setAttribute("data-bs-title", "복사완료!");
+        button.setAttribute("data-bs-title", "Copied!");
         tooltip = new bootstrap.Tooltip(button, 
           { trigger: "manual", 
             customClass: "code-copy-button-tooltip",
@@ -355,11 +273,6 @@ ul.task-list li input[type="checkbox"] {
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
-            // target, if specified
-            link.setAttribute("target", "_blank");
-            if (link.getAttribute("rel") === null) {
-              link.setAttribute("rel", "noopener");
-            }
         }
       }
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {

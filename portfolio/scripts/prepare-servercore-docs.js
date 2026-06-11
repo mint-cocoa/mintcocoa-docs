@@ -3,12 +3,13 @@ const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..");
 const contentRoot = path.join(repoRoot, "content");
-const sourceDocsDir = path.join(contentRoot, "docs");
-const sourceDiagramsDir = path.join(contentRoot, "diagrams");
-const sourceDownloadsDir = path.join(contentRoot, "downloads");
+const servercoreContentRoot = path.join(contentRoot, "servercore");
+const sourceDocsDir = path.join(servercoreContentRoot, "chapters");
+const sourceDiagramsDir = path.join(servercoreContentRoot, "diagrams");
+const sourceDownloadsDir = path.join(servercoreContentRoot, "downloads");
 const sourceCssPath = path.join(contentRoot, "portfolio.css");
 const buildDir = path.join(repoRoot, "generated-quarto");
-const buildDocsDir = path.join(buildDir, "docs");
+const buildChaptersDir = path.join(buildDir, "chapters");
 const buildDiagramsDir = path.join(buildDir, "diagrams");
 const buildDownloadsDir = path.join(buildDir, "downloads");
 const quartoOutputDir = process.env.QUARTO_OUTPUT_DIR || "../docs/servercore";
@@ -24,13 +25,6 @@ const chapterSummaries = new Map([
   ["4.concurrency-management.md", "4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명"],
   ["5.producer-consumer-backpressure.md", "5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결"],
   ["6.summary.md", "6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리"],
-  ["7.git-history-timeline.md", "7. Git 이력을 기준으로 개발 흐름과 증거 범위를 정리"],
-  ["8.servercore-start.md", "8. 초기 저장소의 ServerCore, FactionClash, SwarmDominion 증거와 이후 런타임 중심 전환"],
-  ["9.runtime-app-validation.md", "9. RuntimeWeb, RuntimeProxy, RuntimeGame으로 실제 앱 검증"],
-  ["10.live-ops-dashboard.md", "10. Proxmox, Prometheus, Kubernetes 상태를 읽는 운영 대시보드"],
-  ["11.cicd-gitops-infra.md", "11. GitHub Actions, GHCR, GitOps, Argo CD, 인프라 자동화 증거"],
-  ["12.publishing-pipeline.md", "12. Quarto와 Pages, PDF로 이어지는 문서 출판 파이프라인"],
-  ["13.whole-repo-inventory.md", "13. 첫 커밋부터 현재까지 전체 저장소를 훑은 프로젝트/문서/운영 축 정리"],
 ]);
 
 function ensureDir(dir) {
@@ -71,6 +65,15 @@ function titleFromMarkdown(markdown, fallback) {
 
 function outputStem(file) {
   return path.basename(file, path.extname(file));
+}
+
+function chapterSlug(file) {
+  const stem = outputStem(file);
+  const match = stem.match(/^(\d+)\.(.+)$/);
+  if (!match) {
+    return stem.replace(/\./g, "-");
+  }
+  return `${String(Number(match[1])).padStart(2, "0")}-${match[2].replace(/\./g, "-")}`;
 }
 
 function chapterOrder(file) {
@@ -117,7 +120,7 @@ subtitle: "io_uring 기반 프로토콜 독립 전송 런타임 설계와 구현
 order: 0
 listing:
   id: document-listing
-  contents: "docs/*.qmd"
+  contents: "chapters/*.qmd"
   type: table
   sort: "order"
   fields: [title, description]
@@ -154,7 +157,7 @@ function main() {
   }
 
   removeDir(buildDir);
-  ensureDir(buildDocsDir);
+  ensureDir(buildChaptersDir);
   copyDir(sourceDiagramsDir, buildDiagramsDir);
   copyDir(sourceDownloadsDir, buildDownloadsDir);
   fs.copyFileSync(sourceCssPath, path.join(buildDir, "portfolio.css"));
@@ -169,16 +172,17 @@ function main() {
     const sourcePath = path.join(sourceDocsDir, file);
     const markdown = fs.readFileSync(sourcePath, "utf8").trimStart();
     const stem = outputStem(file);
+    const slug = chapterSlug(file);
     const title = titleFromMarkdown(markdown, stem);
     const description = chapterSummaries.get(file) || "";
-    return { file, sourcePath, markdown, stem, title, description };
+    return { file, sourcePath, markdown, stem, slug, title, description };
   });
 
   chapters.forEach((chapter, index) => {
     const body = convertObsidianEmbeds(normalizeMarkdownForQmd(chapter.markdown));
     const numberedTitle = `${index + 1}. ${chapter.title.replace(/^\d+\.\s*/, "")}`;
     const qmd = `${frontMatter(numberedTitle, index + 1, chapter.description)}${body}\n`;
-    fs.writeFileSync(path.join(buildDocsDir, `${chapter.stem}.qmd`), qmd, "utf8");
+    fs.writeFileSync(path.join(buildChaptersDir, `${chapter.slug}.qmd`), qmd, "utf8");
   });
 
   fs.writeFileSync(path.join(buildDir, "index.qmd"), buildIndex(), "utf8");

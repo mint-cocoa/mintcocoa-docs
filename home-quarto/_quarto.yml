@@ -16,7 +16,7 @@ website:
       - text: "Portfolio"
         href: /portfolio/
       - text: "ServerCore"
-        href: /portfolio/servercore/docs/1.overview.html
+        href: /portfolio/servercore/chapters/01-overview.html
       - text: "DevOps"
         href: /portfolio/devops/
     right:

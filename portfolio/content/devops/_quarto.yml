@@ -1,0 +1,42 @@
+project:
+  type: website
+  output-dir: ../../docs/devops
+  render:
+    - index.qmd
+    - chapters/*.qmd
+  resources:
+    - assets/
+    - favicon.svg
+    - icons.svg
+
+website:
+  title: "DevOps 운영 문서"
+  page-navigation: true
+  favicon: favicon.svg
+  navbar:
+    left:
+      - text: "문서"
+        href: index.qmd
+  sidebar:
+    contents: auto
+
+format:
+  html:
+    lang: ko
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-copy: true
+    code-fold: false
+    link-external-newwindow: true
+    page-layout: article
+    css: portfolio.css
+    code-overflow: wrap
+    highlight-style: github
+    fontsize: 1em
+    linestretch: 1.6
+    grid:
+      body-width: 900px
+      margin-width: 280px
+      gutter-width: 1.5rem

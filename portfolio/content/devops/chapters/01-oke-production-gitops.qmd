@@ -1,0 +1,71 @@
+---
+title: "1. OKE production GitOps 구조"
+order: 1
+description: "mintcocoa-ops가 OKE production과 home k3s를 어떤 경계로 관리하는지 설명"
+---
+
+## 운영 기준 환경
+
+`mintcocoa-ops`의 현재 기준은 OKE production입니다. home k3s는 staging, 개발, 내부 도구, 복구 훈련에 사용할 수 있지만 production workload가 home lab availability에 의존하지 않도록 분리했습니다.
+
+이 분리는 단순한 이름 구분이 아닙니다. Argo CD root application, cluster application, workload overlay가 모두 `oke-prod`와 `home`을 별도 경로로 관리합니다. production 상태는 OKE 클러스터 안의 Argo CD가 수렴시키고, home cluster는 필요한 경우 같은 control plane에서 원격 target으로 등록됩니다.
+
+| 경계 | 역할 |
+| --- | --- |
+| `bootstrap/oke-prod-root.yaml` | OKE production root application |
+| `bootstrap/home-root.yaml` | home k3s root application |
+| `clusters/oke-prod` | production child applications |
+| `clusters/home` | home staging child applications |
+| `apps/<app>/base` | 환경 공통 workload 정의 |
+| `apps/<app>/overlays/home` | home k3s용 차이 |
+| `apps/<app>/overlays/oke-prod` | OKE production용 차이 |
+
+## Application 계층
+
+OKE production의 cluster root는 infrastructure와 workload application을 함께 참조합니다. `clusters/oke-prod/applications` 아래에는 ingress, certificate, observability, production services namespace, 앱별 workload가 분리되어 있습니다.
+
+| Application | 관리 대상 |
+| --- | --- |
+| `ingress-nginx` | public ingress controller |
+| `cert-manager` | TLS certificate automation |
+| `cluster-issuers` | `letsencrypt-prod` ClusterIssuer |
+| `prod-services-namespace` | public service namespace ownership |
+| `prod-mintcocoa-docs` | `docs.mintcocoa.dev` 문서 사이트 |
+| `prod-dropapp` | `drop.mintcocoa.dev` RuntimeWeb 앱 |
+| `observability-stack`, `loki`, `promtail`, `tempo` | metrics, logs, traces |
+| `private-ingress-nginx` | 내부용 ingress controller |
+| `private-observability-ingress` | private Grafana ingress |
+
+## desired state가 두 저장소로 나뉘는 이유
+
+애플리케이션 저장소는 이미지를 만들고, 운영 저장소는 어떤 이미지가 어떤 환경에 배포되는지를 기록합니다. `mintcocoa-docs` 저장소는 `_site`를 렌더링하고 GHCR 이미지를 만들지만, OKE production에서 그 이미지를 쓰는 최종 선언은 `mintcocoa-ops/apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml`에 남습니다.
+
+이 구조에서는 배포된 이미지 tag가 Git commit SHA와 연결됩니다. 문제가 생기면 production manifest에서 image tag를 확인하고, 해당 tag가 어떤 문서 저장소 commit에서 만들어졌는지 되짚을 수 있습니다.
+
+```text
+mintcocoa-docs push
+  -> render _site
+  -> build ghcr.io/mint-cocoa/mintcocoa-docs:<sha>
+  -> update mintcocoa-ops apps/mintcocoa-docs/overlays/oke-prod
+  -> Argo CD sync prod-mintcocoa-docs
+```
+
+## 공개 문서에서 마스킹한 값
+
+`mintcocoa-ops` 문서에는 운영자가 확인하기 위한 endpoint와 network 값이 일부 남아 있습니다. 공개 포트폴리오에서는 값 자체보다 경계를 설명하는 것이 목적이므로 아래 값은 원문 그대로 노출하지 않습니다.
+
+| 값 종류 | 공개 문서 처리 |
+| --- | --- |
+| Kubernetes API IP | private/public endpoint 역할만 설명 |
+| private subnet IP | WireGuard와 private ingress 경계만 설명 |
+| OCID | 사용하지 않음 |
+| token, kubeconfig, Secret value | 사용하지 않음 |
+| 도메인, 앱 이름, 커밋 해시 | 검증 식별자로 사용 |
+
+## 확인 명령
+
+```bash
+git -C /home/cocoa/mintcocoa-ops show origin/main:README.md
+find /home/cocoa/mintcocoa-ops/apps /home/cocoa/mintcocoa-ops/clusters /home/cocoa/mintcocoa-ops/infrastructure -maxdepth 3 -type f
+git -C /home/cocoa/mintcocoa-ops show origin/main:clusters/oke-prod/kustomization.yaml
+```

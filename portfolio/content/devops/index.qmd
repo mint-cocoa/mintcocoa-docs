@@ -1,0 +1,49 @@
+---
+title: "DevOps 운영 문서"
+subtitle: "mintcocoa-ops 원격 HEAD 기준 OKE production GitOps 구조"
+author: "배진후"
+listing:
+  id: document-listing
+  contents: "chapters/*.qmd"
+  type: table
+  sort: "order"
+  fields: [title, description]
+  field-links: [title]
+  table-hover: true
+  filter-ui: [title, description]
+  sort-ui: false
+  page-size: 20
+  field-display-names:
+    title: "문서"
+    description: "내용"
+---
+
+## 문서 구성
+
+이 문서는 `mintcocoa-ops` 저장소의 `origin/main`에서 확인한 운영 구조를 기준으로 정리했습니다. 홈랩 Kubernetes 실험을 그대로 production으로 부르는 대신, OKE production과 home k3s의 역할을 분리하고, GitOps 저장소가 어떤 desired state를 관리하는지 장별로 나눕니다.
+
+::: {#document-listing}
+:::
+
+## 공개 범위
+
+공개 문서에는 도메인, 저장소명, 앱 이름, 커밋 해시처럼 검증에 필요한 식별자는 남깁니다. 반면 Kubernetes API IP, private IP, OCID, token, Secret 값은 그대로 싣지 않고 역할과 경계만 설명합니다.
+
+## 기준 근거
+
+| 근거 | 확인한 내용 |
+| --- | --- |
+| `mintcocoa-ops` `origin/main` | OKE production GitOps, home k3s staging, Argo CD Application 구조 |
+| `mintcocoa-docs` workflow | `_site` 렌더, GHCR 이미지, `mintcocoa-ops` OKE overlay image tag 갱신 |
+| `apps/mintcocoa-docs/overlays/oke-prod` | `docs.mintcocoa.dev` Ingress와 production image tag |
+| `apps/dropapp/overlays/oke-prod` | `drop.mintcocoa.dev` Ingress, OKE 전용 seccomp patch |
+| `infrastructure/kubernetes/private-observability-ingress` | private ingress를 통한 Grafana 내부 노출 |
+
+## 확인 명령
+
+```bash
+git -C /home/cocoa/mintcocoa-ops fetch origin main --prune
+git -C /home/cocoa/mintcocoa-ops log --date=short --pretty=format:'%h %ad %s' origin/main --max-count=35
+git -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml
+git -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml
+```

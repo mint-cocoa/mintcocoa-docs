@@ -1,0 +1,200 @@
+---
+title: "RuntimeProxy 모듈 구현 포트폴리오"
+subtitle: "io_uring Runtime 위에 분리한 C++ TCP reverse proxy 계층"
+author: "배진후"
+lang: ko
+format:
+  html:
+    css: ../portfolio.css
+    code-overflow: wrap
+    highlight-style: github
+    fontsize: 1em
+    linestretch: 1.6
+    mermaid:
+      theme: neutral
+---
+
+## 핵심 요약
+
+::: {.summary-grid}
+::: {.summary-card}
+**TCP Bridge**
+
+downstream 세션과 upstream 세션을 `ProxyBridge`로 묶어 byte stream을 양방향 전달
+:::
+
+::: {.summary-card}
+**Connector**
+
+upstream connect, timeout, cancel, pending buffer flush를 `ProxyConnector`로 분리
+:::
+
+::: {.summary-card}
+**TLS/SNI**
+
+downstream TLS 종료와 SNI 기반 upstream route 선택을 proxy 모듈 안에 격리
+:::
+
+::: {.summary-card}
+**Metrics**
+
+JSON snapshot과 Prometheus textfile을 별도 writer 경로로 출력
+:::
+:::
+
+## 모듈 개요 {#sec-overview}
+
+`RuntimeProxy`는 기본 `Runtime` 위에 붙인 TCP reverse proxy 모듈입니다. HTTP request/response 객체를 만들지 않고, downstream 클라이언트와 upstream 서버 사이의 byte stream을 중계합니다. 서비스 앱인 `tcp_reverse_proxy`는 이 모듈을 실행하는 entrypoint이고, 구현 단위는 `RuntimeProxy` 라이브러리입니다.
+
+| 항목 | 내용 |
+|------|------|
+| **CMake 타깃** | `iouring_runtime_proxy::RuntimeProxy` |
+| **공개 헤더** | `include/iouring_runtime/proxy` |
+| **구현 위치** | `src/modules/proxy` |
+| **기반 타깃** | `iouring_runtime::Runtime` |
+| **외부 의존성** | `OpenSSL::SSL`, `OpenSSL::Crypto` |
+| **소비 예제** | `app/examples/proxy/tcp_reverse_proxy` |
+
+: RuntimeProxy 프로젝트 경계 {#tbl-runtime-proxy-overview}
+
+`RuntimeProxy`는 상위 프로토콜을 해석하지 않습니다. HTTP 서버 모듈과 달리 router나 request body 개념이 없고, 양쪽 TCP 세션의 수신 데이터를 반대편 send queue로 전달합니다. 이 구조는 stream proxy, 내부 서비스 라우팅, edge proxy 역할에 맞습니다.
+
+```{mermaid}
+%%| label: fig-runtime-proxy-layering
+%%| fig-cap: "RuntimeProxy와 core Runtime의 책임 분리"
+graph TD
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef proxy fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef app fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
+    Core["Runtime<br/>Worker · Listener · Session<br/>BufferPool · SendQueue · Timeout"]:::core
+    Server["TcpProxyServer<br/>workers · listener · route table"]:::proxy
+    Down["Downstream Session<br/>client side"]:::proxy
+    Connector["ProxyConnector<br/>upstream connect"]:::proxy
+    Up["Upstream Session<br/>server side"]:::proxy
+    Bridge["ProxyBridge<br/>bidirectional forwarding"]:::proxy
+    Tls["DownstreamTlsContext<br/>TLS termination · SNI"]:::proxy
+    App["tcp_reverse_proxy<br/>env config · signal/reload"]:::app
+
+    Core --> Server
+    App --> Server
+    Server --> Down
+    Server --> Connector
+    Connector --> Up
+    Down --> Bridge
+    Up --> Bridge
+    Tls --> Down
+```
+
+## 구성 요소 {#sec-components}
+
+| 구성 요소 | 공개 API / 구현 파일 | 책임 |
+|-----------|----------------------|------|
+| `TcpProxyServer` | `TcpProxyServer.h`, `TcpProxyServer.cpp`, `TcpProxyServerWorker.cpp` | listener/worker 구성, upstream route resolve, connector 관리, graceful stop, metrics |
+| `TcpProxyConfig` | `TcpProxyConfig.h` | listen/upstream, TLS, timeout, backpressure, metrics 설정 |
+| `ProxyBridge` | `ProxySessions.h`, `ProxyBridge.cpp` | downstream/upstream peer 연결, 양방향 forwarding, pending buffer, pair close |
+| Proxy sessions | `ProxySessions.cpp` | downstream peer, upstream peer, TLS peer의 recv/send 처리 |
+| `ProxyConnector` | `ProxyConnector.h`, `ProxyConnector.cpp` | nonblocking upstream connect, connect timeout, cancel, 연결 결과 callback |
+| TLS context | `DownstreamTlsContext.*` | certificate/key loading, OpenSSL context, TLS reload |
+| ACME challenge | `AcmeHttpChallengeServer.h`, `AcmeHttpChallengeServer.cpp`, `AcmeChallengeSession.*` | certbot HTTP-01 challenge 응답용 보조 listener |
+| 공통 설정 | `ProxyCommon.*` | timeout, backpressure, recv pause 정책을 세션에 적용 |
+
+: RuntimeProxy 내부 구성 {#tbl-runtime-proxy-components}
+
+## 연결 수명과 Bridge {#sec-bridge}
+
+클라이언트가 downstream listener에 접속하면 `TcpProxyServer`는 먼저 downstream proxy session을 만들고, 같은 worker의 ring 위에서 upstream connect를 시작합니다. connect가 성공하면 upstream session이 생성되고, 두 peer는 하나의 `ProxyBridge`를 공유합니다.
+
+`ProxyBridge`는 peer 두 개를 서로 알게 하는 중간 객체입니다. downstream에서 받은 bytes는 upstream으로, upstream에서 받은 bytes는 downstream으로 전달합니다. 어느 한쪽이 끊기면 pair 전체를 닫아 반쪽짜리 연결이 오래 남지 않게 합니다.
+
+```{mermaid}
+%%| label: fig-runtime-proxy-flow
+%%| fig-cap: "RuntimeProxy 연결과 forwarding 흐름"
+sequenceDiagram
+    participant C as Client
+    participant D as Downstream Session
+    participant S as TcpProxyServer
+    participant X as ProxyConnector
+    participant U as Upstream Session
+    participant B as ProxyBridge
+    participant T as Upstream Target
+
+    C->>D: connect
+    D->>S: accepted
+    S->>X: StartConnector(endpoint)
+    X->>T: nonblocking connect
+    T-->>X: connect CQE
+    X->>U: create upstream session
+    D->>B: AttachDownstream
+    U->>B: AttachUpstream
+
+    C->>D: bytes
+    D->>B: Forward(downstream, bytes)
+    B->>U: Send(bytes)
+    U->>T: upstream bytes
+
+    T-->>U: response bytes
+    U->>B: Forward(upstream, bytes)
+    B->>D: Send(bytes)
+    D-->>C: response bytes
+```
+
+upstream connect가 아직 끝나기 전에 downstream data가 들어올 수 있습니다. 이때 `ProxyBridge`는 설정된 pending buffer limit 안에서 upstream으로 보낼 데이터를 잠시 보관하고, connect 성공 후 `FlushPendingToUpstream()`으로 흘려보냅니다. limit을 넘으면 연결을 닫아 느리거나 실패한 upstream이 downstream 메모리를 무제한 점유하지 못하게 합니다.
+
+## TLS 종료와 SNI 라우팅 {#sec-tls-sni}
+
+`RuntimeProxy`는 downstream TLS 종료를 모듈 안에 포함합니다. certificate chain과 private key는 `TcpProxyConfig::DownstreamTlsOptions`로 들어오고, `DownstreamTlsContext`가 OpenSSL context를 구성합니다. 예제 entrypoint는 signal reload 요청을 받으면 `ReloadDownstreamTlsContext()`를 호출해 인증서 교체를 반영합니다.
+
+TLS 세션에서는 handshake 중 SNI hostname을 읽고, `TcpProxyServer`의 upstream route table에서 매칭되는 endpoint를 선택합니다. route가 없으면 default upstream으로 연결합니다. 이 경계 덕분에 앱은 `hostname -> upstream host:port` 정책만 설정하고, 실제 TLS handshake와 bridge 생성은 모듈이 처리합니다.
+
+| 기능 | 구현 기준 |
+|------|-----------|
+| TLS context 생성 | `SSL_CTX_new(TLS_server_method())`, certificate/key load, TLS 1.2 이상 |
+| SNI 추출 | `SSL_get_servername(..., TLSEXT_NAMETYPE_host_name)` |
+| route 선택 | normalized hostname과 configured route 비교 |
+| reload | 기존 listener 유지, downstream TLS context만 재로드 |
+
+: RuntimeProxy TLS/SNI 처리 범위 {#tbl-runtime-proxy-tls}
+
+## Timeout, Backpressure, Shutdown {#sec-policy}
+
+Proxy 모듈은 Web 모듈처럼 코어 `Session`의 timeout/backpressure 기능을 설정으로 노출합니다. 차이는 HTTP request 단위가 아니라 stream 연결 단위로 동작한다는 점입니다.
+
+| 설정 영역 | 대표 필드 | 의미 |
+|-----------|-----------|------|
+| listen/upstream | `listen_host`, `listen_port`, `upstream_host`, `upstream_port`, `upstream_routes` | 기본 upstream과 SNI/hostname route |
+| worker/ring | worker 수, queue depth, provided buffer 설정 | listener와 session worker 구성 |
+| timeout | inactivity timeout, connect timeout | idle 연결과 upstream 연결 지연 제한 |
+| backpressure | send queue watermark, paused recv byte limit, disconnect delay | 한쪽 peer가 느릴 때 반대편 recv를 멈추거나 pair close |
+| shutdown | drain timeout, force close timeout | stop 시 연결 drain과 강제 정리 |
+
+: RuntimeProxy 운영 설정 {#tbl-runtime-proxy-config}
+
+backpressure는 proxy에서 특히 중요합니다. upstream이 느린데 downstream에서 계속 데이터가 들어오면 proxy가 중간 버퍼처럼 커질 수 있습니다. `ProxyBridge`와 peer session은 send queue watermark를 보고 반대편 recv를 pause하거나, 오래 지속되면 연결 쌍을 닫습니다. 이 정책은 core `Session`의 send queue와 paused recv queue 위에서 동작합니다.
+
+## Metrics와 운영 표면 {#sec-metrics}
+
+`TcpProxyServer`는 런타임 상태를 JSON snapshot과 Prometheus textfile 형태로 출력합니다. worker 수, live session/connector 수, route 설정, TLS 상태, upstream connect result, backpressure transition 같은 값을 별도 metrics writer thread가 주기적으로 파일에 씁니다.
+
+이 방식은 proxy 자체가 HTTP metrics endpoint를 열지 않아도, `status_server`나 node exporter textfile collector가 파일을 읽어 운영 화면에 붙일 수 있다는 장점이 있습니다. 실제 저장소의 `status_server`는 `/run/iouring-runtime/tcp_reverse_proxy.metrics.json`을 읽어 proxy 상태를 표시하는 소비자 역할을 합니다.
+
+## 소비 앱의 역할 {#sec-consumers}
+
+`tcp_reverse_proxy` 예제 앱은 `RuntimeProxy`를 실행하는 entrypoint입니다. 환경 변수에서 listen 주소, upstream, route file, TLS certificate/key, metrics path, backpressure 설정을 읽고 `TcpProxyServer`와 `AcmeHttpChallengeServer`를 실행합니다.
+
+| 소비 앱 | 사용하는 RuntimeProxy 범위 |
+|---------|----------------------------|
+| `tcp_reverse_proxy` | downstream listener, upstream connect, bidirectional bridge, TLS/SNI route, ACME challenge, metrics writer, reload signal |
+
+: RuntimeProxy 소비 앱과 사용 범위 {#tbl-runtime-proxy-consumers}
+
+## 본문 문서와의 관계 {#sec-related}
+
+이 문서는 서버 런타임 본문에서 분리한 Proxy 모듈 상세 설명입니다. 코어 `io_uring` 엔진, 세션 수명관리, provided buffer, `MSG_RING`, 벤치마크는 본문 문서에서 다룹니다.
+
+::: {.next-docs}
+[서버 런타임 구현 포트폴리오](/portfolio/servercore/chapters/01-overview.html) ·
+[RuntimeWeb 모듈 구현](/portfolio/runtime-web/) ·
+[RuntimeGame 모듈 구현](/portfolio/runtime-game/) ·
+[포트폴리오 문서 인덱스](/portfolio/)
+:::

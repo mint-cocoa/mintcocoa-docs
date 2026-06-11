@@ -1,0 +1,70 @@
+---
+title: "2. home에서 OKE로 승격하는 배포 경계"
+order: 2
+description: "base/overlay 구조와 수동 promotion workflow가 맡는 책임"
+---
+
+## 같은 workload를 두 환경에 배치하는 방식
+
+`mintcocoa-ops`는 home k3s와 OKE production을 같은 manifest로 직접 공유하지 않습니다. 공통 부분은 `apps/<app>/base`에 두고, 환경별 차이는 overlay에서 관리합니다.
+
+```text
+apps/<app>/base
+  -> apps/<app>/overlays/home
+  -> apps/<app>/overlays/oke-prod
+```
+
+이 구조의 목적은 home에서 먼저 실행해 볼 수 있는 workload와 production에 공개되는 workload를 같은 앱으로 묶되, 노출 방식과 리소스 정책을 섞지 않는 것입니다.
+
+| 앱 | home overlay | OKE production overlay |
+| --- | --- | --- |
+| `whoami` | NodePort proof service | ClusterIP proof service |
+| `dropapp` | home 검증용 NodePort | public Ingress와 TLS |
+| `mintcocoa-docs` | 없음 | `docs.mintcocoa.dev` production site |
+
+## promotion workflow
+
+production 반영은 `Promote home overlay to OKE` workflow로 분리되어 있습니다. 이 workflow는 app 이름과 image reference를 입력받아 OKE overlay의 image name/tag를 바꾸고, 변경 commit을 push합니다.
+
+| 단계 | 처리 |
+| --- | --- |
+| 입력 | `app`, `image` |
+| 검증 | `apps/<app>/overlays/home`, `apps/<app>/overlays/oke-prod` 존재 확인 |
+| 변경 | `apps/<app>/overlays/oke-prod/kustomization.yaml`의 `newName`, `newTag` 갱신 |
+| 기록 | `Promote <app> to <image>` commit 생성 |
+
+자동 배포가 모든 환경을 바로 바꾸는 방식이 아니라, home 검증과 OKE 승격 사이에 명시적인 Git commit을 남기는 방식입니다.
+
+## dropapp에서 확인되는 환경 차이
+
+`dropapp`은 C++ `RuntimeWeb` 기반 파일 전송 앱입니다. base에는 Deployment, Service, ConfigMap이 있고, home과 OKE overlay가 노출 경계를 다르게 둡니다.
+
+| 항목 | home | OKE production |
+| --- | --- | --- |
+| namespace | `home-services` | `prod-services` |
+| 외부 노출 | NodePort | ingress-nginx |
+| 공개 도메인 | 없음 | `drop.mintcocoa.dev` |
+| TLS | 없음 | `letsencrypt-prod` ClusterIssuer |
+| OKE 전용 patch | 없음 | `seccompProfile: Unconfined` |
+
+OKE overlay에 `seccomp-patch.yaml`이 있는 이유는 production node의 kernel/seccomp 조건에서 `io_uring` setup을 허용해야 했기 때문입니다. 이 차이는 앱 코드가 아니라 OKE 실행 환경에 붙은 운영 제약이므로 overlay patch에만 남깁니다.
+
+## 검증 workflow
+
+`gitops-validate.yml`은 cluster root와 app overlay를 렌더링합니다. 이 검증은 실제 cluster에 apply하지 않고, GitOps desired state가 kustomize 단계에서 깨지지 않는지 확인하는 역할입니다.
+
+| 검증 대상 | 예시 |
+| --- | --- |
+| cluster root | `clusters/home`, `clusters/oke-prod` |
+| app overlay | `apps/whoami/overlays/*`, `apps/dropapp/overlays/*`, `apps/mintcocoa-docs/overlays/oke-prod` |
+| shared infrastructure | `cluster-issuers`, `grafana-datasources` |
+| 민감정보 패턴 | private key, token, OCI key pattern |
+
+## 확인 명령
+
+```bash
+git -C /home/cocoa/mintcocoa-ops show origin/main:.github/workflows/gitops-validate.yml
+git -C /home/cocoa/mintcocoa-ops show origin/main:.github/workflows/promote-home-to-oke.yml
+git -C /home/cocoa/mintcocoa-ops show origin/main:apps/dropapp/overlays/oke-prod/kustomization.yaml
+git -C /home/cocoa/mintcocoa-ops show origin/main:apps/dropapp/overlays/oke-prod/seccomp-patch.yaml
+```

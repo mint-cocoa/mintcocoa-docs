@@ -29,7 +29,7 @@ echo "==> Render portfolio documents"
 (
   cd "$repo_root/portfolio"
   bash scripts/render-docs.sh
-  bash scripts/build-pages-site.sh
+  bash scripts/build-portfolio-site.sh
 )
 mkdir -p "$site_dir/portfolio"
 cp -a "$repo_root/portfolio/_site/." "$site_dir/portfolio/"
@@ -39,18 +39,22 @@ touch "$site_dir/.nojekyll"
 echo "==> Verify expected paths"
 test -f "$site_dir/index.html"
 test -f "$site_dir/portfolio/index.html"
-test -f "$site_dir/portfolio/server/ServerCorePortfolio.html"
 test -f "$site_dir/portfolio/servercore/index.html"
-test -f "$site_dir/portfolio/servercore/docs/1.overview.html"
-test -f "$site_dir/portfolio/servercore/docs/11.cicd-gitops-infra.html"
-test -f "$site_dir/portfolio/server/RuntimeWebPortfolio.html"
-test -f "$site_dir/portfolio/server/RuntimeProxyPortfolio.html"
-test -f "$site_dir/portfolio/server/RuntimeGamePortfolio.html"
-test -f "$site_dir/portfolio/client/ClientPortfolio.html"
+test -f "$site_dir/portfolio/servercore/chapters/01-overview.html"
+test -f "$site_dir/portfolio/servercore/chapters/06-summary.html"
+test ! -f "$site_dir/portfolio/servercore/chapters/07-git-history-timeline.html"
+test -f "$site_dir/portfolio/runtime-web/index.html"
+test -f "$site_dir/portfolio/runtime-proxy/index.html"
+test -f "$site_dir/portfolio/runtime-game/index.html"
+test -f "$site_dir/portfolio/client/index.html"
 test -f "$site_dir/portfolio/devops/index.html"
-test -f "$site_dir/portfolio/devops/DevOpsPortfolio.html"
-test -f "$site_dir/portfolio/devops/OciOkeGitOpsPortfolio.html"
-test -f "$site_dir/portfolio/devops/OpsDashboard.html"
+test -f "$site_dir/portfolio/devops/chapters/01-oke-production-gitops.html"
+test -f "$site_dir/portfolio/devops/chapters/03-docs-site-deployment.html"
+
+test ! -d "$site_dir/portfolio/server"
+test ! -d "$site_dir/portfolio/servercore/docs"
+test ! -f "$site_dir/portfolio/devops/DevOpsPortfolio.html"
+test ! -f "$site_dir/portfolio/client/ClientPortfolio.html"
 
 if find "$site_dir" -type f \( -name '*.qmd' -o -name '*.md' \) | grep -q .; then
   echo "source markdown files leaked into _site" >&2

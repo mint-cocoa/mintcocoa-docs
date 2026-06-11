@@ -8,7 +8,7 @@
 
 <meta name="author" content="배진후">
 
-<title>DevOps 운영 포트폴리오</title>
+<title>DevOps 운영 문서</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,6 +23,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -77,20 +112,20 @@ ul.task-list li input[type="checkbox"] {
 <script>
 
   window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
+    const listingTargetEl = window.document.querySelector('#listing-document-listing .list');
     if (!listingTargetEl) {
       // No listing discovered, do not attach.
       return;
     }
 
     const options = {
-      valueNames: ['listing-title','listing-author','listing-subtitle','listing-image','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      valueNames: ['listing-title','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
 
-      searchColumns: ["listing-title","listing-author","listing-subtitle","listing-image","listing-description"],
+      searchColumns: ["listing-title","listing-description"],
     };
 
     window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
+    window['quarto-listings']['listing-document-listing'] = new List('listing-document-listing', options);
 
     if (window['quarto-listing-loaded']) {
       window['quarto-listing-loaded']();
@@ -145,7 +180,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">DevOps 운영 포트폴리오</span>
+    <span class="navbar-title">DevOps 운영 문서</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="검색"></div>
@@ -169,7 +204,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="사이드바 전환" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">DevOps 운영 포트폴리오</li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">DevOps 운영 문서</li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="사이드바 전환" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         </a>
     </div>
@@ -181,24 +216,47 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="sidebar-menu-container">
     <ul class="list-unstyled mt-1">
-        <li class="sidebar-item">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Chapters</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="토글 섹션">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a>
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
+          <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="./DevOpsPortfolio.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">홈랩 DevOps 포트폴리오</span></a>
+  <a href="./chapters/01-oke-production-gitops.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1. OKE production GitOps 구조</span></a>
   </div>
 </li>
-        <li class="sidebar-item">
+          <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="./OciOkeGitOpsPortfolio.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">OCI OKE 프로덕션 GitOps 포트폴리오</span></a>
+  <a href="./chapters/02-home-to-oke-pipeline.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2. home에서 OKE로 승격하는 배포 경계</span></a>
   </div>
 </li>
-        <li class="sidebar-item">
+          <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="./OpsDashboard.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">운영 관측성 구현 기록</span></a>
+  <a href="./chapters/03-docs-site-deployment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3. docs.mintcocoa.dev 배포 경로</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./chapters/04-observability-access.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4. 관측성과 운영 접근 경계</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./chapters/05-git-history-evidence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5. Git 이력으로 확인한 운영 구조 변화</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -210,7 +268,9 @@ window.Quarto = {
 
   <ul>
   <li><a href="#문서-구성" id="toc-문서-구성" class="nav-link active" data-scroll-target="#문서-구성"><span class="header-section-number">1</span> 문서 구성</a></li>
-  <li><a href="#공개-경로" id="toc-공개-경로" class="nav-link" data-scroll-target="#공개-경로"><span class="header-section-number">2</span> 공개 경로</a></li>
+  <li><a href="#공개-범위" id="toc-공개-범위" class="nav-link" data-scroll-target="#공개-범위"><span class="header-section-number">2</span> 공개 범위</a></li>
+  <li><a href="#기준-근거" id="toc-기준-근거" class="nav-link" data-scroll-target="#기준-근거"><span class="header-section-number">3</span> 기준 근거</a></li>
+  <li><a href="#확인-명령" id="toc-확인-명령" class="nav-link" data-scroll-target="#확인-명령"><span class="header-section-number">4</span> 확인 명령</a></li>
   </ul>
 </nav>
     </div>
@@ -219,8 +279,8 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">DevOps 운영 포트폴리오</h1>
-<p class="subtitle lead">홈랩과 OKE 운영 기록을 정적 문서로 정리한 섹션</p>
+<h1 class="title">DevOps 운영 문서</h1>
+<p class="subtitle lead">mintcocoa-ops 원격 HEAD 기준 OKE production GitOps 구조</p>
 </div>
 
 
@@ -245,123 +305,143 @@ window.Quarto = {
 
 <section id="문서-구성" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="문서-구성"><span class="header-section-number">1</span> 문서 구성</h2>
-<div class="doc-grid">
-<section id="홈랩-devops-포트폴리오" class="level3 doc-card devops" data-number="1.1">
-<h3 data-number="1.1" class="anchored" data-anchor-id="홈랩-devops-포트폴리오"><span class="header-section-number">1.1</span> <a href="DevOpsPortfolio.html">홈랩 DevOps 포트폴리오</a></h3>
-<p>Proxmox, Kubernetes, GitHub Actions, GHCR, Argo CD, Ingress, storage, Prometheus/Grafana를 연결한 홈랩 운영 구조를 정리합니다.</p>
-<div class="tag-row">
-<p><code>Home Lab</code> <code>Kubernetes</code> <code>GitOps</code> <code>Observability</code></p>
+<p>이 문서는 <code>mintcocoa-ops</code> 저장소의 <code>origin/main</code>에서 확인한 운영 구조를 기준으로 정리했습니다. 홈랩 Kubernetes 실험을 그대로 production으로 부르는 대신, OKE production과 home k3s의 역할을 분리하고, GitOps 저장소가 어떤 desired state를 관리하는지 장별로 나눕니다.</p>
+<div id="listing-document-listing" class="quarto-listing quarto-listing-container-table">
+<div class="listing-actions-group">
+    <div class="input-group input-group-sm quarto-listing-filter">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" class="search form-control" placeholder="필터">
+    </div>
 </div>
-</section>
-<section id="oci-oke-프로덕션-gitops" class="level3 doc-card devops" data-number="1.2">
-<h3 data-number="1.2" class="anchored" data-anchor-id="oci-oke-프로덕션-gitops"><span class="header-section-number">1.2</span> <a href="OciOkeGitOpsPortfolio.html">OCI OKE 프로덕션 GitOps</a></h3>
-<p>홈랩 k3s에서 검증한 운영 흐름을 Oracle Kubernetes Engine production 환경으로 승격한 과정과 장애 대응 기록을 정리합니다.</p>
-<div class="tag-row">
-<p><code>OCI OKE</code> <code>Argo CD</code> <code>Ingress</code> <code>RuntimeWeb</code></p>
-</div>
-</section>
-<section id="운영-관측성-구현-기록" class="level3 doc-card ops" data-number="1.3">
-<h3 data-number="1.3" class="anchored" data-anchor-id="운영-관측성-구현-기록"><span class="header-section-number">1.3</span> <a href="OpsDashboard.html">운영 관측성 구현 기록</a></h3>
-<p>기존 실시간 운영 대시보드는 백업하고 공개 페이지에서는 정적 문서로 교체했습니다. 이 문서는 어떤 상태를 읽고 어떤 운영 증거로 정리했는지 설명합니다.</p>
-<div class="tag-row">
-<p><code>Archived UI</code> <code>Prometheus</code> <code>Proxmox</code> <code>Evidence</code></p>
-</div>
-</section>
-</div>
-</section>
-<section id="공개-경로" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="공개-경로"><span class="header-section-number">2</span> 공개 경로</h2>
-<div class="exposure-map">
-<p><strong>공개 문서 노출 경로</strong></p>
-<p><code>GitHub push</code> -&gt; <code>GitHub Actions</code> -&gt; <code>_site/</code> render -&gt; <code>GHCR image</code> -&gt; <code>Argo CD</code> -&gt; <code>https://docs.mintcocoa.dev/</code></p>
-<p>GitHub Pages mirror: <code>https://mint-cocoa.github.io/mintcocoa-docs/</code></p>
-<p>이 섹션은 실시간 운영 UI가 아니라 정적 포트폴리오 문서입니다. 과거 대시보드 소스와 산출물은 <code>archive/live-ops-dashboard/</code>에 보존합니다.</p>
-</div>
+<table class="quarto-listing-table table table-hover">
+<thead>
+<tr>
 
+<th>
+문서
+</th>
 
+<th>
+내용
+</th>
 
-</section>
+</tr>
+</thead>
+<tbody class="list">
 
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-listing-file-modified-sort="1781149760471" data-listing-reading-time-sort="4" data-listing-word-count-sort="631">
-<div class="thumbnail"><a href="./DevOpsPortfolio.html" class="no-external">
+<tr data-index="0" data-listing-file-modified-sort="1781154822309" data-listing-reading-time-sort="2" data-listing-word-count-sort="379" data-listing-title-sort="1. OKE production GitOps 구조" onclick="href = this.querySelector('a').getAttribute('href');
+ if (href) { window.location=href ; return false; }">
+<td>
+<a href="./chapters/01-oke-production-gitops.html" class="title listing-title">1. OKE production GitOps 구조</a>
+</td>
+<td>
+<span class="listing-description">mintcocoa-ops가 OKE production과 home k3s를 어떤 경계로 관리하는지 설명</span>
+</td>
 
-<p class="card-img-top"><img loading='lazy' src="assets/argocd-applications-synced.png"  class="thumbnail-image card-img"/></p>
+</tr>
 
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./DevOpsPortfolio.html" class="no-external">홈랩 DevOps 포트폴리오</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./DevOpsPortfolio.html" class="no-external">C++ 서버 엔진 기반 서비스를 GitOps로 배포하는 홈랩 운영 구조</a>
-</div>
-<div class="delink listing-description"><a href="./DevOpsPortfolio.html" class="no-external">
-<strong>Infra</strong>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./DevOpsPortfolio.html" class="no-external">
-<div class="listing-author">
-배진후
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-listing-file-modified-sort="1781149760472" data-listing-reading-time-sort="8" data-listing-word-count-sort="1475">
-<div class="thumbnail"><a href="./OciOkeGitOpsPortfolio.html" class="no-external">
+<tr data-index="1" data-listing-file-modified-sort="1781154747108" data-listing-reading-time-sort="2" data-listing-word-count-sort="344" data-listing-title-sort="2. home에서 OKE로 승격하는 배포 경계" onclick="href = this.querySelector('a').getAttribute('href');
+ if (href) { window.location=href ; return false; }">
+<td>
+<a href="./chapters/02-home-to-oke-pipeline.html" class="title listing-title">2. home에서 OKE로 승격하는 배포 경계</a>
+</td>
+<td>
+<span class="listing-description">base/overlay 구조와 수동 promotion workflow가 맡는 책임</span>
+</td>
 
-<div class="listing-item-img-placeholder card-img-top" >&nbsp;</div>
+</tr>
 
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./OciOkeGitOpsPortfolio.html" class="no-external">OCI OKE 프로덕션 GitOps 포트폴리오</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./OciOkeGitOpsPortfolio.html" class="no-external">홈랩 k3s에서 검증하고 Oracle Kubernetes Engine으로 승격하는 운영 파이프라인</a>
-</div>
-<div class="delink listing-description"><a href="./OciOkeGitOpsPortfolio.html" class="no-external">
-<strong>Production</strong>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./OciOkeGitOpsPortfolio.html" class="no-external">
-<div class="listing-author">
-배진후
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="2" data-listing-file-modified-sort="1781149932867" data-listing-reading-time-sort="2" data-listing-word-count-sort="382">
-<div class="thumbnail"><a href="./OpsDashboard.html" class="no-external">
+<tr data-index="2" data-listing-file-modified-sort="1781154827872" data-listing-reading-time-sort="2" data-listing-word-count-sort="296" data-listing-title-sort="3. docs.mintcocoa.dev 배포 경로" onclick="href = this.querySelector('a').getAttribute('href');
+ if (href) { window.location=href ; return false; }">
+<td>
+<a href="./chapters/03-docs-site-deployment.html" class="title listing-title">3. docs.mintcocoa.dev 배포 경로</a>
+</td>
+<td>
+<span class="listing-description">mintcocoa-docs가 개인 도메인에서 서빙되기까지의 CI와 GitOps 경로</span>
+</td>
 
-<div class="listing-item-img-placeholder card-img-top" >&nbsp;</div>
+</tr>
 
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./OpsDashboard.html" class="no-external">운영 관측성 구현 기록</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./OpsDashboard.html" class="no-external">실시간 대시보드를 백업하고 정적 문서로 전환한 운영 증거 정리</a>
-</div>
-<div class="delink listing-description"><a href="./OpsDashboard.html" class="no-external">
-기존 실시간 운영 대시보드는 Prometheus, Proxmox, Kubernetes, 배포 파이프라인 상태를 브라우저에서 직접 갱신하는 React/Vite 앱이었습니다. 공개 포트폴리오에서는 실행 중인 운영 UI보다 구현 의도와 검증 증거를 안정적으로 읽을 수 있는 문서가 더 적합하다고 판단해, 대시보드…
-</a></div>
-</div>
-<div class="metadata">
-<a href="./OpsDashboard.html" class="no-external">
-<div class="listing-author">
-배진후
-</div>
-</a>
-</div>
-</div>
-</div>
+<tr data-index="3" data-listing-file-modified-sort="1781154787692" data-listing-reading-time-sort="2" data-listing-word-count-sort="345" data-listing-title-sort="4. 관측성과 운영 접근 경계" onclick="href = this.querySelector('a').getAttribute('href');
+ if (href) { window.location=href ; return false; }">
+<td>
+<a href="./chapters/04-observability-access.html" class="title listing-title">4. 관측성과 운영 접근 경계</a>
+</td>
+<td>
+<span class="listing-description">private ingress, WireGuard bastion, observability stack의 공개/비공개 경계</span>
+</td>
+
+</tr>
+
+<tr data-index="4" data-listing-file-modified-sort="1781154811744" data-listing-reading-time-sort="3" data-listing-word-count-sort="401" data-listing-title-sort="5. Git 이력으로 확인한 운영 구조 변화" onclick="href = this.querySelector('a').getAttribute('href');
+ if (href) { window.location=href ; return false; }">
+<td>
+<a href="./chapters/05-git-history-evidence.html" class="title listing-title">5. Git 이력으로 확인한 운영 구조 변화</a>
+</td>
+<td>
+<span class="listing-description">mintcocoa-ops 원격 로그에서 확인되는 production GitOps 전환 흐름</span>
+</td>
+
+</tr>
+
+</tbody>
+</table>
 <div class="listing-no-matching d-none">일치 없음</div>
-</div></main> <!-- /main -->
+</div>
+</section>
+<section id="공개-범위" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="공개-범위"><span class="header-section-number">2</span> 공개 범위</h2>
+<p>공개 문서에는 도메인, 저장소명, 앱 이름, 커밋 해시처럼 검증에 필요한 식별자는 남깁니다. 반면 Kubernetes API IP, private IP, OCID, token, Secret 값은 그대로 싣지 않고 역할과 경계만 설명합니다.</p>
+</section>
+<section id="기준-근거" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="기준-근거"><span class="header-section-number">3</span> 기준 근거</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>근거</th>
+<th>확인한 내용</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>mintcocoa-ops</code> <code>origin/main</code></td>
+<td>OKE production GitOps, home k3s staging, Argo CD Application 구조</td>
+</tr>
+<tr class="even">
+<td><code>mintcocoa-docs</code> workflow</td>
+<td><code>_site</code> 렌더, GHCR 이미지, <code>mintcocoa-ops</code> OKE overlay image tag 갱신</td>
+</tr>
+<tr class="odd">
+<td><code>apps/mintcocoa-docs/overlays/oke-prod</code></td>
+<td><code>docs.mintcocoa.dev</code> Ingress와 production image tag</td>
+</tr>
+<tr class="even">
+<td><code>apps/dropapp/overlays/oke-prod</code></td>
+<td><code>drop.mintcocoa.dev</code> Ingress, OKE 전용 seccomp patch</td>
+</tr>
+<tr class="odd">
+<td><code>infrastructure/kubernetes/private-observability-ingress</code></td>
+<td>private ingress를 통한 Grafana 내부 노출</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="확인-명령" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="확인-명령"><span class="header-section-number">4</span> 확인 명령</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops fetch origin main <span class="at">--prune</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops log <span class="at">--date</span><span class="op">=</span>short <span class="at">--pretty</span><span class="op">=</span>format:<span class="st">'%h %ad %s'</span> origin/main <span class="at">--max-count</span><span class="op">=</span>35</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+
+
+
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

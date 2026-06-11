@@ -37,7 +37,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="RuntimeProxyPortfolio_files/libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="RuntimeProxyPortfolio_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="RuntimeProxyPortfolio_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="RuntimeProxyPortfolio_files/libs/bootstrap/bootstrap-7f30639710f116130999550e0f11b8b7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="RuntimeProxyPortfolio_files/libs/bootstrap/bootstrap-97d210bb1d2cd321e6464e09e71a0b6d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <meta name="mermaid-theme" content="neutral">
 <script src="RuntimeProxyPortfolio_files/libs/quarto-diagram/mermaid.min.js"></script>
 <script src="RuntimeProxyPortfolio_files/libs/quarto-diagram/mermaid-init.js"></script>
@@ -47,26 +47,10 @@ ul.task-list li input[type="checkbox"] {
 <link rel="stylesheet" href="../portfolio.css">
 </head>
 
-<body class="quarto-light">
+<body class="fullcontent quarto-light">
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-  <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">목차</h2>
-   
-  <ul>
-  <li><a href="#핵심-요약" id="toc-핵심-요약" class="nav-link active" data-scroll-target="#핵심-요약"><span class="header-section-number">1</span> 핵심 요약</a></li>
-  <li><a href="#sec-overview" id="toc-sec-overview" class="nav-link" data-scroll-target="#sec-overview"><span class="header-section-number">2</span> 모듈 개요</a></li>
-  <li><a href="#sec-components" id="toc-sec-components" class="nav-link" data-scroll-target="#sec-components"><span class="header-section-number">3</span> 구성 요소</a></li>
-  <li><a href="#sec-bridge" id="toc-sec-bridge" class="nav-link" data-scroll-target="#sec-bridge"><span class="header-section-number">4</span> 연결 수명과 Bridge</a></li>
-  <li><a href="#sec-tls-sni" id="toc-sec-tls-sni" class="nav-link" data-scroll-target="#sec-tls-sni"><span class="header-section-number">5</span> TLS 종료와 SNI 라우팅</a></li>
-  <li><a href="#sec-policy" id="toc-sec-policy" class="nav-link" data-scroll-target="#sec-policy"><span class="header-section-number">6</span> Timeout, Backpressure, Shutdown</a></li>
-  <li><a href="#sec-metrics" id="toc-sec-metrics" class="nav-link" data-scroll-target="#sec-metrics"><span class="header-section-number">7</span> Metrics와 운영 표면</a></li>
-  <li><a href="#sec-consumers" id="toc-sec-consumers" class="nav-link" data-scroll-target="#sec-consumers"><span class="header-section-number">8</span> 소비 앱의 역할</a></li>
-  <li><a href="#sec-related" id="toc-sec-related" class="nav-link" data-scroll-target="#sec-related"><span class="header-section-number">9</span> 본문 문서와의 관계</a></li>
-  </ul>
-</nav>
-</div>
+
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -95,8 +79,8 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="핵심-요약" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="핵심-요약"><span class="header-section-number">1</span> 핵심 요약</h2>
+<section id="핵심-요약" class="level2">
+<h2 class="anchored" data-anchor-id="핵심-요약">핵심 요약</h2>
 <div class="summary-grid">
 <div class="summary-card">
 <p><strong>TCP Bridge</strong></p>
@@ -116,8 +100,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </section>
-<section id="sec-overview" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="sec-overview"><span class="header-section-number">2</span> 모듈 개요</h2>
+<section id="sec-overview" class="level2">
+<h2 class="anchored" data-anchor-id="sec-overview">모듈 개요</h2>
 <p><code>RuntimeProxy</code>는 기본 <code>Runtime</code> 위에 붙인 TCP reverse proxy 모듈입니다. HTTP request/response 객체를 만들지 않고, downstream 클라이언트와 upstream 서버 사이의 byte stream을 중계합니다. 서비스 앱인 <code>tcp_reverse_proxy</code>는 이 모듈을 실행하는 entrypoint이고, 구현 단위는 <code>RuntimeProxy</code> 라이브러리입니다.</p>
 <div id="tbl-runtime-proxy-overview" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -202,8 +186,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </section>
-<section id="sec-components" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="sec-components"><span class="header-section-number">3</span> 구성 요소</h2>
+<section id="sec-components" class="level2">
+<h2 class="anchored" data-anchor-id="sec-components">구성 요소</h2>
 <div id="tbl-runtime-proxy-components" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-proxy-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -270,8 +254,8 @@ ul.task-list li input[type="checkbox"] {
 </figure>
 </div>
 </section>
-<section id="sec-bridge" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="sec-bridge"><span class="header-section-number">4</span> 연결 수명과 Bridge</h2>
+<section id="sec-bridge" class="level2">
+<h2 class="anchored" data-anchor-id="sec-bridge">연결 수명과 Bridge</h2>
 <p>클라이언트가 downstream listener에 접속하면 <code>TcpProxyServer</code>는 먼저 downstream proxy session을 만들고, 같은 worker의 ring 위에서 upstream connect를 시작합니다. connect가 성공하면 upstream session이 생성되고, 두 peer는 하나의 <code>ProxyBridge</code>를 공유합니다.</p>
 <p><code>ProxyBridge</code>는 peer 두 개를 서로 알게 하는 중간 객체입니다. downstream에서 받은 bytes는 upstream으로, upstream에서 받은 bytes는 downstream으로 전달합니다. 어느 한쪽이 끊기면 pair 전체를 닫아 반쪽짜리 연결이 오래 남지 않게 합니다.</p>
 <div class="cell" data-layout-align="default">
@@ -319,8 +303,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p>upstream connect가 아직 끝나기 전에 downstream data가 들어올 수 있습니다. 이때 <code>ProxyBridge</code>는 설정된 pending buffer limit 안에서 upstream으로 보낼 데이터를 잠시 보관하고, connect 성공 후 <code>FlushPendingToUpstream()</code>으로 흘려보냅니다. limit을 넘으면 연결을 닫아 느리거나 실패한 upstream이 downstream 메모리를 무제한 점유하지 못하게 합니다.</p>
 </section>
-<section id="sec-tls-sni" class="level2" data-number="5">
-<h2 data-number="5" class="anchored" data-anchor-id="sec-tls-sni"><span class="header-section-number">5</span> TLS 종료와 SNI 라우팅</h2>
+<section id="sec-tls-sni" class="level2">
+<h2 class="anchored" data-anchor-id="sec-tls-sni">TLS 종료와 SNI 라우팅</h2>
 <p><code>RuntimeProxy</code>는 downstream TLS 종료를 모듈 안에 포함합니다. certificate chain과 private key는 <code>TcpProxyConfig::DownstreamTlsOptions</code>로 들어오고, <code>DownstreamTlsContext</code>가 OpenSSL context를 구성합니다. 예제 entrypoint는 signal reload 요청을 받으면 <code>ReloadDownstreamTlsContext()</code>를 호출해 인증서 교체를 반영합니다.</p>
 <p>TLS 세션에서는 handshake 중 SNI hostname을 읽고, <code>TcpProxyServer</code>의 upstream route table에서 매칭되는 endpoint를 선택합니다. route가 없으면 default upstream으로 연결합니다. 이 경계 덕분에 앱은 <code>hostname -&gt; upstream host:port</code> 정책만 설정하고, 실제 TLS handshake와 bridge 생성은 모듈이 처리합니다.</p>
 <div id="tbl-runtime-proxy-tls" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -363,8 +347,8 @@ ul.task-list li input[type="checkbox"] {
 </figure>
 </div>
 </section>
-<section id="sec-policy" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="sec-policy"><span class="header-section-number">6</span> Timeout, Backpressure, Shutdown</h2>
+<section id="sec-policy" class="level2">
+<h2 class="anchored" data-anchor-id="sec-policy">Timeout, Backpressure, Shutdown</h2>
 <p>Proxy 모듈은 Web 모듈처럼 코어 <code>Session</code>의 timeout/backpressure 기능을 설정으로 노출합니다. 차이는 HTTP request 단위가 아니라 stream 연결 단위로 동작한다는 점입니다.</p>
 <div id="tbl-runtime-proxy-config" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -418,13 +402,13 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p>backpressure는 proxy에서 특히 중요합니다. upstream이 느린데 downstream에서 계속 데이터가 들어오면 proxy가 중간 버퍼처럼 커질 수 있습니다. <code>ProxyBridge</code>와 peer session은 send queue watermark를 보고 반대편 recv를 pause하거나, 오래 지속되면 연결 쌍을 닫습니다. 이 정책은 core <code>Session</code>의 send queue와 paused recv queue 위에서 동작합니다.</p>
 </section>
-<section id="sec-metrics" class="level2" data-number="7">
-<h2 data-number="7" class="anchored" data-anchor-id="sec-metrics"><span class="header-section-number">7</span> Metrics와 운영 표면</h2>
+<section id="sec-metrics" class="level2">
+<h2 class="anchored" data-anchor-id="sec-metrics">Metrics와 운영 표면</h2>
 <p><code>TcpProxyServer</code>는 런타임 상태를 JSON snapshot과 Prometheus textfile 형태로 출력합니다. worker 수, live session/connector 수, route 설정, TLS 상태, upstream connect result, backpressure transition 같은 값을 별도 metrics writer thread가 주기적으로 파일에 씁니다.</p>
 <p>이 방식은 proxy 자체가 HTTP metrics endpoint를 열지 않아도, <code>status_server</code>나 node exporter textfile collector가 파일을 읽어 운영 화면에 붙일 수 있다는 장점이 있습니다. 실제 저장소의 <code>status_server</code>는 <code>/run/iouring-runtime/tcp_reverse_proxy.metrics.json</code>을 읽어 proxy 상태를 표시하는 소비자 역할을 합니다.</p>
 </section>
-<section id="sec-consumers" class="level2" data-number="8">
-<h2 data-number="8" class="anchored" data-anchor-id="sec-consumers"><span class="header-section-number">8</span> 소비 앱의 역할</h2>
+<section id="sec-consumers" class="level2">
+<h2 class="anchored" data-anchor-id="sec-consumers">소비 앱의 역할</h2>
 <p><code>tcp_reverse_proxy</code> 예제 앱은 <code>RuntimeProxy</code>를 실행하는 entrypoint입니다. 환경 변수에서 listen 주소, upstream, route file, TLS certificate/key, metrics path, backpressure 설정을 읽고 <code>TcpProxyServer</code>와 <code>AcmeHttpChallengeServer</code>를 실행합니다.</p>
 <div id="tbl-runtime-proxy-consumers" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -454,11 +438,11 @@ ul.task-list li input[type="checkbox"] {
 </figure>
 </div>
 </section>
-<section id="sec-related" class="level2" data-number="9">
-<h2 data-number="9" class="anchored" data-anchor-id="sec-related"><span class="header-section-number">9</span> 본문 문서와의 관계</h2>
+<section id="sec-related" class="level2">
+<h2 class="anchored" data-anchor-id="sec-related">본문 문서와의 관계</h2>
 <p>이 문서는 서버 런타임 본문에서 분리한 Proxy 모듈 상세 설명입니다. 코어 <code>io_uring</code> 엔진, 세션 수명관리, provided buffer, <code>MSG_RING</code>, 벤치마크는 본문 문서에서 다룹니다.</p>
 <div class="next-docs">
-<p><a href="./ServerCorePortfolio.html">서버 런타임 구현 포트폴리오</a> · <a href="./RuntimeWebPortfolio.html">RuntimeWeb 모듈 구현</a> · <a href="./RuntimeGamePortfolio.html">RuntimeGame 모듈 구현</a> · <a href="../index.html">포트폴리오 문서 인덱스</a></p>
+<p><a href="/portfolio/servercore/chapters/01-overview.html">서버 런타임 구현 포트폴리오</a> · <a href="/portfolio/runtime-web/">RuntimeWeb 모듈 구현</a> · <a href="/portfolio/runtime-game/">RuntimeGame 모듈 구현</a> · <a href="/portfolio/">포트폴리오 문서 인덱스</a></p>
 </div>
 </section>
 
@@ -551,11 +535,6 @@ ul.task-list li input[type="checkbox"] {
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
-            // target, if specified
-            link.setAttribute("target", "_blank");
-            if (link.getAttribute("rel") === null) {
-              link.setAttribute("rel", "noopener");
-            }
         }
       }
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {

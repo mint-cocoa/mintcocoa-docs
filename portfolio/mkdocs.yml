@@ -20,16 +20,16 @@ nav:
   - Home: index.html
   - Server:
       - Runtime 문제 해결 예시: server/server-runtime-problem-solving-example.md
-      - Server Core: servercore/docs/1.overview.html
-      - Runtime Web: server/RuntimeWebPortfolio.html
-      - Runtime Proxy: server/RuntimeProxyPortfolio.html
-      - Runtime Game: server/RuntimeGamePortfolio.html
+      - Server Core: servercore/chapters/01-overview.html
+      - Runtime Web: runtime-web/
+      - Runtime Proxy: runtime-proxy/
+      - Runtime Game: runtime-game/
   - DevOps:
-      - DevOps Portfolio: devops/DevOpsPortfolio.html
-      - OCI OKE GitOps: devops/OciOkeGitOpsPortfolio.html
+      - DevOps Portfolio: devops/
+      - OCI OKE GitOps: devops/chapters/01-oke-production-gitops.html
       - Ops Hardening Roadmap: ops-hardening-roadmap.md
   - Client:
-      - Client Portfolio: client/ClientPortfolio.html
+      - Client Portfolio: client/
 
 markdown_extensions:
   - admonition

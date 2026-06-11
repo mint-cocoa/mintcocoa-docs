@@ -1,0 +1,69 @@
+---
+title: "4. 관측성과 운영 접근 경계"
+order: 4
+description: "private ingress, WireGuard bastion, observability stack의 공개/비공개 경계"
+---
+
+## 공개 서비스와 운영 화면을 분리한 이유
+
+production cluster에는 public ingress와 private ingress가 동시에 있습니다. 외부 사용자에게 필요한 서비스는 public ingress로 열고, 운영자가 보는 Grafana는 private ingress 뒤에 둡니다.
+
+이 분리는 인증 UI를 공개 인터넷에 그대로 노출하지 않고, home LAN과 WireGuard 경로를 통해서만 운영 화면에 접근하게 만들기 위한 경계입니다.
+
+| 경로 | 역할 |
+| --- | --- |
+| public `nginx` ingress | `docs.mintcocoa.dev`, `drop.mintcocoa.dev` |
+| private `private-nginx` ingress | 내부 Grafana 접근 |
+| WireGuard bastion | home LAN에서 OKE private network로 들어가는 관리 경로 |
+| Kubernetes port-forward | private ingress 장애 시 fallback |
+
+## observability stack
+
+OKE production에는 작은 node pool에 맞춘 관측성 구성이 들어갑니다. 저장소의 현재 문서와 application 목록 기준으로 metrics, logs, traces를 나눠 설치합니다.
+
+| 구성요소 | 역할 |
+| --- | --- |
+| `metrics-server` | `kubectl top`과 기본 resource metrics |
+| `kube-prometheus-stack` | Prometheus, Grafana, Alertmanager, kube-state-metrics, node-exporter |
+| `loki` | log storage |
+| `promtail` | node log shipping |
+| `tempo` | trace ingest/query |
+| `grafana-datasources` | Loki와 Tempo datasource 연결 |
+
+production 비용과 footprint를 줄이기 위해 observability storage는 현재 ephemeral profile로 정리되어 있습니다. 이 선택은 데이터 장기 보존보다 작은 OKE 환경에서의 운영 확인을 우선한 결과입니다.
+
+## private Grafana ingress
+
+`private-observability-ingress`는 Grafana만 private ingress controller에 연결합니다. Prometheus, Loki, Tempo, Alertmanager는 Grafana 뒤의 내부 서비스로 남깁니다.
+
+| 항목 | 처리 |
+| --- | --- |
+| Grafana UI | private ingress host |
+| Prometheus API | ClusterIP, 필요 시 port-forward |
+| Loki API | ClusterIP, 필요 시 port-forward |
+| Tempo API | ClusterIP, 필요 시 port-forward |
+| Grafana admin password | Git에 저장하지 않음 |
+
+공개 문서에는 private load balancer IP와 내부 route 값을 쓰지 않습니다. 대신 public service와 internal operations surface를 분리했다는 구조만 남깁니다.
+
+## 운영 접근 방식
+
+`docs/runbooks/access.md`는 operator access를 WireGuard bastion과 OpenWrt gateway 경로로 정리합니다. 일반 운영 접근은 public Kubernetes API를 넓게 열어두는 방식이 아니라 private endpoint와 routed private network를 사용하는 방식입니다.
+
+```text
+LAN client
+  -> OpenWrt gateway
+  -> WireGuard bastion
+  -> OKE private API / private ingress
+```
+
+모바일이나 GUI client처럼 OCI CLI token exec를 실행하기 어려운 환경은 별도 ServiceAccount token을 만들 수 있지만, 공개 문서와 Git 저장소에는 token 값을 남기지 않습니다.
+
+## 확인 명령
+
+```bash
+git -C /home/cocoa/mintcocoa-ops show origin/main:docs/runbooks/access.md
+git -C /home/cocoa/mintcocoa-ops show origin/main:docs/runbooks/observability.md
+git -C /home/cocoa/mintcocoa-ops show origin/main:infrastructure/kubernetes/private-observability-ingress/grafana-ingress.yaml
+git -C /home/cocoa/mintcocoa-ops show origin/main:clusters/oke-prod/applications/private-ingress-nginx.yaml
+```

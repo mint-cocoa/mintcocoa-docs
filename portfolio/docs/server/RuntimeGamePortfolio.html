@@ -37,7 +37,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="RuntimeGamePortfolio_files/libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="RuntimeGamePortfolio_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="RuntimeGamePortfolio_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="RuntimeGamePortfolio_files/libs/bootstrap/bootstrap-7f30639710f116130999550e0f11b8b7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="RuntimeGamePortfolio_files/libs/bootstrap/bootstrap-97d210bb1d2cd321e6464e09e71a0b6d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <meta name="mermaid-theme" content="neutral">
 <script src="RuntimeGamePortfolio_files/libs/quarto-diagram/mermaid.min.js"></script>
 <script src="RuntimeGamePortfolio_files/libs/quarto-diagram/mermaid-init.js"></script>
@@ -47,26 +47,10 @@ ul.task-list li input[type="checkbox"] {
 <link rel="stylesheet" href="../portfolio.css">
 </head>
 
-<body class="quarto-light">
+<body class="fullcontent quarto-light">
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-  <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">목차</h2>
-   
-  <ul>
-  <li><a href="#핵심-요약" id="toc-핵심-요약" class="nav-link active" data-scroll-target="#핵심-요약"><span class="header-section-number">1</span> 핵심 요약</a></li>
-  <li><a href="#sec-overview" id="toc-sec-overview" class="nav-link" data-scroll-target="#sec-overview"><span class="header-section-number">2</span> 모듈 개요</a></li>
-  <li><a href="#sec-components" id="toc-sec-components" class="nav-link" data-scroll-target="#sec-components"><span class="header-section-number">3</span> 구성 요소</a></li>
-  <li><a href="#sec-packet-session" id="toc-sec-packet-session" class="nav-link" data-scroll-target="#sec-packet-session"><span class="header-section-number">4</span> PacketSession과 패킷 경계</a></li>
-  <li><a href="#sec-room-jobqueue" id="toc-sec-room-jobqueue" class="nav-link" data-scroll-target="#sec-room-jobqueue"><span class="header-section-number">5</span> Room과 JobQueue 실행 모델</a></li>
-  <li><a href="#sec-registry-manager" id="toc-sec-registry-manager" class="nav-link" data-scroll-target="#sec-registry-manager"><span class="header-section-number">6</span> PlayerRegistry와 RoomManager</a></li>
-  <li><a href="#sec-consumers" id="toc-sec-consumers" class="nav-link" data-scroll-target="#sec-consumers"><span class="header-section-number">7</span> 소비 앱의 역할</a></li>
-  <li><a href="#sec-comparison" id="toc-sec-comparison" class="nav-link" data-scroll-target="#sec-comparison"><span class="header-section-number">8</span> Web/Proxy 모듈과의 차이</a></li>
-  <li><a href="#sec-related" id="toc-sec-related" class="nav-link" data-scroll-target="#sec-related"><span class="header-section-number">9</span> 본문 문서와의 관계</a></li>
-  </ul>
-</nav>
-</div>
+
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -95,8 +79,8 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="핵심-요약" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="핵심-요약"><span class="header-section-number">1</span> 핵심 요약</h2>
+<section id="핵심-요약" class="level2">
+<h2 class="anchored" data-anchor-id="핵심-요약">핵심 요약</h2>
 <div class="summary-grid">
 <div class="summary-card">
 <p><strong>PacketSession</strong></p>
@@ -116,8 +100,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </section>
-<section id="sec-overview" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="sec-overview"><span class="header-section-number">2</span> 모듈 개요</h2>
+<section id="sec-overview" class="level2">
+<h2 class="anchored" data-anchor-id="sec-overview">모듈 개요</h2>
 <p><code>RuntimeGame</code>은 기본 <code>Runtime</code> 위에 붙인 게임 서버용 선택 모듈입니다. 게임 콘텐츠, 전투 규칙, DB, 인증, 던전 생성 전체를 포함하지 않고, 네트워크 게임 서버에서 반복되는 packet framing, player registry, room lifecycle, room job queue 실행 모델만 묶습니다.</p>
 <div id="tbl-runtime-game-overview" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -201,8 +185,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </section>
-<section id="sec-components" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="sec-components"><span class="header-section-number">3</span> 구성 요소</h2>
+<section id="sec-components" class="level2">
+<h2 class="anchored" data-anchor-id="sec-components">구성 요소</h2>
 <div id="tbl-runtime-game-components" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-game-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -267,8 +251,8 @@ ul.task-list li input[type="checkbox"] {
 </figure>
 </div>
 </section>
-<section id="sec-packet-session" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="sec-packet-session"><span class="header-section-number">4</span> PacketSession과 패킷 경계</h2>
+<section id="sec-packet-session" class="level2">
+<h2 class="anchored" data-anchor-id="sec-packet-session">PacketSession과 패킷 경계</h2>
 <p>TCP는 message boundary가 없는 stream이므로 게임 패킷은 여러 recv CQE에 나뉘어 도착할 수 있습니다. <code>PacketSession</code>은 코어 <code>Session::OnRecv()</code>에서 받은 bytes를 내부 <code>RecvBuffer</code>에 누적하고, 완전한 패킷이 만들어졌을 때만 <code>OnPacket(packet_id, payload)</code>를 호출합니다.</p>
 <p>패킷 header는 little-endian <code>uint16</code> 두 개입니다.</p>
 <div id="tbl-runtime-game-packet" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -343,8 +327,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p><code>PacketBuilder</code>는 반대 방향을 담당합니다. payload 크기와 message id를 받아 header를 붙이고, 코어 <code>BufferPool</code>에서 할당한 send buffer에 기록합니다. 그래서 소비 앱은 protobuf message를 직렬화한 뒤 <code>SendPacket()</code>을 호출하면 되고, send queue와 partial send 처리는 코어 <code>Session</code>에 남습니다.</p>
 </section>
-<section id="sec-room-jobqueue" class="level2" data-number="5">
-<h2 data-number="5" class="anchored" data-anchor-id="sec-room-jobqueue"><span class="header-section-number">5</span> Room과 JobQueue 실행 모델</h2>
+<section id="sec-room-jobqueue" class="level2">
+<h2 class="anchored" data-anchor-id="sec-room-jobqueue">Room과 JobQueue 실행 모델</h2>
 <p><code>Room</code>은 <code>RoomLike</code>이면서 코어 <code>JobQueue</code>를 상속합니다. 이 설계의 목적은 Room 내부 게임 상태를 여러 worker가 동시에 만지지 않도록 하는 것입니다. 외부 세션이 패킷을 받으면 Room에 job을 push하고, 실제 게임 로직은 <code>GlobalQueue</code>에서 꺼내진 Room job queue가 직렬로 실행합니다.</p>
 <p>Room이 <code>JobQueue</code> 위에 있기 때문에 얻는 효과는 세 가지입니다.</p>
 <ul>
@@ -386,8 +370,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p><code>RuntimeGame</code>의 <code>Room</code>은 구체적인 전투나 던전 규칙을 알지 않습니다. player add/remove, packet enqueue, Room id/name 같은 실행 단위만 제공합니다. <code>dungeon_full_server</code>는 이 Room을 상속하거나 감싸서 던전 생성, projectile, combat, chat, party 같은 도메인 기능을 얹습니다.</p>
 </section>
-<section id="sec-registry-manager" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="sec-registry-manager"><span class="header-section-number">6</span> PlayerRegistry와 RoomManager</h2>
+<section id="sec-registry-manager" class="level2">
+<h2 class="anchored" data-anchor-id="sec-registry-manager">PlayerRegistry와 RoomManager</h2>
 <p><code>PlayerRegistry</code>는 player가 어느 Room에 속하는지, 어떤 RoomLike와 연결되는지 추적하는 작은 registry입니다. <code>RoomManager</code>는 <code>GlobalQueue</code>를 받아 Room을 만들고, id 기준 검색과 목록 조회를 제공합니다.</p>
 <div id="tbl-runtime-game-registry" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -426,8 +410,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p>이 계층은 게임 서버의 lobby, room list, matchmaking, instance dungeon 같은 구조를 만들 때 반복되는 최소 상태입니다. DB나 인증 결과를 직접 저장하지 않고, 네트워크 세션과 Room 실행 단위를 이어주는 runtime-side registry로만 남겼습니다.</p>
 </section>
-<section id="sec-consumers" class="level2" data-number="7">
-<h2 data-number="7" class="anchored" data-anchor-id="sec-consumers"><span class="header-section-number">7</span> 소비 앱의 역할</h2>
+<section id="sec-consumers" class="level2">
+<h2 class="anchored" data-anchor-id="sec-consumers">소비 앱의 역할</h2>
 <p><code>RuntimeGame</code>의 소비 앱은 packet/room 경계를 사용하는 예제입니다.</p>
 <div id="tbl-runtime-game-consumers" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -466,8 +450,8 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p><code>dungeon_full_server</code>에는 인증, 캐릭터, Room 생성/입장, 절차적 던전, 전투, 투사체, 채팅, 파티, 인벤토리 일부, SQLite/Memory DB 백엔드가 들어 있습니다. 하지만 포트폴리오에서 <code>RuntimeGame</code> 구현으로 설명할 부분은 이 도메인 기능 전체가 아니라, 이 기능들이 공통으로 올라탄 packet session과 Room job queue 경계입니다.</p>
 </section>
-<section id="sec-comparison" class="level2" data-number="8">
-<h2 data-number="8" class="anchored" data-anchor-id="sec-comparison"><span class="header-section-number">8</span> Web/Proxy 모듈과의 차이</h2>
+<section id="sec-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="sec-comparison">Web/Proxy 모듈과의 차이</h2>
 <p>세 선택 모듈은 모두 기본 <code>Runtime</code> 위에 올라가지만, 추상화하는 프로토콜 경계가 다릅니다.</p>
 <div id="tbl-runtime-game-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -511,11 +495,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p>이 비교가 중요한 이유는 코어 <code>Runtime</code>이 특정 앱 형태로 굳지 않았다는 점을 보여주기 때문입니다. 같은 accept/recv/send/session lifecycle 위에서 HTTP 서버, TCP proxy, packet game server가 서로 다른 모듈로 분리됩니다.</p>
 </section>
-<section id="sec-related" class="level2" data-number="9">
-<h2 data-number="9" class="anchored" data-anchor-id="sec-related"><span class="header-section-number">9</span> 본문 문서와의 관계</h2>
+<section id="sec-related" class="level2">
+<h2 class="anchored" data-anchor-id="sec-related">본문 문서와의 관계</h2>
 <p>이 문서는 서버 런타임 본문에서 분리한 Game 모듈 상세 설명입니다. 코어 <code>io_uring</code> 엔진, 세션 수명관리, <code>GlobalQueue</code>와 <code>JobQueue</code> 자체의 구현, 벤치마크는 본문 문서에서 다룹니다.</p>
 <div class="next-docs">
-<p><a href="./ServerCorePortfolio.html">서버 런타임 구현 포트폴리오</a> · <a href="./RuntimeWebPortfolio.html">RuntimeWeb 모듈 구현</a> · <a href="./RuntimeProxyPortfolio.html">RuntimeProxy 모듈 구현</a> · <a href="../index.html">포트폴리오 문서 인덱스</a></p>
+<p><a href="/portfolio/servercore/chapters/01-overview.html">서버 런타임 구현 포트폴리오</a> · <a href="/portfolio/runtime-web/">RuntimeWeb 모듈 구현</a> · <a href="/portfolio/runtime-proxy/">RuntimeProxy 모듈 구현</a> · <a href="/portfolio/">포트폴리오 문서 인덱스</a></p>
 </div>
 </section>
 
@@ -608,11 +592,6 @@ ul.task-list li input[type="checkbox"] {
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
-            // target, if specified
-            link.setAttribute("target", "_blank");
-            if (link.getAttribute("rel") === null) {
-              link.setAttribute("rel", "noopener");
-            }
         }
       }
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {

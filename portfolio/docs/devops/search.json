@@ -1,397 +1,409 @@
 [
   {
-    "objectID": "DevOpsPortfolio.html",
-    "href": "DevOpsPortfolio.html",
-    "title": "홈랩 DevOps 포트폴리오",
+    "objectID": "chapters/05-git-history-evidence.html",
+    "href": "chapters/05-git-history-evidence.html",
+    "title": "5. Git 이력으로 확인한 운영 구조 변화",
     "section": "",
-    "text": "Infra\nNAS, Mini PC, Proxmox VM을 묶어 Kubernetes 기반 홈랩 운영 환경 구성\n\n\nDelivery\nGitHub Actions, GHCR, GitOps, Argo CD로 commit 기반 배포 흐름 구성\n\n\nC++ Edge\nRuntimeWeb 기반 정적 파일 서버와 reverse proxy 경로 구성\n\n\nOperate\n개인 도메인, Ingress, Prometheus/Grafana, NFS storage까지 연결",
+    "text": "이 장은 mintcocoa-ops 원격 origin/main의 Git 로그를 근거로 작성했습니다. 로컬 작업트리는 원격보다 뒤에 있을 수 있으므로, 문서 작성 기준은 fetch 이후의 origin/main입니다.\ngit -C /home/cocoa/mintcocoa-ops fetch origin main --prune\ngit -C /home/cocoa/mintcocoa-ops log --date=short --pretty=format:'%h %ad %s' origin/main --max-count=35",
     "crumbs": [
       "문서",
-      "홈랩 DevOps 포트폴리오"
+      "Chapters",
+      "5. Git 이력으로 확인한 운영 구조 변화"
     ]
   },
   {
-    "objectID": "DevOpsPortfolio.html#핵심-요약",
-    "href": "DevOpsPortfolio.html#핵심-요약",
-    "title": "홈랩 DevOps 포트폴리오",
+    "objectID": "chapters/05-git-history-evidence.html#확인한-기준",
+    "href": "chapters/05-git-history-evidence.html#확인한-기준",
+    "title": "5. Git 이력으로 확인한 운영 구조 변화",
     "section": "",
-    "text": "Infra\nNAS, Mini PC, Proxmox VM을 묶어 Kubernetes 기반 홈랩 운영 환경 구성\n\n\nDelivery\nGitHub Actions, GHCR, GitOps, Argo CD로 commit 기반 배포 흐름 구성\n\n\nC++ Edge\nRuntimeWeb 기반 정적 파일 서버와 reverse proxy 경로 구성\n\n\nOperate\n개인 도메인, Ingress, Prometheus/Grafana, NFS storage까지 연결",
+    "text": "이 장은 mintcocoa-ops 원격 origin/main의 Git 로그를 근거로 작성했습니다. 로컬 작업트리는 원격보다 뒤에 있을 수 있으므로, 문서 작성 기준은 fetch 이후의 origin/main입니다.\ngit -C /home/cocoa/mintcocoa-ops fetch origin main --prune\ngit -C /home/cocoa/mintcocoa-ops log --date=short --pretty=format:'%h %ad %s' origin/main --max-count=35",
     "crumbs": [
       "문서",
-      "홈랩 DevOps 포트폴리오"
+      "Chapters",
+      "5. Git 이력으로 확인한 운영 구조 변화"
     ]
   },
   {
-    "objectID": "DevOpsPortfolio.html#개요",
-    "href": "DevOpsPortfolio.html#개요",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "2 개요",
-    "text": "2 개요\n이 문서는 C++ io_uring Runtime 기반 서비스를 홈랩 Kubernetes 환경에 배포한 내용을 정리한 문서입니다. 컨테이너 이미지 빌드, GitOps 배포, Kubernetes Ingress, persistent storage, 관측성 경로를 다룹니다.\n현재 공개 포트폴리오의 기준 경로는 GitHub Pages이고, portfolio.mintcocoa.cc는 같은 산출물을 홈랩 Kubernetes와 C++ RuntimeWeb 컨테이너를 통해 서빙하는 미러 경로입니다.\n\n\n\n항목\n구성\n\n\n\n\n애플리케이션 이미지\nGHCR\n\n\n배포 제어\nGitHub Actions + GitOps + Argo CD\n\n\n실행 환경\nProxmox VM 기반 Kubernetes cluster\n\n\n외부 노출\ningress-nginx + MetalLB + 개인 도메인\n\n\n저장소\nNAS/NFS 기반 dynamic provisioning\n\n\n관측성\nPrometheus + Grafana lightweight profile",
+    "objectID": "chapters/05-git-history-evidence.html#주요-전환점",
+    "href": "chapters/05-git-history-evidence.html#주요-전환점",
+    "title": "5. Git 이력으로 확인한 운영 구조 변화",
+    "section": "2 주요 전환점",
+    "text": "2 주요 전환점\n\n\n\n\n\n\n\n\n날짜\n커밋\n확인한 내용\n\n\n\n\n2026-06-10\n85018d9\n기존 cloud/home ops repo를 OKE production GitOps 중심으로 재작성\n\n\n2026-06-10\n42d1762\nhome k3s에서 OKE로 승격하는 GitOps pipeline 추가\n\n\n2026-06-10\n5a0a12d\ndropapp base, home overlay, OKE overlay, Ingress, cert-manager 경로 추가\n\n\n2026-06-10\n03adb83\nmintcocoa-docs OKE GitOps app 추가\n\n\n2026-06-10\n9e7cc0b\nOCI OKE resources를 OpenTofu로 채택\n\n\n2026-06-11\n224261d\nOKE 관리를 위한 WireGuard bastion 추가\n\n\n2026-06-11\nffe5619\nprivate ingress를 통한 Grafana 경로 추가\n\n\n2026-06-11\n10100ad\nprivate Grafana host 이름 정리\n\n\n2026-06-11\nc8c64c0\nmintcocoa-docs production image tag를 최신 문서 commit으로 승격",
     "crumbs": [
       "문서",
-      "홈랩 DevOps 포트폴리오"
+      "Chapters",
+      "5. Git 이력으로 확인한 운영 구조 변화"
     ]
   },
   {
-    "objectID": "DevOpsPortfolio.html#전체-구조",
-    "href": "DevOpsPortfolio.html#전체-구조",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "3 전체 구조",
-    "text": "3 전체 구조\n\n\n\n\n\nflowchart LR\n    Dev[Developer PC] --&gt; GitHub[GitHub push]\n    GitHub --&gt; Actions[GitHub Actions]\n    Actions --&gt; GHCR[GHCR image]\n    Actions --&gt; GitOps[GitOps values update]\n    GitOps --&gt; Argo[Argo CD sync]\n    Argo --&gt; K8s[Kubernetes workload]\n    K8s --&gt; Ingress[ingress-nginx + MetalLB]\n    Ingress --&gt; Domain[portfolio.mintcocoa.cc]\n\n\n\n\n\n\n운영 흐름은 애플리케이션 코드와 운영 매니페스트를 분리했습니다. 앱 저장소에서 이미지를 만들고, GitOps 저장소의 image tag만 갱신하면 Argo CD가 클러스터 상태를 맞추는 구조입니다. 실행 중인 이미지 tag가 Git commit SHA와 연결되므로 문제가 생겼을 때 어떤 코드가 배포되어 있는지 추적할 수 있습니다.",
+    "objectID": "chapters/05-git-history-evidence.html#재작성-커밋의-의미",
+    "href": "chapters/05-git-history-evidence.html#재작성-커밋의-의미",
+    "title": "5. Git 이력으로 확인한 운영 구조 변화",
+    "section": "3 재작성 커밋의 의미",
+    "text": "3 재작성 커밋의 의미\n85018d9는 파일 수 기준으로도 큰 전환점입니다. 기존 cloud, Gateway API, Ansible, 일부 Terraform scaffold를 걷어내고, OKE production root와 observability application, runbook 중심으로 저장소를 다시 구성했습니다.\n이 커밋 이후 운영 저장소는 “여러 실험을 담은 ops repo”보다 “OKE production desired state를 선언하는 repo”에 가깝게 바뀌었습니다.\n\n\n\n\n\n\n\n이전 성격\n이후 성격\n\n\n\n\ncloud/home 실험과 scaffold 혼재\nOKE production first\n\n\n여러 migration report와 diagram 산재\ncurrent-state, operations, runbook 중심\n\n\n앱별 manifest 경계가 불명확\napps/&lt;app&gt;/base와 overlay 구조\n\n\n외부 접근 경로가 여러 후보로 남음\npublic ingress, private ingress, WireGuard 경계 분리",
     "crumbs": [
       "문서",
-      "홈랩 DevOps 포트폴리오"
+      "Chapters",
+      "5. Git 이력으로 확인한 운영 구조 변화"
     ]
   },
   {
-    "objectID": "DevOpsPortfolio.html#c-서버-엔진과-연결한-부분",
-    "href": "DevOpsPortfolio.html#c-서버-엔진과-연결한-부분",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "4 C++ 서버 엔진과 연결한 부분",
-    "text": "4 C++ 서버 엔진과 연결한 부분\niouring-runtime의 RuntimeWeb 모듈을 사용해 포트폴리오 정적 파일 서버를 구성했습니다. 이 서버는 /healthz 같은 운영용 endpoint와 정적 파일 서빙을 담당하고, 컨테이너 이미지로 빌드되어 Kubernetes workload로 배포됩니다.\n또한 reverse proxy 경로를 별도로 두어 개인 도메인으로 들어온 트래픽을 Kubernetes Ingress, local service, RuntimeWeb service로 분기했습니다.",
+    "objectID": "chapters/05-git-history-evidence.html#application-추가-흐름",
+    "href": "chapters/05-git-history-evidence.html#application-추가-흐름",
+    "title": "5. Git 이력으로 확인한 운영 구조 변화",
+    "section": "4 application 추가 흐름",
+    "text": "4 application 추가 흐름\nwhoami는 pipeline proof 역할로 남고, dropapp은 실제 RuntimeWeb workload로 추가되었습니다. 이후 mintcocoa-docs가 별도 OKE app으로 들어오면서 이 문서 사이트 자체도 production GitOps 경로의 사례가 되었습니다.\n\n\n\n앱\n이력에서 확인한 역할\n\n\n\n\nwhoami\nhome과 OKE overlay 구조를 검증하는 proof service\n\n\ndropapp\nRuntimeWeb 기반 공개 앱, home 검증 후 OKE Ingress 공개\n\n\nmintcocoa-docs\n문서 사이트 자체를 OKE production에서 서빙하는 앱",
     "crumbs": [
       "문서",
-      "홈랩 DevOps 포트폴리오"
+      "Chapters",
+      "5. Git 이력으로 확인한 운영 구조 변화"
     ]
   },
   {
-    "objectID": "DevOpsPortfolio.html#배포-흐름",
-    "href": "DevOpsPortfolio.html#배포-흐름",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "5 배포 흐름",
-    "text": "5 배포 흐름\n\nportfolio 또는 iouring-runtime 저장소에 변경을 push합니다.\nGitHub Actions가 문서를 렌더링하고 컨테이너 이미지를 빌드합니다.\n이미지는 ghcr.io/mint-cocoa/&lt;app&gt;:&lt;GITHUB_SHA&gt; 형식으로 push됩니다.\nGitOps 저장소의 Helm values image tag를 같은 SHA로 갱신합니다.\nArgo CD가 변경을 감지해 Kubernetes workload를 동기화합니다.\n\n이 구조 덕분에 수동으로 서버에 접속해 파일을 덮어쓰지 않고, Git commit을 기준으로 배포와 롤백 경로를 관리할 수 있습니다.",
+    "objectID": "chapters/05-git-history-evidence.html#운영-제약이-드러난-커밋",
+    "href": "chapters/05-git-history-evidence.html#운영-제약이-드러난-커밋",
+    "title": "5. Git 이력으로 확인한 운영 구조 변화",
+    "section": "5 운영 제약이 드러난 커밋",
+    "text": "5 운영 제약이 드러난 커밋\ndropapp OKE 배포 이력에는 앱 코드와 클러스터 실행 환경 사이의 제약이 드러납니다. d98fc1c는 OKE overlay에 seccompProfile: Unconfined를 적용해 io_uring 실행 조건을 맞췄습니다.\n관측성 이력에서는 storage 비용과 footprint를 줄이는 방향이 보입니다. b27e056, b5c18bd, 33ec9e8, 7530cc2는 paid resource와 persistent storage를 줄이고 Loki writable path와 ephemeral profile을 정리한 흐름입니다.",
     "crumbs": [
       "문서",
-      "홈랩 DevOps 포트폴리오"
+      "Chapters",
+      "5. Git 이력으로 확인한 운영 구조 변화"
     ]
   },
   {
-    "objectID": "DevOpsPortfolio.html#운영-구성",
-    "href": "DevOpsPortfolio.html#운영-구성",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "6 운영 구성",
-    "text": "6 운영 구성\n\n\n\n영역\n역할\n\n\n\n\nManagement\nkubectl, Helm, GitOps 운영 진입점\n\n\nWorkload\nKubernetes 위에서 portfolio, monitoring 등 workload 실행\n\n\nDelivery\nGitHub Actions, GHCR, Argo CD가 이미지와 배포 상태 관리\n\n\nStorage\nNAS/NFS 기반 PVC 제공\n\n\nObservability\nPrometheus와 Grafana로 cluster/workload 상태 확인\n\n\n\n스토리지는 NFS provisioner를 통해 PVC 요청 시 PV가 자동 생성되도록 구성했습니다. 관측성은 홈랩 규모에 맞춰 Prometheus와 Grafana를 가볍게 분리 구성했습니다. 기존 실시간 운영 대시보드는 백업하고, 공개 페이지에서는 운영 관측성 구현 기록을 정적 문서로 남깁니다.\n운영 관측성 문서: 운영 관측성 구현 기록",
+    "objectID": "chapters/05-git-history-evidence.html#확인-명령",
+    "href": "chapters/05-git-history-evidence.html#확인-명령",
+    "title": "5. Git 이력으로 확인한 운영 구조 변화",
+    "section": "6 확인 명령",
+    "text": "6 확인 명령\ngit -C /home/cocoa/mintcocoa-ops show --stat 85018d9\ngit -C /home/cocoa/mintcocoa-ops show --stat 42d1762\ngit -C /home/cocoa/mintcocoa-ops show --stat 5a0a12d\ngit -C /home/cocoa/mintcocoa-ops show --stat 03adb83\ngit -C /home/cocoa/mintcocoa-ops show --stat c8c64c0",
     "crumbs": [
       "문서",
-      "홈랩 DevOps 포트폴리오"
+      "Chapters",
+      "5. Git 이력으로 확인한 운영 구조 변화"
     ]
   },
   {
-    "objectID": "DevOpsPortfolio.html#확인한-내용",
-    "href": "DevOpsPortfolio.html#확인한-내용",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "7 확인한 내용",
-    "text": "7 확인한 내용\n\n\n\n\n항목\n확인한 내용\n\n\n\n\nGitOps 배포\nGitHub Actions가 image push 후 GitOps image tag를 갱신\n\n\nArgo CD 동기화\nApplication이 Synced / Healthy 상태로 수렴\n\n\nIngress 노출\nportfolio.mintcocoa.cc에서 홈랩 미러 경로 응답\n\n\nStorage\nNFS 기반 PVC/PV가 Bound 상태로 유지\n\n\n관측성\nPrometheus/Grafana workload와 운영 관측성 증거 정리\n\n\n\n\n아래 캡처는 홈랩 클러스터와 배포 파이프라인에서 수집한 화면입니다. 민감한 token, secret, credential 원문은 포함하지 않았습니다.",
-    "crumbs": [
-      "문서",
-      "홈랩 DevOps 포트폴리오"
-    ]
-  },
-  {
-    "objectID": "DevOpsPortfolio.html#결과",
-    "href": "DevOpsPortfolio.html#결과",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "8 결과",
-    "text": "8 결과\n\nC++ 서버 엔진 기반 포트폴리오 서버를 컨테이너 이미지로 빌드하고 Kubernetes에 배포했습니다.\nGitHub Actions, GHCR, GitOps, Argo CD를 연결해 commit 기반 자동 배포 흐름을 구성했습니다.\n개인 도메인과 Ingress를 통해 홈랩 미러 경로를 외부에서 접근 가능하게 만들었습니다.\nPrometheus/Grafana, NFS storage, 운영 관측성 문서를 연결해 운영 상태를 설명할 수 있게 했습니다.\n서버 구현, 배포 자동화, 운영 관측 경로를 함께 정리했습니다.",
-    "crumbs": [
-      "문서",
-      "홈랩 DevOps 포트폴리오"
-    ]
-  },
-  {
-    "objectID": "DevOpsPortfolio.html#남은-작업",
-    "href": "DevOpsPortfolio.html#남은-작업",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "9 남은 작업",
-    "text": "9 남은 작업\n\nreverse proxy virtual host mapping을 더 정리해 여러 공개 hostname을 안정적으로 분기\nOKE의 dropapp 공개 운영 결과를 홈랩 미러와 함께 비교할 수 있게 스크린샷 보강\nSOPS/age secret 관리와 restic backup/restore smoke test 보강",
-    "crumbs": [
-      "문서",
-      "홈랩 DevOps 포트폴리오"
-    ]
-  },
-  {
-    "objectID": "DevOpsPortfolio.html#관련-레포",
-    "href": "DevOpsPortfolio.html#관련-레포",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "10 관련 레포",
-    "text": "10 관련 레포\n\n\n\n\n레포\n역할\n\n\n\n\niouring-runtime\nC++ server engine, RuntimeWeb, RuntimeProxy, RuntimeGame\n\n\nportfolio\n이 문서와 C++ 정적 파일 서버 이미지\n\n\nhome-k8s-gitops\nHelm values, Argo CD Application, cluster desired state",
-    "crumbs": [
-      "문서",
-      "홈랩 DevOps 포트폴리오"
-    ]
-  },
-  {
-    "objectID": "DevOpsPortfolio.html#다음-문서",
-    "href": "DevOpsPortfolio.html#다음-문서",
-    "title": "홈랩 DevOps 포트폴리오",
-    "section": "11 다음 문서",
-    "text": "11 다음 문서\n\n포트폴리오 문서 인덱스 · OCI OKE 프로덕션 GitOps · 서버 구현 포트폴리오 · 클라이언트 구현 포트폴리오",
-    "crumbs": [
-      "문서",
-      "홈랩 DevOps 포트폴리오"
-    ]
-  },
-  {
-    "objectID": "OpsDashboard.html",
-    "href": "OpsDashboard.html",
-    "title": "운영 관측성 구현 기록",
+    "objectID": "chapters/03-docs-site-deployment.html",
+    "href": "chapters/03-docs-site-deployment.html",
+    "title": "3. docs.mintcocoa.dev 배포 경로",
     "section": "",
-    "text": "기존 실시간 운영 대시보드는 Prometheus, Proxmox, Kubernetes, 배포 파이프라인 상태를 브라우저에서 직접 갱신하는 React/Vite 앱이었습니다. 공개 포트폴리오에서는 실행 중인 운영 UI보다 구현 의도와 검증 증거를 안정적으로 읽을 수 있는 문서가 더 적합하다고 판단해, 대시보드 앱은 백업하고 이 페이지를 정적 Quarto 문서로 교체했습니다.\n\n\n\n\n항목\n현재 처리\n\n\n\n\nReact/Vite 대시보드\narchive/live-ops-dashboard/에 백업\n\n\n공개 URL\nOpsDashboard.html 유지\n\n\n공개 페이지 성격\n실시간 UI가 아닌 운영 관측성 구현 기록\n\n\n민감 정보\ntoken, secret, 내부 credential 원문 미포함",
+    "text": "docs.mintcocoa.dev는 GitHub Pages를 기준으로 삼지 않고, _site 산출물을 Nginx 컨테이너 이미지에 넣어 OKE production에서 서빙합니다. 문서 저장소는 HTML을 생성하고 이미지를 빌드하며, 운영 저장소는 해당 이미지를 production workload로 선언합니다.\n\n\n\n\n\n\n\n\n경계\n파일 근거\n역할\n\n\n\n\nsite render\nscripts/build-site.sh\nhome과 portfolio 문서 산출물 생성\n\n\nimage build\n.github/workflows/pages.yml\nGHCR image push\n\n\nruntime image\nDockerfile, nginx.conf\n_site를 Nginx root로 서빙\n\n\nGitOps overlay\napps/mintcocoa-docs/overlays/oke-prod\nproduction image tag와 Ingress 선언\n\n\nArgo CD app\nprod-mintcocoa-docs\nOKE cluster에 desired state 반영",
     "crumbs": [
       "문서",
-      "운영 관측성 구현 기록"
+      "Chapters",
+      "3. docs.mintcocoa.dev 배포 경로"
     ]
   },
   {
-    "objectID": "OpsDashboard.html#전환-배경",
-    "href": "OpsDashboard.html#전환-배경",
-    "title": "운영 관측성 구현 기록",
+    "objectID": "chapters/03-docs-site-deployment.html#문서-사이트의-실행-단위",
+    "href": "chapters/03-docs-site-deployment.html#문서-사이트의-실행-단위",
+    "title": "3. docs.mintcocoa.dev 배포 경로",
     "section": "",
-    "text": "기존 실시간 운영 대시보드는 Prometheus, Proxmox, Kubernetes, 배포 파이프라인 상태를 브라우저에서 직접 갱신하는 React/Vite 앱이었습니다. 공개 포트폴리오에서는 실행 중인 운영 UI보다 구현 의도와 검증 증거를 안정적으로 읽을 수 있는 문서가 더 적합하다고 판단해, 대시보드 앱은 백업하고 이 페이지를 정적 Quarto 문서로 교체했습니다.\n\n\n\n\n항목\n현재 처리\n\n\n\n\nReact/Vite 대시보드\narchive/live-ops-dashboard/에 백업\n\n\n공개 URL\nOpsDashboard.html 유지\n\n\n공개 페이지 성격\n실시간 UI가 아닌 운영 관측성 구현 기록\n\n\n민감 정보\ntoken, secret, 내부 credential 원문 미포함",
+    "text": "docs.mintcocoa.dev는 GitHub Pages를 기준으로 삼지 않고, _site 산출물을 Nginx 컨테이너 이미지에 넣어 OKE production에서 서빙합니다. 문서 저장소는 HTML을 생성하고 이미지를 빌드하며, 운영 저장소는 해당 이미지를 production workload로 선언합니다.\n\n\n\n\n\n\n\n\n경계\n파일 근거\n역할\n\n\n\n\nsite render\nscripts/build-site.sh\nhome과 portfolio 문서 산출물 생성\n\n\nimage build\n.github/workflows/pages.yml\nGHCR image push\n\n\nruntime image\nDockerfile, nginx.conf\n_site를 Nginx root로 서빙\n\n\nGitOps overlay\napps/mintcocoa-docs/overlays/oke-prod\nproduction image tag와 Ingress 선언\n\n\nArgo CD app\nprod-mintcocoa-docs\nOKE cluster에 desired state 반영",
     "crumbs": [
       "문서",
-      "운영 관측성 구현 기록"
+      "Chapters",
+      "3. docs.mintcocoa.dev 배포 경로"
     ]
   },
   {
-    "objectID": "OpsDashboard.html#관측-대상으로-삼은-상태",
-    "href": "OpsDashboard.html#관측-대상으로-삼은-상태",
-    "title": "운영 관측성 구현 기록",
-    "section": "2 관측 대상으로 삼은 상태",
-    "text": "2 관측 대상으로 삼은 상태\n대시보드는 홈랩과 운영 클러스터를 “구축했다”는 설명을 넘어서, 어떤 상태를 읽고 어떤 기준으로 정상 여부를 판단했는지 보여주기 위한 도구였습니다.\n\n\n\n\n\n\n\n\n관측 영역\n확인하려던 상태\n문서화 기준\n\n\n\n\nPrometheus\nscrape target, workload metric, query 응답\ntarget 수와 query 성공 여부\n\n\nProxmox\nnode, VM inventory, 실행 상태\nVM 상태와 운영 plane 연결\n\n\nKubernetes\ndeployment, pod, ingress, storage\nReady, Bound, Ingress host, rollout 상태\n\n\nGitOps\nimage tag, Argo CD sync, rollout\ncommit SHA와 배포 상태 연결\n\n\nEdge runtime\npublic route, proxy, health endpoint\n외부 접근 경로와 런타임 응답",
+    "objectID": "chapters/03-docs-site-deployment.html#github-pages를-배포-대상에서-제외하는-이유",
+    "href": "chapters/03-docs-site-deployment.html#github-pages를-배포-대상에서-제외하는-이유",
+    "title": "3. docs.mintcocoa.dev 배포 경로",
+    "section": "2 GitHub Pages를 배포 대상에서 제외하는 이유",
+    "text": "2 GitHub Pages를 배포 대상에서 제외하는 이유\n이 작업 이후 최신 문서의 canonical 경로는 개인 도메인입니다. GitHub Pages까지 동시에 최신화하면 두 배포면이 같은 책임을 갖게 되고, 경로 정리 시 어느 쪽이 기준인지 다시 흐려집니다.\n따라서 workflow는 Pages artifact upload와 Pages deploy 단계를 제거하고, GHCR 이미지와 OKE promotion만 유지합니다.\nGitHub push\n  -&gt; Quarto render\n  -&gt; _site build\n  -&gt; GHCR image\n  -&gt; mintcocoa-ops image tag update\n  -&gt; Argo CD sync\n  -&gt; docs.mintcocoa.dev",
     "crumbs": [
       "문서",
-      "운영 관측성 구현 기록"
+      "Chapters",
+      "3. docs.mintcocoa.dev 배포 경로"
     ]
   },
   {
-    "objectID": "OpsDashboard.html#아키텍처-관점",
-    "href": "OpsDashboard.html#아키텍처-관점",
-    "title": "운영 관측성 구현 기록",
-    "section": "3 아키텍처 관점",
-    "text": "3 아키텍처 관점\n\n\n\n\n\nflowchart LR\n    Browser[Static portfolio document] --&gt; Evidence[Captured evidence]\n    Evidence --&gt; Prom[Prometheus metrics]\n    Evidence --&gt; PVE[Proxmox inventory]\n    Evidence --&gt; K8s[Kubernetes workload]\n    Evidence --&gt; GitOps[GitOps rollout records]\n    GitOps --&gt; Runtime[C++ RuntimeWeb / RuntimeProxy]\n\n\n\n\n\n\n현재 공개 문서는 위 관계를 실시간으로 조회하지 않습니다. 대신 배포 기록, 스크린샷, 명령 실행 결과, 장애 대응 기록을 기준으로 운영 구조를 설명합니다.",
+    "objectID": "chapters/03-docs-site-deployment.html#oke-production-ingress",
+    "href": "chapters/03-docs-site-deployment.html#oke-production-ingress",
+    "title": "3. docs.mintcocoa.dev 배포 경로",
+    "section": "3 OKE production Ingress",
+    "text": "3 OKE production Ingress\nmintcocoa-ops의 apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml은 docs.mintcocoa.dev host를 mintcocoa-docs service로 연결합니다. TLS는 letsencrypt-prod ClusterIssuer annotation으로 관리합니다.\n공개 문서에서는 Kubernetes API endpoint나 load balancer IP를 노출하지 않고, 도메인과 GitOps 경로만 남깁니다.\n\n\n\n항목\n공개 가능한 값\n\n\n\n\nhost\ndocs.mintcocoa.dev\n\n\nimage\nghcr.io/mint-cocoa/mintcocoa-docs:&lt;sha&gt;\n\n\n최신 확인 tag\nc699eef3538cc8c9ae585ac19c3869b2f8793383\n\n\nArgo CD application\nprod-mintcocoa-docs\n\n\nnamespace\nprod-services",
     "crumbs": [
       "문서",
-      "운영 관측성 구현 기록"
+      "Chapters",
+      "3. docs.mintcocoa.dev 배포 경로"
     ]
   },
   {
-    "objectID": "OpsDashboard.html#구현-이력으로-남긴-의미",
-    "href": "OpsDashboard.html#구현-이력으로-남긴-의미",
-    "title": "운영 관측성 구현 기록",
-    "section": "4 구현 이력으로 남긴 의미",
-    "text": "4 구현 이력으로 남긴 의미\n\n\nRead Model\n운영 API는 클러스터와 가상화 계층의 상태를 읽기 전용으로 노출하는 경계였습니다.\n\n\nEvidence\n대시보드는 수동 캡처가 아니라 동일한 관측 지점을 반복해서 확인하기 위한 화면이었습니다.\n\n\nBoundary\n브라우저, 운영 API, Prometheus, Proxmox, Kubernetes 사이의 책임을 분리했습니다.\n\n\nArchive\n현재 공개 페이지에서는 앱을 제거하고, 과거 구현은 백업 디렉터리에 보존했습니다.",
+    "objectID": "chapters/03-docs-site-deployment.html#clean-url-조립",
+    "href": "chapters/03-docs-site-deployment.html#clean-url-조립",
+    "title": "3. docs.mintcocoa.dev 배포 경로",
+    "section": "4 clean URL 조립",
+    "text": "4 clean URL 조립\nQuarto는 일부 문서를 RuntimeWebPortfolio.html처럼 렌더링하지만, 공개 산출물에서는 이를 runtime-web/index.html로 조립합니다. 이 단계는 문서 작성 형식과 공개 URL 정책을 분리합니다.\n\n\n\n\n\n\n\n원본 렌더 산출물\n공개 경로\n\n\n\n\ndocs/server/RuntimeWebPortfolio.html\n/portfolio/runtime-web/\n\n\ndocs/server/RuntimeProxyPortfolio.html\n/portfolio/runtime-proxy/\n\n\ndocs/server/RuntimeGamePortfolio.html\n/portfolio/runtime-game/\n\n\ndocs/client/ClientPortfolio.html\n/portfolio/client/\n\n\ndocs/devops/chapters/*.html\n/portfolio/devops/chapters/*.html",
     "crumbs": [
       "문서",
-      "운영 관측성 구현 기록"
+      "Chapters",
+      "3. docs.mintcocoa.dev 배포 경로"
     ]
   },
   {
-    "objectID": "OpsDashboard.html#공개-문서에서-유지할-내용",
-    "href": "OpsDashboard.html#공개-문서에서-유지할-내용",
-    "title": "운영 관측성 구현 기록",
-    "section": "5 공개 문서에서 유지할 내용",
-    "text": "5 공개 문서에서 유지할 내용\n\n어떤 운영 상태를 관측 대상으로 삼았는지\nGitOps 배포와 런타임 상태를 어떤 증거로 연결했는지\n장애 대응에서 어떤 원인과 조치를 분리했는지\n홈랩과 OKE production을 어떻게 역할 분리했는지\n민감 정보 없이 공개 가능한 운영 증거가 무엇인지",
+    "objectID": "chapters/03-docs-site-deployment.html#확인-명령",
+    "href": "chapters/03-docs-site-deployment.html#확인-명령",
+    "title": "3. docs.mintcocoa.dev 배포 경로",
+    "section": "5 확인 명령",
+    "text": "5 확인 명령\ngit -C /home/cocoa/mintcocoa-ops show --stat c8c64c0\ngit -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml\ngit -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml\nbash scripts/build-site.sh",
     "crumbs": [
       "문서",
-      "운영 관측성 구현 기록"
+      "Chapters",
+      "3. docs.mintcocoa.dev 배포 경로"
     ]
   },
   {
-    "objectID": "OpsDashboard.html#공개-문서에서-제거한-내용",
-    "href": "OpsDashboard.html#공개-문서에서-제거한-내용",
-    "title": "운영 관측성 구현 기록",
-    "section": "6 공개 문서에서 제거한 내용",
-    "text": "6 공개 문서에서 제거한 내용\n\n브라우저에서 직접 상태를 갱신하는 React UI\n실시간 상태 스트림과 주기적 API polling\n공개 사이트 산출물에 포함되던 대시보드 JavaScript bundle\nQuarto dashboard format 전용 런타임 파일\n운영 API 도메인과 endpoint를 직접 여는 UI",
+    "objectID": "chapters/01-oke-production-gitops.html",
+    "href": "chapters/01-oke-production-gitops.html",
+    "title": "1. OKE production GitOps 구조",
+    "section": "",
+    "text": "mintcocoa-ops의 현재 기준은 OKE production입니다. home k3s는 staging, 개발, 내부 도구, 복구 훈련에 사용할 수 있지만 production workload가 home lab availability에 의존하지 않도록 분리했습니다.\n이 분리는 단순한 이름 구분이 아닙니다. Argo CD root application, cluster application, workload overlay가 모두 oke-prod와 home을 별도 경로로 관리합니다. production 상태는 OKE 클러스터 안의 Argo CD가 수렴시키고, home cluster는 필요한 경우 같은 control plane에서 원격 target으로 등록됩니다.\n\n\n\n경계\n역할\n\n\n\n\nbootstrap/oke-prod-root.yaml\nOKE production root application\n\n\nbootstrap/home-root.yaml\nhome k3s root application\n\n\nclusters/oke-prod\nproduction child applications\n\n\nclusters/home\nhome staging child applications\n\n\napps/&lt;app&gt;/base\n환경 공통 workload 정의\n\n\napps/&lt;app&gt;/overlays/home\nhome k3s용 차이\n\n\napps/&lt;app&gt;/overlays/oke-prod\nOKE production용 차이",
     "crumbs": [
       "문서",
-      "운영 관측성 구현 기록"
+      "Chapters",
+      "1. OKE production GitOps 구조"
     ]
   },
   {
-    "objectID": "OpsDashboard.html#관련-문서",
-    "href": "OpsDashboard.html#관련-문서",
-    "title": "운영 관측성 구현 기록",
-    "section": "7 관련 문서",
-    "text": "7 관련 문서\n\nDevOps 문서 인덱스 · 홈랩 DevOps 포트폴리오 · OCI OKE 프로덕션 GitOps",
+    "objectID": "chapters/01-oke-production-gitops.html#운영-기준-환경",
+    "href": "chapters/01-oke-production-gitops.html#운영-기준-환경",
+    "title": "1. OKE production GitOps 구조",
+    "section": "",
+    "text": "mintcocoa-ops의 현재 기준은 OKE production입니다. home k3s는 staging, 개발, 내부 도구, 복구 훈련에 사용할 수 있지만 production workload가 home lab availability에 의존하지 않도록 분리했습니다.\n이 분리는 단순한 이름 구분이 아닙니다. Argo CD root application, cluster application, workload overlay가 모두 oke-prod와 home을 별도 경로로 관리합니다. production 상태는 OKE 클러스터 안의 Argo CD가 수렴시키고, home cluster는 필요한 경우 같은 control plane에서 원격 target으로 등록됩니다.\n\n\n\n경계\n역할\n\n\n\n\nbootstrap/oke-prod-root.yaml\nOKE production root application\n\n\nbootstrap/home-root.yaml\nhome k3s root application\n\n\nclusters/oke-prod\nproduction child applications\n\n\nclusters/home\nhome staging child applications\n\n\napps/&lt;app&gt;/base\n환경 공통 workload 정의\n\n\napps/&lt;app&gt;/overlays/home\nhome k3s용 차이\n\n\napps/&lt;app&gt;/overlays/oke-prod\nOKE production용 차이",
     "crumbs": [
       "문서",
-      "운영 관측성 구현 기록"
+      "Chapters",
+      "1. OKE production GitOps 구조"
+    ]
+  },
+  {
+    "objectID": "chapters/01-oke-production-gitops.html#application-계층",
+    "href": "chapters/01-oke-production-gitops.html#application-계층",
+    "title": "1. OKE production GitOps 구조",
+    "section": "2 Application 계층",
+    "text": "2 Application 계층\nOKE production의 cluster root는 infrastructure와 workload application을 함께 참조합니다. clusters/oke-prod/applications 아래에는 ingress, certificate, observability, production services namespace, 앱별 workload가 분리되어 있습니다.\n\n\n\n\n\n\n\nApplication\n관리 대상\n\n\n\n\ningress-nginx\npublic ingress controller\n\n\ncert-manager\nTLS certificate automation\n\n\ncluster-issuers\nletsencrypt-prod ClusterIssuer\n\n\nprod-services-namespace\npublic service namespace ownership\n\n\nprod-mintcocoa-docs\ndocs.mintcocoa.dev 문서 사이트\n\n\nprod-dropapp\ndrop.mintcocoa.dev RuntimeWeb 앱\n\n\nobservability-stack, loki, promtail, tempo\nmetrics, logs, traces\n\n\nprivate-ingress-nginx\n내부용 ingress controller\n\n\nprivate-observability-ingress\nprivate Grafana ingress",
+    "crumbs": [
+      "문서",
+      "Chapters",
+      "1. OKE production GitOps 구조"
+    ]
+  },
+  {
+    "objectID": "chapters/01-oke-production-gitops.html#desired-state가-두-저장소로-나뉘는-이유",
+    "href": "chapters/01-oke-production-gitops.html#desired-state가-두-저장소로-나뉘는-이유",
+    "title": "1. OKE production GitOps 구조",
+    "section": "3 desired state가 두 저장소로 나뉘는 이유",
+    "text": "3 desired state가 두 저장소로 나뉘는 이유\n애플리케이션 저장소는 이미지를 만들고, 운영 저장소는 어떤 이미지가 어떤 환경에 배포되는지를 기록합니다. mintcocoa-docs 저장소는 _site를 렌더링하고 GHCR 이미지를 만들지만, OKE production에서 그 이미지를 쓰는 최종 선언은 mintcocoa-ops/apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml에 남습니다.\n이 구조에서는 배포된 이미지 tag가 Git commit SHA와 연결됩니다. 문제가 생기면 production manifest에서 image tag를 확인하고, 해당 tag가 어떤 문서 저장소 commit에서 만들어졌는지 되짚을 수 있습니다.\nmintcocoa-docs push\n  -&gt; render _site\n  -&gt; build ghcr.io/mint-cocoa/mintcocoa-docs:&lt;sha&gt;\n  -&gt; update mintcocoa-ops apps/mintcocoa-docs/overlays/oke-prod\n  -&gt; Argo CD sync prod-mintcocoa-docs",
+    "crumbs": [
+      "문서",
+      "Chapters",
+      "1. OKE production GitOps 구조"
+    ]
+  },
+  {
+    "objectID": "chapters/01-oke-production-gitops.html#공개-문서에서-마스킹한-값",
+    "href": "chapters/01-oke-production-gitops.html#공개-문서에서-마스킹한-값",
+    "title": "1. OKE production GitOps 구조",
+    "section": "4 공개 문서에서 마스킹한 값",
+    "text": "4 공개 문서에서 마스킹한 값\nmintcocoa-ops 문서에는 운영자가 확인하기 위한 endpoint와 network 값이 일부 남아 있습니다. 공개 포트폴리오에서는 값 자체보다 경계를 설명하는 것이 목적이므로 아래 값은 원문 그대로 노출하지 않습니다.\n\n\n\n값 종류\n공개 문서 처리\n\n\n\n\nKubernetes API IP\nprivate/public endpoint 역할만 설명\n\n\nprivate subnet IP\nWireGuard와 private ingress 경계만 설명\n\n\nOCID\n사용하지 않음\n\n\ntoken, kubeconfig, Secret value\n사용하지 않음\n\n\n도메인, 앱 이름, 커밋 해시\n검증 식별자로 사용",
+    "crumbs": [
+      "문서",
+      "Chapters",
+      "1. OKE production GitOps 구조"
+    ]
+  },
+  {
+    "objectID": "chapters/01-oke-production-gitops.html#확인-명령",
+    "href": "chapters/01-oke-production-gitops.html#확인-명령",
+    "title": "1. OKE production GitOps 구조",
+    "section": "5 확인 명령",
+    "text": "5 확인 명령\ngit -C /home/cocoa/mintcocoa-ops show origin/main:README.md\nfind /home/cocoa/mintcocoa-ops/apps /home/cocoa/mintcocoa-ops/clusters /home/cocoa/mintcocoa-ops/infrastructure -maxdepth 3 -type f\ngit -C /home/cocoa/mintcocoa-ops show origin/main:clusters/oke-prod/kustomization.yaml",
+    "crumbs": [
+      "문서",
+      "Chapters",
+      "1. OKE production GitOps 구조"
     ]
   },
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "DevOps 운영 포트폴리오",
+    "title": "DevOps 운영 문서",
     "section": "",
-    "text": "Proxmox, Kubernetes, GitHub Actions, GHCR, Argo CD, Ingress, storage, Prometheus/Grafana를 연결한 홈랩 운영 구조를 정리합니다.\n\nHome Lab Kubernetes GitOps Observability\n\n\n\n\n홈랩 k3s에서 검증한 운영 흐름을 Oracle Kubernetes Engine production 환경으로 승격한 과정과 장애 대응 기록을 정리합니다.\n\nOCI OKE Argo CD Ingress RuntimeWeb\n\n\n\n\n기존 실시간 운영 대시보드는 백업하고 공개 페이지에서는 정적 문서로 교체했습니다. 이 문서는 어떤 상태를 읽고 어떤 운영 증거로 정리했는지 설명합니다.\n\nArchived UI Prometheus Proxmox Evidence"
+    "text": "이 문서는 mintcocoa-ops 저장소의 origin/main에서 확인한 운영 구조를 기준으로 정리했습니다. 홈랩 Kubernetes 실험을 그대로 production으로 부르는 대신, OKE production과 home k3s의 역할을 분리하고, GitOps 저장소가 어떤 desired state를 관리하는지 장별로 나눕니다.\n\n\n    \n      \n      \n    \n\n\n\n\n\n\n문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. OKE production GitOps 구조\n\n\nmintcocoa-ops가 OKE production과 home k3s를 어떤 경계로 관리하는지 설명\n\n\n\n\n\n\n2. home에서 OKE로 승격하는 배포 경계\n\n\nbase/overlay 구조와 수동 promotion workflow가 맡는 책임\n\n\n\n\n\n\n3. docs.mintcocoa.dev 배포 경로\n\n\nmintcocoa-docs가 개인 도메인에서 서빙되기까지의 CI와 GitOps 경로\n\n\n\n\n\n\n4. 관측성과 운영 접근 경계\n\n\nprivate ingress, WireGuard bastion, observability stack의 공개/비공개 경계\n\n\n\n\n\n\n5. Git 이력으로 확인한 운영 구조 변화\n\n\nmintcocoa-ops 원격 로그에서 확인되는 production GitOps 전환 흐름\n\n\n\n\n\n\n일치 없음"
   },
   {
     "objectID": "index.html#문서-구성",
     "href": "index.html#문서-구성",
-    "title": "DevOps 운영 포트폴리오",
+    "title": "DevOps 운영 문서",
     "section": "",
-    "text": "Proxmox, Kubernetes, GitHub Actions, GHCR, Argo CD, Ingress, storage, Prometheus/Grafana를 연결한 홈랩 운영 구조를 정리합니다.\n\nHome Lab Kubernetes GitOps Observability\n\n\n\n\n홈랩 k3s에서 검증한 운영 흐름을 Oracle Kubernetes Engine production 환경으로 승격한 과정과 장애 대응 기록을 정리합니다.\n\nOCI OKE Argo CD Ingress RuntimeWeb\n\n\n\n\n기존 실시간 운영 대시보드는 백업하고 공개 페이지에서는 정적 문서로 교체했습니다. 이 문서는 어떤 상태를 읽고 어떤 운영 증거로 정리했는지 설명합니다.\n\nArchived UI Prometheus Proxmox Evidence"
+    "text": "이 문서는 mintcocoa-ops 저장소의 origin/main에서 확인한 운영 구조를 기준으로 정리했습니다. 홈랩 Kubernetes 실험을 그대로 production으로 부르는 대신, OKE production과 home k3s의 역할을 분리하고, GitOps 저장소가 어떤 desired state를 관리하는지 장별로 나눕니다.\n\n\n    \n      \n      \n    \n\n\n\n\n\n\n문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. OKE production GitOps 구조\n\n\nmintcocoa-ops가 OKE production과 home k3s를 어떤 경계로 관리하는지 설명\n\n\n\n\n\n\n2. home에서 OKE로 승격하는 배포 경계\n\n\nbase/overlay 구조와 수동 promotion workflow가 맡는 책임\n\n\n\n\n\n\n3. docs.mintcocoa.dev 배포 경로\n\n\nmintcocoa-docs가 개인 도메인에서 서빙되기까지의 CI와 GitOps 경로\n\n\n\n\n\n\n4. 관측성과 운영 접근 경계\n\n\nprivate ingress, WireGuard bastion, observability stack의 공개/비공개 경계\n\n\n\n\n\n\n5. Git 이력으로 확인한 운영 구조 변화\n\n\nmintcocoa-ops 원격 로그에서 확인되는 production GitOps 전환 흐름\n\n\n\n\n\n\n일치 없음"
   },
   {
-    "objectID": "index.html#공개-경로",
-    "href": "index.html#공개-경로",
-    "title": "DevOps 운영 포트폴리오",
-    "section": "2 공개 경로",
-    "text": "2 공개 경로\n\n공개 문서 노출 경로\nGitHub push -&gt; GitHub Actions -&gt; _site/ render -&gt; GHCR image -&gt; Argo CD -&gt; https://docs.mintcocoa.dev/\nGitHub Pages mirror: https://mint-cocoa.github.io/mintcocoa-docs/\n이 섹션은 실시간 운영 UI가 아니라 정적 포트폴리오 문서입니다. 과거 대시보드 소스와 산출물은 archive/live-ops-dashboard/에 보존합니다."
+    "objectID": "index.html#공개-범위",
+    "href": "index.html#공개-범위",
+    "title": "DevOps 운영 문서",
+    "section": "2 공개 범위",
+    "text": "2 공개 범위\n공개 문서에는 도메인, 저장소명, 앱 이름, 커밋 해시처럼 검증에 필요한 식별자는 남깁니다. 반면 Kubernetes API IP, private IP, OCID, token, Secret 값은 그대로 싣지 않고 역할과 경계만 설명합니다."
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html",
-    "href": "OciOkeGitOpsPortfolio.html",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
+    "objectID": "index.html#기준-근거",
+    "href": "index.html#기준-근거",
+    "title": "DevOps 운영 문서",
+    "section": "3 기준 근거",
+    "text": "3 기준 근거\n\n\n\n\n\n\n\n근거\n확인한 내용\n\n\n\n\nmintcocoa-ops origin/main\nOKE production GitOps, home k3s staging, Argo CD Application 구조\n\n\nmintcocoa-docs workflow\n_site 렌더, GHCR 이미지, mintcocoa-ops OKE overlay image tag 갱신\n\n\napps/mintcocoa-docs/overlays/oke-prod\ndocs.mintcocoa.dev Ingress와 production image tag\n\n\napps/dropapp/overlays/oke-prod\ndrop.mintcocoa.dev Ingress, OKE 전용 seccomp patch\n\n\ninfrastructure/kubernetes/private-observability-ingress\nprivate ingress를 통한 Grafana 내부 노출"
+  },
+  {
+    "objectID": "index.html#확인-명령",
+    "href": "index.html#확인-명령",
+    "title": "DevOps 운영 문서",
+    "section": "4 확인 명령",
+    "text": "4 확인 명령\ngit -C /home/cocoa/mintcocoa-ops fetch origin main --prune\ngit -C /home/cocoa/mintcocoa-ops log --date=short --pretty=format:'%h %ad %s' origin/main --max-count=35\ngit -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml\ngit -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml"
+  },
+  {
+    "objectID": "chapters/02-home-to-oke-pipeline.html",
+    "href": "chapters/02-home-to-oke-pipeline.html",
+    "title": "2. home에서 OKE로 승격하는 배포 경계",
     "section": "",
-    "text": "Production\nOracle Kubernetes Engine을 프로덕션 클러스터로 잡고 kubeconfig, 접근 권한, 스토리지, 관측성을 구성\n\n\nGitOps\nmintcocoa-ops 저장소를 OKE 중심으로 재작성하고 Argo CD Application 구조로 desired state를 선언\n\n\nPipeline\n홈랩 k3s를 staging/dev 환경으로 두고 검증 후 OKE production overlay로 승격\n\n\nOperate\nPrometheus, Grafana, Loki, Promtail, Tempo, metrics-server를 설치하고 실제 API 응답까지 검증",
+    "text": "mintcocoa-ops는 home k3s와 OKE production을 같은 manifest로 직접 공유하지 않습니다. 공통 부분은 apps/&lt;app&gt;/base에 두고, 환경별 차이는 overlay에서 관리합니다.\napps/&lt;app&gt;/base\n  -&gt; apps/&lt;app&gt;/overlays/home\n  -&gt; apps/&lt;app&gt;/overlays/oke-prod\n이 구조의 목적은 home에서 먼저 실행해 볼 수 있는 workload와 production에 공개되는 workload를 같은 앱으로 묶되, 노출 방식과 리소스 정책을 섞지 않는 것입니다.\n\n\n\n앱\nhome overlay\nOKE production overlay\n\n\n\n\nwhoami\nNodePort proof service\nClusterIP proof service\n\n\ndropapp\nhome 검증용 NodePort\npublic Ingress와 TLS\n\n\nmintcocoa-docs\n없음\ndocs.mintcocoa.dev production site",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "2. home에서 OKE로 승격하는 배포 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#핵심-요약",
-    "href": "OciOkeGitOpsPortfolio.html#핵심-요약",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
+    "objectID": "chapters/02-home-to-oke-pipeline.html#같은-workload를-두-환경에-배치하는-방식",
+    "href": "chapters/02-home-to-oke-pipeline.html#같은-workload를-두-환경에-배치하는-방식",
+    "title": "2. home에서 OKE로 승격하는 배포 경계",
     "section": "",
-    "text": "Production\nOracle Kubernetes Engine을 프로덕션 클러스터로 잡고 kubeconfig, 접근 권한, 스토리지, 관측성을 구성\n\n\nGitOps\nmintcocoa-ops 저장소를 OKE 중심으로 재작성하고 Argo CD Application 구조로 desired state를 선언\n\n\nPipeline\n홈랩 k3s를 staging/dev 환경으로 두고 검증 후 OKE production overlay로 승격\n\n\nOperate\nPrometheus, Grafana, Loki, Promtail, Tempo, metrics-server를 설치하고 실제 API 응답까지 검증",
+    "text": "mintcocoa-ops는 home k3s와 OKE production을 같은 manifest로 직접 공유하지 않습니다. 공통 부분은 apps/&lt;app&gt;/base에 두고, 환경별 차이는 overlay에서 관리합니다.\napps/&lt;app&gt;/base\n  -&gt; apps/&lt;app&gt;/overlays/home\n  -&gt; apps/&lt;app&gt;/overlays/oke-prod\n이 구조의 목적은 home에서 먼저 실행해 볼 수 있는 workload와 production에 공개되는 workload를 같은 앱으로 묶되, 노출 방식과 리소스 정책을 섞지 않는 것입니다.\n\n\n\n앱\nhome overlay\nOKE production overlay\n\n\n\n\nwhoami\nNodePort proof service\nClusterIP proof service\n\n\ndropapp\nhome 검증용 NodePort\npublic Ingress와 TLS\n\n\nmintcocoa-docs\n없음\ndocs.mintcocoa.dev production site",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "2. home에서 OKE로 승격하는 배포 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#프로젝트-배경",
-    "href": "OciOkeGitOpsPortfolio.html#프로젝트-배경",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "2 프로젝트 배경",
-    "text": "2 프로젝트 배경\nDevOps 포트폴리오에서 보여주고 싶었던 것은 단순히 Kubernetes를 사용했다는 사실이 아니라, 클러스터를 직접 연결하고, 운영 기준을 정하고, 배포 흐름을 Git으로 관리할 수 있게 만든 과정입니다.\n기존에는 홈랩 중심의 Kubernetes/GitOps 실험이 있었고, 새로 OCI OKE 클러스터를 프로덕션 기준 환경으로 잡았습니다. 이후 홈랩 k3s는 staging/dev 역할로 남기고, OKE는 production 역할로 분리했습니다.",
+    "objectID": "chapters/02-home-to-oke-pipeline.html#promotion-workflow",
+    "href": "chapters/02-home-to-oke-pipeline.html#promotion-workflow",
+    "title": "2. home에서 OKE로 승격하는 배포 경계",
+    "section": "2 promotion workflow",
+    "text": "2 promotion workflow\nproduction 반영은 Promote home overlay to OKE workflow로 분리되어 있습니다. 이 workflow는 app 이름과 image reference를 입력받아 OKE overlay의 image name/tag를 바꾸고, 변경 commit을 push합니다.\n\n\n\n\n\n\n\n단계\n처리\n\n\n\n\n입력\napp, image\n\n\n검증\napps/&lt;app&gt;/overlays/home, apps/&lt;app&gt;/overlays/oke-prod 존재 확인\n\n\n변경\napps/&lt;app&gt;/overlays/oke-prod/kustomization.yaml의 newName, newTag 갱신\n\n\n기록\nPromote &lt;app&gt; to &lt;image&gt; commit 생성\n\n\n\n자동 배포가 모든 환경을 바로 바꾸는 방식이 아니라, home 검증과 OKE 승격 사이에 명시적인 Git commit을 남기는 방식입니다.",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "2. home에서 OKE로 승격하는 배포 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#최종-구조",
-    "href": "OciOkeGitOpsPortfolio.html#최종-구조",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "3 최종 구조",
-    "text": "3 최종 구조\n\n\n\n\n\nflowchart LR\n    Dev[Developer] --&gt; Repo[mintcocoa-ops]\n    Repo --&gt; Validate[GitHub Actions render validation]\n    Repo --&gt; Argo[Argo CD]\n    Argo --&gt; Home[home k3s staging]\n    Argo --&gt; OKE[OCI OKE production]\n    Runtime[iouring-runtime] --&gt; GHCR[GHCR dropapp image]\n    GHCR --&gt; Repo\n    Home --&gt; Promote[manual promotion workflow]\n    Promote --&gt; OKE\n    OKE --&gt; Ingress[ingress-nginx / cert-manager]\n    Ingress --&gt; Public[drop.mintcocoa.dev]\n    OKE --&gt; Obs[Prometheus / Grafana / Loki / Tempo]\n\n\n\n\n\n\n\n\n\n\n\n\n\n영역\n구성\n\n\n\n\nProduction cluster\nOCI OKE home-oci-oke-cluster\n\n\nRegion\nap-chuncheon-1\n\n\nKubernetes API\nPublic endpoint 168.110.124.39:6443\n\n\nHome staging\nk3s, Argo CD cluster name mintcocoa-home\n\n\nGitOps repo\nmint-cocoa/mintcocoa-ops\n\n\nPortfolio workload\ndropapp on C++ iouring-runtime RuntimeWeb\n\n\nPublic endpoint\nhttps://drop.mintcocoa.dev\n\n\nObservability\nmetrics-server, kube-prometheus-stack, Loki, Promtail, Tempo\n\n\nStorage\nOCI Block Volume oci-bv",
+    "objectID": "chapters/02-home-to-oke-pipeline.html#dropapp에서-확인되는-환경-차이",
+    "href": "chapters/02-home-to-oke-pipeline.html#dropapp에서-확인되는-환경-차이",
+    "title": "2. home에서 OKE로 승격하는 배포 경계",
+    "section": "3 dropapp에서 확인되는 환경 차이",
+    "text": "3 dropapp에서 확인되는 환경 차이\ndropapp은 C++ RuntimeWeb 기반 파일 전송 앱입니다. base에는 Deployment, Service, ConfigMap이 있고, home과 OKE overlay가 노출 경계를 다르게 둡니다.\n\n\n\n항목\nhome\nOKE production\n\n\n\n\nnamespace\nhome-services\nprod-services\n\n\n외부 노출\nNodePort\ningress-nginx\n\n\n공개 도메인\n없음\ndrop.mintcocoa.dev\n\n\nTLS\n없음\nletsencrypt-prod ClusterIssuer\n\n\nOKE 전용 patch\n없음\nseccompProfile: Unconfined\n\n\n\nOKE overlay에 seccomp-patch.yaml이 있는 이유는 production node의 kernel/seccomp 조건에서 io_uring setup을 허용해야 했기 때문입니다. 이 차이는 앱 코드가 아니라 OKE 실행 환경에 붙은 운영 제약이므로 overlay patch에만 남깁니다.",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "2. home에서 OKE로 승격하는 배포 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#인프라-구축-과정",
-    "href": "OciOkeGitOpsPortfolio.html#인프라-구축-과정",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "4 인프라 구축 과정",
-    "text": "4 인프라 구축 과정\n처음에는 로컬 kubeconfig가 다른 클러스터를 가리키고 있어 OKE API에 바로 접근할 수 없었습니다. OCI CLI로 클러스터를 조회하고, OKE public endpoint를 사용하는 kubeconfig를 새로 생성해 기본 kubectl 컨텍스트를 교체했습니다.\n\n\n\n\n확인 항목\n결과\n\n\n\n\nOCI CLI 인증\n정상\n\n\nOKE cluster\nhome-oci-oke-cluster\n\n\nAPI endpoint\nhttps://168.110.124.39:6443\n\n\nNode 상태\narm64 worker node 3개 Ready\n\n\nKubernetes version\nv1.33.1\n\n\n\n\n외부 모바일/GUI 클라이언트처럼 OCI CLI exec 인증을 실행할 수 없는 경우를 위해 ServiceAccount 기반 정적 kubeconfig도 만들었습니다. 다만 이 방식은 권한이 강할수록 위험하므로, Git에는 토큰을 저장하지 않고 폐기 명령까지 runbook에 남겼습니다.",
+    "objectID": "chapters/02-home-to-oke-pipeline.html#검증-workflow",
+    "href": "chapters/02-home-to-oke-pipeline.html#검증-workflow",
+    "title": "2. home에서 OKE로 승격하는 배포 경계",
+    "section": "4 검증 workflow",
+    "text": "4 검증 workflow\ngitops-validate.yml은 cluster root와 app overlay를 렌더링합니다. 이 검증은 실제 cluster에 apply하지 않고, GitOps desired state가 kustomize 단계에서 깨지지 않는지 확인하는 역할입니다.\n\n\n\n\n\n\n\n검증 대상\n예시\n\n\n\n\ncluster root\nclusters/home, clusters/oke-prod\n\n\napp overlay\napps/whoami/overlays/*, apps/dropapp/overlays/*, apps/mintcocoa-docs/overlays/oke-prod\n\n\nshared infrastructure\ncluster-issuers, grafana-datasources\n\n\n민감정보 패턴\nprivate key, token, OCI key pattern",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "2. home에서 OKE로 승격하는 배포 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#배포-자동화-방식",
-    "href": "OciOkeGitOpsPortfolio.html#배포-자동화-방식",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "5 배포 자동화 방식",
-    "text": "5 배포 자동화 방식\n운영 저장소는 OKE production을 중심으로 다시 구성했습니다.\nmintcocoa-ops/\n  bootstrap/\n    oke-prod-root.yaml\n    home-root.yaml\n  clusters/\n    oke-prod/\n    home/\n  apps/\n    dropapp/\n      base/\n      overlays/home/\n      overlays/oke-prod/\n    whoami/\n      base/\n      overlays/home/\n      overlays/oke-prod/\n  infrastructure/\n    kubernetes/cluster-issuers/\n    kubernetes/grafana-datasources/\n  docs/\n    runbooks/\n공통 앱은 base에 두고, 환경별 차이는 overlay에 둡니다.\napps/&lt;app&gt;/base\n  -&gt; apps/&lt;app&gt;/overlays/home\n  -&gt; apps/&lt;app&gt;/overlays/oke-prod\nGitHub Actions는 PR이나 main push 때 다음을 검증합니다.\n\nclusters/home 렌더링\nclusters/oke-prod 렌더링\napps/whoami/overlays/home와 apps/whoami/overlays/oke-prod 렌더링\napps/dropapp/overlays/home와 apps/dropapp/overlays/oke-prod 렌더링\ncluster-issuers, Grafana datasource 렌더링\n민감정보 패턴 검사\n\nproduction 반영은 Promote home overlay to OKE 수동 workflow로 분리했습니다. 홈랩에서 먼저 검증하고, 같은 이미지 태그를 OKE overlay에 반영하는 구조입니다.\niouring-runtime 저장소의 dropapp image workflow는 ghcr.io/mint-cocoa/dropapp 이미지를 Git SHA 태그로 빌드하고, mintcocoa-ops의 home overlay 이미지 태그를 자동 갱신합니다. production 반영은 별도 Promote home overlay to OKE workflow로 같은 이미지 태그를 OKE overlay에 승격합니다.",
+    "objectID": "chapters/02-home-to-oke-pipeline.html#확인-명령",
+    "href": "chapters/02-home-to-oke-pipeline.html#확인-명령",
+    "title": "2. home에서 OKE로 승격하는 배포 경계",
+    "section": "5 확인 명령",
+    "text": "5 확인 명령\ngit -C /home/cocoa/mintcocoa-ops show origin/main:.github/workflows/gitops-validate.yml\ngit -C /home/cocoa/mintcocoa-ops show origin/main:.github/workflows/promote-home-to-oke.yml\ngit -C /home/cocoa/mintcocoa-ops show origin/main:apps/dropapp/overlays/oke-prod/kustomization.yaml\ngit -C /home/cocoa/mintcocoa-ops show origin/main:apps/dropapp/overlays/oke-prod/seccomp-patch.yaml",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "2. home에서 OKE로 승격하는 배포 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#대표-워크로드-runtimeweb-dropapp",
-    "href": "OciOkeGitOpsPortfolio.html#대표-워크로드-runtimeweb-dropapp",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "6 대표 워크로드: RuntimeWeb dropapp",
-    "text": "6 대표 워크로드: RuntimeWeb dropapp\nwhoami는 파이프라인 증명용으로 남겨두고, 실제 포트폴리오 대표 앱은 iouring-runtime의 dropapp으로 잡았습니다. dropapp은 C++ RuntimeWeb 위에서 동작하는 TTL 파일 전송 앱입니다. 단순 hello world보다 포트폴리오에서 보여줄 수 있는 운영 표면이 넓습니다.\n\n\n\n항목\n구성\n\n\n\n\n이미지\nghcr.io/mint-cocoa/dropapp:&lt;git-sha&gt;\n\n\nHome 검증\nhome-services, NodePort 30081\n\n\nOKE 공개\nprod-services, Ingress drop.mintcocoa.dev\n\n\n쓰기 권한\nDROPAPP_AUTH_TOKEN bearer token Secret\n\n\n저장 정책\nemptyDir 1Gi, DROPAPP_DEFAULT_TTL_SECONDS=3600\n\n\n최대 업로드\nDROPAPP_MAX_UPLOAD_BYTES=104857600\n\n\n\n이 앱은 RuntimeWeb 문서에서 설명한 streaming upload, static file response, route parameter, token-protected write path, timeout/backpressure 설정을 실제 서비스 매니페스트로 연결합니다. 즉 서버 구현 포트폴리오와 DevOps 포트폴리오가 분리된 글이 아니라 하나의 배포 사례로 이어집니다.\nOKE 공개 경로는 ingress-nginx와 cert-manager를 GitOps Application으로 관리하고, letsencrypt-prod ClusterIssuer로 TLS 인증서를 발급하는 구조입니다. 최종 공개 도메인은 HSTS preload가 적용되는 .dev 도메인인 https://drop.mintcocoa.dev로 정리했습니다.",
+    "objectID": "chapters/04-observability-access.html",
+    "href": "chapters/04-observability-access.html",
+    "title": "4. 관측성과 운영 접근 경계",
+    "section": "",
+    "text": "production cluster에는 public ingress와 private ingress가 동시에 있습니다. 외부 사용자에게 필요한 서비스는 public ingress로 열고, 운영자가 보는 Grafana는 private ingress 뒤에 둡니다.\n이 분리는 인증 UI를 공개 인터넷에 그대로 노출하지 않고, home LAN과 WireGuard 경로를 통해서만 운영 화면에 접근하게 만들기 위한 경계입니다.\n\n\n\n\n\n\n\n경로\n역할\n\n\n\n\npublic nginx ingress\ndocs.mintcocoa.dev, drop.mintcocoa.dev\n\n\nprivate private-nginx ingress\n내부 Grafana 접근\n\n\nWireGuard bastion\nhome LAN에서 OKE private network로 들어가는 관리 경로\n\n\nKubernetes port-forward\nprivate ingress 장애 시 fallback",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "4. 관측성과 운영 접근 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#관측성-구성",
-    "href": "OciOkeGitOpsPortfolio.html#관측성-구성",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "7 관측성 구성",
-    "text": "7 관측성 구성\nOKE 클러스터에는 운영 확인을 위해 다음 스택을 구성했습니다.\n\n\n\n구성요소\n역할\n\n\n\n\nmetrics-server\nkubectl top과 기본 리소스 메트릭\n\n\nPrometheus\ncluster/workload metrics 수집\n\n\nGrafana\ndashboard와 datasource 통합\n\n\nAlertmanager\n알림 경로 준비\n\n\nLoki\n로그 저장\n\n\nPromtail\nnode log shipping\n\n\nTempo\ntrace ingest/query 준비\n\n\n\n설치 후 단순히 Pod가 떴는지만 본 것이 아니라, 실제 API 응답까지 확인했습니다.\nkubectl top nodes                 # 성공\nPrometheus /api/v1/query?query=up # 성공\nLoki /loki/api/v1/labels          # 성공\nTempo /ready                      # ready\nOCI Block Volume은 최소 프로비저닝 단위 때문에 요청값보다 큰 50Gi PVC가 생성되는 특성이 있었습니다. 이 점은 GitOps values와 운영 문서에 반영했습니다.",
+    "objectID": "chapters/04-observability-access.html#공개-서비스와-운영-화면을-분리한-이유",
+    "href": "chapters/04-observability-access.html#공개-서비스와-운영-화면을-분리한-이유",
+    "title": "4. 관측성과 운영 접근 경계",
+    "section": "",
+    "text": "production cluster에는 public ingress와 private ingress가 동시에 있습니다. 외부 사용자에게 필요한 서비스는 public ingress로 열고, 운영자가 보는 Grafana는 private ingress 뒤에 둡니다.\n이 분리는 인증 UI를 공개 인터넷에 그대로 노출하지 않고, home LAN과 WireGuard 경로를 통해서만 운영 화면에 접근하게 만들기 위한 경계입니다.\n\n\n\n\n\n\n\n경로\n역할\n\n\n\n\npublic nginx ingress\ndocs.mintcocoa.dev, drop.mintcocoa.dev\n\n\nprivate private-nginx ingress\n내부 Grafana 접근\n\n\nWireGuard bastion\nhome LAN에서 OKE private network로 들어가는 관리 경로\n\n\nKubernetes port-forward\nprivate ingress 장애 시 fallback",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "4. 관측성과 운영 접근 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#장애-대응-및-운영-판단-사례",
-    "href": "OciOkeGitOpsPortfolio.html#장애-대응-및-운영-판단-사례",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "8 장애 대응 및 운영 판단 사례",
-    "text": "8 장애 대응 및 운영 판단 사례\n\n\n\n\n\n\n\n\n\n상황\n원인\n조치\n\n\n\n\n기본 kubeconfig 접속 실패\n기존 context가 172.30.1.27:6443 내부 주소를 바라봄\nOCI OKE public endpoint kubeconfig 생성 후 기본 context 교체\n\n\n외부 클라이언트 인증 제약\n모바일 앱은 oci ce cluster generate-token 실행 불가\nServiceAccount token 방식 kubeconfig 별도 생성\n\n\nBastion 경로 오해 가능성\nWireGuard VM은 있었지만 OKE VCN과 peering/route 없음\npublic OKE endpoint를 기준 접근 경로로 문서화\n\n\nArgo CD repo-server GitHub timeout\nOKE Pod subnet은 public subnet이지만 Pod에는 public IP가 없어 egress가 실패\nNAT Gateway와 Pod subnet 전용 route table을 만들고 0.0.0.0/0 -&gt; NAT Gateway로 분리\n\n\nArgo CD private repo 인증 실패\nNAT 이후 GitHub에는 닿았지만 repo credential이 없어 clone 실패\nArgo CD repository Secret에 GitHub token을 저장하고 root app sync 성공 확인\n\n\ndropapp Pod readiness 실패\nOKE Oracle Linux 8.10 / UEK 5.15에서 RuntimeDefault seccomp가 io_uring setup을 막음\nOKE overlay에만 seccompProfile: Unconfined 적용\n\n\nio_uring provided buffer ring 실패\n5.15 커널에서 io_uring_register_buf_ring이 -22로 실패\niouring-runtime에 compatibility recv path를 구현해 기본 accept/recv 경로로 fallback\n\n\nTLS HTTP-01 검증 지연\nCloudflare public DNS는 정상이나 OCI VCN resolver가 NXDOMAIN을 캐시\nCoreDNS hosts override로 임시 통과 후 .dev 전환 시 override 제거\n\n\n.cc와 .dev 도메인 혼재\n초기 공개 도메인과 최종 브랜드 도메인이 동시에 남아 인증서 SAN이 넓어짐\nIngress/TLS에서 .cc 제거, drop.mintcocoa.dev 단독 인증서로 재발급\n\n\nLoki 기본값 과다\n기본 cache 설정이 작은 클러스터에 과함\nSingleBinary, cache 비활성화, 제한된 retention으로 조정\n\n\nGrafana password 평문 위험\n초기 values에 임시 비밀번호가 남을 수 있음\nKubernetes Secret 참조 방식으로 전환\n\n\n공개 업로드 악용 가능성\n파일 전송 앱을 인터넷에 공개하면 쓰기 경로가 공격 표면이 됨\n업로드/삭제는 bearer token으로 보호하고 파일은 TTL과 emptyDir 크기 제한으로 회수\n\n\n\n\n이 과정에서 운영 기준도 함께 정했습니다.\n\nproduction 서비스는 홈랩에 의존하지 않는다.\n홈랩은 staging/dev와 복구 연습 환경으로 둔다.\nOKE Argo CD가 home k3s를 원격 관리하는 구조를 목표로 한다.\n토큰, kubeconfig, Grafana 비밀번호는 Git에 저장하지 않는다.\n외부 공개는 명시적으로 필요한 앱만 Ingress로 열고, 쓰기 권한은 Secret 기반으로 둔다.\nproduction 공개 도메인은 drop.mintcocoa.dev로 단일화하고, TLS 인증서 SAN도 필요한 host만 포함한다.",
+    "objectID": "chapters/04-observability-access.html#observability-stack",
+    "href": "chapters/04-observability-access.html#observability-stack",
+    "title": "4. 관측성과 운영 접근 경계",
+    "section": "2 observability stack",
+    "text": "2 observability stack\nOKE production에는 작은 node pool에 맞춘 관측성 구성이 들어갑니다. 저장소의 현재 문서와 application 목록 기준으로 metrics, logs, traces를 나눠 설치합니다.\n\n\n\n\n\n\n\n구성요소\n역할\n\n\n\n\nmetrics-server\nkubectl top과 기본 resource metrics\n\n\nkube-prometheus-stack\nPrometheus, Grafana, Alertmanager, kube-state-metrics, node-exporter\n\n\nloki\nlog storage\n\n\npromtail\nnode log shipping\n\n\ntempo\ntrace ingest/query\n\n\ngrafana-datasources\nLoki와 Tempo datasource 연결\n\n\n\nproduction 비용과 footprint를 줄이기 위해 observability storage는 현재 ephemeral profile로 정리되어 있습니다. 이 선택은 데이터 장기 보존보다 작은 OKE 환경에서의 운영 확인을 우선한 결과입니다.",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "4. 관측성과 운영 접근 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#운영-검증-스냅샷",
-    "href": "OciOkeGitOpsPortfolio.html#운영-검증-스냅샷",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "9 운영 검증 스냅샷",
-    "text": "9 운영 검증 스냅샷\n최종 배포 상태는 다음 기준으로 확인했습니다.\nprod-dropapp Argo CD Application: Synced / Healthy\ndropapp Deployment: 2/2 Ready\nIngress host: drop.mintcocoa.dev\nCertificate: dropapp-tls Ready=True\nTLS SAN: DNS:drop.mintcocoa.dev\nHealth check: https://drop.mintcocoa.dev/healthz -&gt; HTTP/2 200, ok\nImage: ghcr.io/mint-cocoa/dropapp:4f86a2ed21bef5a477f1be027eaeb19fcc8c5691\n운영 저장소의 주요 변경 이력도 배포 증거로 남겼습니다.\n46875b7 Remove dropapp mintcocoa.cc host\n752ad1b Add mintcocoa.dev host for dropapp\nd98fc1c Allow dropapp seccomp for io_uring on OKE\nf6cb7c8 Promote dropapp to ghcr.io/mint-cocoa/dropapp:4f86a2ed21bef5a477f1be027eaeb19fcc8c5691\n애플리케이션 저장소에는 OKE 커널 제약을 반영한 compatibility path를 남겼습니다.\n4f86a2e Add io_uring compatibility recv path\n09a2bba Update dropapp GitOps deployment workflow",
+    "objectID": "chapters/04-observability-access.html#private-grafana-ingress",
+    "href": "chapters/04-observability-access.html#private-grafana-ingress",
+    "title": "4. 관측성과 운영 접근 경계",
+    "section": "3 private Grafana ingress",
+    "text": "3 private Grafana ingress\nprivate-observability-ingress는 Grafana만 private ingress controller에 연결합니다. Prometheus, Loki, Tempo, Alertmanager는 Grafana 뒤의 내부 서비스로 남깁니다.\n\n\n\n항목\n처리\n\n\n\n\nGrafana UI\nprivate ingress host\n\n\nPrometheus API\nClusterIP, 필요 시 port-forward\n\n\nLoki API\nClusterIP, 필요 시 port-forward\n\n\nTempo API\nClusterIP, 필요 시 port-forward\n\n\nGrafana admin password\nGit에 저장하지 않음\n\n\n\n공개 문서에는 private load balancer IP와 내부 route 값을 쓰지 않습니다. 대신 public service와 internal operations surface를 분리했다는 구조만 남깁니다.",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "4. 관측성과 운영 접근 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#결과물",
-    "href": "OciOkeGitOpsPortfolio.html#결과물",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "10 결과물",
-    "text": "10 결과물\n\nOKE production kubeconfig 구성과 접근 검증\nServiceAccount 기반 외부 수동 클라이언트 접근 경로 정리\nmintcocoa-ops 저장소를 OKE production 중심 GitOps 구조로 재작성\nhome k3s -&gt; OKE production 승격 파이프라인 설계\nC++ RuntimeWeb 기반 dropapp을 홈랩 검증 후 OKE production Ingress로 공개하는 구조 추가\ningress-nginx, cert-manager, letsencrypt-prod GitOps 구성 추가\ndrop.mintcocoa.dev HTTPS 공개와 Let’s Encrypt 인증서 자동 발급 검증\nOKE Pod egress용 NAT Gateway와 Pod subnet route table 분리\nOKE 커널/seccomp 제약에 맞춘 io_uring runtime compatibility path 구현\nmetrics/logs/traces 관측 스택 설치 및 동작 검증\nbootstrap, access, observability, rebuild runbook 작성",
+    "objectID": "chapters/04-observability-access.html#운영-접근-방식",
+    "href": "chapters/04-observability-access.html#운영-접근-방식",
+    "title": "4. 관측성과 운영 접근 경계",
+    "section": "4 운영 접근 방식",
+    "text": "4 운영 접근 방식\ndocs/runbooks/access.md는 operator access를 WireGuard bastion과 OpenWrt gateway 경로로 정리합니다. 일반 운영 접근은 public Kubernetes API를 넓게 열어두는 방식이 아니라 private endpoint와 routed private network를 사용하는 방식입니다.\nLAN client\n  -&gt; OpenWrt gateway\n  -&gt; WireGuard bastion\n  -&gt; OKE private API / private ingress\n모바일이나 GUI client처럼 OCI CLI token exec를 실행하기 어려운 환경은 별도 ServiceAccount token을 만들 수 있지만, 공개 문서와 Git 저장소에는 token 값을 남기지 않습니다.",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "4. 관측성과 운영 접근 경계"
     ]
   },
   {
-    "objectID": "OciOkeGitOpsPortfolio.html#관련-레포와-문서",
-    "href": "OciOkeGitOpsPortfolio.html#관련-레포와-문서",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "11 관련 레포와 문서",
-    "text": "11 관련 레포와 문서\n\n\n\n\n레포/문서\n역할\n\n\n\n\niouring-runtime\ndropapp과 RuntimeWeb 서버 구현\n\n\nmintcocoa-ops\nOKE production + home k3s GitOps desired state\n\n\nportfolio\n이 포트폴리오 문서와 공개 페이지\n\n\nRuntimeWeb 모듈 구현\ndropapp이 사용하는 HTTP/streaming 서버 계층\n\n\n홈랩 DevOps 포트폴리오\n기존 홈랩 Kubernetes 배포 사례\n\n\n운영 관측성 구현 기록\nPrometheus/Proxmox 기반 관측 지점과 과거 대시보드 구현 기록",
+    "objectID": "chapters/04-observability-access.html#확인-명령",
+    "href": "chapters/04-observability-access.html#확인-명령",
+    "title": "4. 관측성과 운영 접근 경계",
+    "section": "5 확인 명령",
+    "text": "5 확인 명령\ngit -C /home/cocoa/mintcocoa-ops show origin/main:docs/runbooks/access.md\ngit -C /home/cocoa/mintcocoa-ops show origin/main:docs/runbooks/observability.md\ngit -C /home/cocoa/mintcocoa-ops show origin/main:infrastructure/kubernetes/private-observability-ingress/grafana-ingress.yaml\ngit -C /home/cocoa/mintcocoa-ops show origin/main:clusters/oke-prod/applications/private-ingress-nginx.yaml",
     "crumbs": [
       "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
-    ]
-  },
-  {
-    "objectID": "OciOkeGitOpsPortfolio.html#면접에서-설명할-포인트",
-    "href": "OciOkeGitOpsPortfolio.html#면접에서-설명할-포인트",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "12 면접에서 설명할 포인트",
-    "text": "12 면접에서 설명할 포인트\n이 프로젝트는 완성된 SaaS 운영팀 수준의 대규모 플랫폼이라기보다, 작은 클러스터에서 운영자가 직접 결정해야 하는 문제를 끝까지 다룬 사례입니다.\n\n어떤 endpoint를 production 접근 기준으로 삼을지 결정\n어떤 인증 방식이 사람/자동화/모바일 클라이언트에 맞는지 구분\n기본 Helm chart 값을 그대로 쓰지 않고 클러스터 크기에 맞게 조정\nGitOps repo를 기존 kubeadm cloud 기준에서 OKE production 기준으로 재작성\nhome과 production을 섞지 않고 promotion 흐름으로 분리\n직접 만든 io_uring 기반 앱을 컨테이너, GitOps, Ingress, TLS, 로그/메트릭까지 연결\n네트워크, DNS, 인증서, 컨테이너 런타임 제약을 실제 장애 로그에서 원인 분리하고 코드와 인프라 양쪽으로 해결",
-    "crumbs": [
-      "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
-    ]
-  },
-  {
-    "objectID": "OciOkeGitOpsPortfolio.html#다음-문서",
-    "href": "OciOkeGitOpsPortfolio.html#다음-문서",
-    "title": "OCI OKE 프로덕션 GitOps 포트폴리오",
-    "section": "13 다음 문서",
-    "text": "13 다음 문서\n\n포트폴리오 문서 인덱스 · 홈랩 DevOps 포트폴리오 · 운영 관측성 구현 기록",
-    "crumbs": [
-      "문서",
-      "OCI OKE 프로덕션 GitOps 포트폴리오"
+      "Chapters",
+      "4. 관측성과 운영 접근 경계"
     ]
   }
 ]

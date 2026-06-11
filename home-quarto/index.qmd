@@ -12,7 +12,7 @@ C++ 서버 런타임 구현, RuntimeWeb/Proxy/Game 모듈, DirectX 클라이언�
 
 ::: {.hero-actions}
 <a class="primary-action" href="/portfolio/">포트폴리오 문서 보기</a>
-<a class="secondary-action" href="/portfolio/servercore/docs/1.overview.html">ServerCore 바로가기</a>
+<a class="secondary-action" href="/portfolio/servercore/chapters/01-overview.html">ServerCore 바로가기</a>
 :::
 :::
 :::
@@ -30,7 +30,7 @@ backpressure, RuntimeWeb/Proxy/Game 모듈 경계를 정리한 문서입니다.
 `C++` `io_uring` `Runtime` `Web` `Proxy` `Game`
 :::
 
-<a class="card-link" href="/portfolio/servercore/docs/1.overview.html">상세 문서</a>
+<a class="card-link" href="/portfolio/servercore/chapters/01-overview.html">상세 문서</a>
 :::
 
 ::: {.project-card}
@@ -45,7 +45,7 @@ RuntimeWeb 선택 모듈 기준으로 설명합니다.
 `HTTP` `Router` `Streaming`
 :::
 
-<a class="card-link" href="/portfolio/server/RuntimeWebPortfolio.html">상세 문서</a>
+<a class="card-link" href="/portfolio/runtime-web/">상세 문서</a>
 :::
 
 ::: {.project-card}
@@ -58,7 +58,7 @@ snapshot 구조를 RuntimeProxy 모듈 기준으로 정리했습니다.
 `TCP` `TLS` `SNI` `Metrics`
 :::
 
-<a class="card-link" href="/portfolio/server/RuntimeProxyPortfolio.html">상세 문서</a>
+<a class="card-link" href="/portfolio/runtime-proxy/">상세 문서</a>
 :::
 
 ::: {.project-card}
@@ -71,7 +71,7 @@ PacketSession, PacketBuilder, Room, RoomManager, JobQueue 기반 Room 직렬
 `Packet` `Room` `JobQueue`
 :::
 
-<a class="card-link" href="/portfolio/server/RuntimeGamePortfolio.html">상세 문서</a>
+<a class="card-link" href="/portfolio/runtime-game/">상세 문서</a>
 :::
 
 ::: {.project-card}
@@ -84,7 +84,7 @@ RuntimeGame 서버와 Protobuf 패킷을 주고받는 DirectX 11 아이소메트
 `DirectX 11` `Protobuf` `RPG Client`
 :::
 
-<a class="card-link" href="/portfolio/client/ClientPortfolio.html">상세 문서</a>
+<a class="card-link" href="/portfolio/client/">상세 문서</a>
 :::
 
 ::: {.project-card .featured}
@@ -99,13 +99,11 @@ GitHub Actions, GHCR, Argo CD, Kubernetes Ingress/TLS, OKE production 배포
 `Kubernetes` `GitOps` `Argo CD` `Observability`
 :::
 
-<a class="card-link" href="/portfolio/devops/DevOpsPortfolio.html">DevOps 문서</a>
-<a class="card-link secondary" href="/portfolio/devops/OpsDashboard.html">운영 관측성</a>
+<a class="card-link" href="/portfolio/devops/">DevOps 문서</a>
+<a class="card-link secondary" href="/portfolio/devops/chapters/04-observability-access.html">운영 관측성</a>
 :::
 :::
 
 ::: {.exposure-band}
 `GitHub push` -> `GitHub Actions` -> `_site/` render -> `GHCR image` -> `Argo CD` -> `https://docs.mintcocoa.dev/`
-
-GitHub Pages mirror: `https://mint-cocoa.github.io/mintcocoa-docs/`
 :::

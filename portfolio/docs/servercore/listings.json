@@ -2,19 +2,12 @@
   {
     "listing": "/index.html",
     "items": [
-      "/docs/1.overview.html",
-      "/docs/2.lifecycle-management.html",
-      "/docs/3.buffer-management.html",
-      "/docs/4.concurrency-management.html",
-      "/docs/5.producer-consumer-backpressure.html",
-      "/docs/6.summary.html",
-      "/docs/7.git-history-timeline.html",
-      "/docs/8.servercore-start.html",
-      "/docs/9.runtime-app-validation.html",
-      "/docs/10.live-ops-dashboard.html",
-      "/docs/11.cicd-gitops-infra.html",
-      "/docs/12.publishing-pipeline.html",
-      "/docs/13.whole-repo-inventory.html"
+      "/chapters/01-overview.html",
+      "/chapters/02-lifecycle-management.html",
+      "/chapters/03-buffer-management.html",
+      "/chapters/04-concurrency-management.html",
+      "/chapters/05-producer-consumer-backpressure.html",
+      "/chapters/06-summary.html"
     ]
   }
 ]

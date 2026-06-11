@@ -1,0 +1,7 @@
+project:
+  type: default
+  output-dir: ../../docs/server
+  render:
+    - RuntimeWebPortfolio.qmd
+    - RuntimeProxyPortfolio.qmd
+    - RuntimeGamePortfolio.qmd

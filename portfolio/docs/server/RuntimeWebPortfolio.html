@@ -72,7 +72,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="RuntimeWebPortfolio_files/libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="RuntimeWebPortfolio_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="RuntimeWebPortfolio_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="RuntimeWebPortfolio_files/libs/bootstrap/bootstrap-7f30639710f116130999550e0f11b8b7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="RuntimeWebPortfolio_files/libs/bootstrap/bootstrap-97d210bb1d2cd321e6464e09e71a0b6d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <meta name="mermaid-theme" content="neutral">
 <script src="RuntimeWebPortfolio_files/libs/quarto-diagram/mermaid.min.js"></script>
 <script src="RuntimeWebPortfolio_files/libs/quarto-diagram/mermaid-init.js"></script>
@@ -82,30 +82,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="stylesheet" href="../portfolio.css">
 </head>
 
-<body class="quarto-light">
+<body class="fullcontent quarto-light">
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-  <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">목차</h2>
-   
-  <ul>
-  <li><a href="#핵심-요약" id="toc-핵심-요약" class="nav-link active" data-scroll-target="#핵심-요약"><span class="header-section-number">1</span> 핵심 요약</a></li>
-  <li><a href="#sec-overview" id="toc-sec-overview" class="nav-link" data-scroll-target="#sec-overview"><span class="header-section-number">2</span> 모듈 개요</a></li>
-  <li><a href="#sec-components" id="toc-sec-components" class="nav-link" data-scroll-target="#sec-components"><span class="header-section-number">3</span> 구성 요소</a>
-  <ul class="collapse">
-  <li><a href="#sec-webserver" id="toc-sec-webserver" class="nav-link" data-scroll-target="#sec-webserver"><span class="header-section-number">3.1</span> WebServer — 코어 Worker를 HTTP 서버로 감싸기</a></li>
-  <li><a href="#sec-httpsession" id="toc-sec-httpsession" class="nav-link" data-scroll-target="#sec-httpsession"><span class="header-section-number">3.2</span> HttpSession — TCP stream을 HTTP request로 변환</a></li>
-  <li><a href="#sec-router" id="toc-sec-router" class="nav-link" data-scroll-target="#sec-router"><span class="header-section-number">3.3</span> Router와 RadixTree — 앱 분기를 모듈로 고정</a></li>
-  <li><a href="#sec-response" id="toc-sec-response" class="nav-link" data-scroll-target="#sec-response"><span class="header-section-number">3.4</span> HttpResponse — 응답 조립과 전송 경계</a></li>
-  </ul></li>
-  <li><a href="#sec-streaming" id="toc-sec-streaming" class="nav-link" data-scroll-target="#sec-streaming"><span class="header-section-number">4</span> Streaming Body와 파일 응답</a></li>
-  <li><a href="#sec-timeout-backpressure" id="toc-sec-timeout-backpressure" class="nav-link" data-scroll-target="#sec-timeout-backpressure"><span class="header-section-number">5</span> Timeout과 Backpressure</a></li>
-  <li><a href="#sec-consumers" id="toc-sec-consumers" class="nav-link" data-scroll-target="#sec-consumers"><span class="header-section-number">6</span> 소비 앱의 역할</a></li>
-  <li><a href="#sec-related" id="toc-sec-related" class="nav-link" data-scroll-target="#sec-related"><span class="header-section-number">7</span> 본문 문서와의 관계</a></li>
-  </ul>
-</nav>
-</div>
+
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -134,8 +114,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="핵심-요약" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="핵심-요약"><span class="header-section-number">1</span> 핵심 요약</h2>
+<section id="핵심-요약" class="level2">
+<h2 class="anchored" data-anchor-id="핵심-요약">핵심 요약</h2>
 <div class="summary-grid">
 <div class="summary-card">
 <p><strong>HTTP Session</strong></p>
@@ -155,8 +135,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
-<section id="sec-overview" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="sec-overview"><span class="header-section-number">2</span> 모듈 개요</h2>
+<section id="sec-overview" class="level2">
+<h2 class="anchored" data-anchor-id="sec-overview">모듈 개요</h2>
 <p><code>RuntimeWeb</code>은 <code>iouring-runtime</code>의 기본 <code>Runtime</code> 위에 붙인 HTTP 서버 모듈입니다. 서비스 앱 자체가 아니라, HTTP 애플리케이션을 만들 때 반복되는 parser, router, request/response, 정적 파일 응답, streaming body, timeout, backpressure 처리를 묶은 선택형 라이브러리 계층입니다.</p>
 <div id="tbl-runtime-web-overview" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -242,8 +222,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
-<section id="sec-components" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="sec-components"><span class="header-section-number">3</span> 구성 요소</h2>
+<section id="sec-components" class="level2">
+<h2 class="anchored" data-anchor-id="sec-components">구성 요소</h2>
 <div id="tbl-runtime-web-components" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-runtime-web-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -313,8 +293,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </figure>
 </div>
-<section id="sec-webserver" class="level3" data-number="3.1">
-<h3 data-number="3.1" class="anchored" data-anchor-id="sec-webserver"><span class="header-section-number">3.1</span> WebServer — 코어 Worker를 HTTP 서버로 감싸기</h3>
+<section id="sec-webserver" class="level3">
+<h3 class="anchored" data-anchor-id="sec-webserver">WebServer — 코어 Worker를 HTTP 서버로 감싸기</h3>
 <p><code>WebServer</code>는 앱이 직접 <code>WorkerConfig</code>, <code>SessionFactory</code>, <code>HttpSession</code> 생성 코드를 매번 작성하지 않도록 만든 wrapper입니다. 앱은 <code>server.Get()</code>, <code>server.Post()</code>, <code>server.PutStream()</code> 같은 API로 route만 등록하고, <code>Start()</code>를 호출합니다.</p>
 <p>내부적으로 <code>WebServer::Start()</code>는 worker 수만큼 코어 <code>Worker</code>를 만들고, 각 worker의 <code>SessionFactory</code>가 <code>HttpSession</code>을 생성하도록 연결합니다. 이때 <code>WebServerConfig</code>의 parser option, request timeout, inactivity timeout, send queue watermark, recv pause 정책이 세션에 주입됩니다.</p>
 <div class="code-with-filename">
@@ -338,8 +318,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>즉 HTTP 서버가 되어도 core Runtime의 흐름은 유지됩니다. accept는 <code>Listener</code>, recv는 <code>Session::RegisterRecv()</code>, 송신은 <code>Session::Send()</code>, 종료는 <code>Disconnect()</code>와 drain timeout 정책을 그대로 탑니다.</p>
 </section>
-<section id="sec-httpsession" class="level3" data-number="3.2">
-<h3 data-number="3.2" class="anchored" data-anchor-id="sec-httpsession"><span class="header-section-number">3.2</span> HttpSession — TCP stream을 HTTP request로 변환</h3>
+<section id="sec-httpsession" class="level3">
+<h3 class="anchored" data-anchor-id="sec-httpsession">HttpSession — TCP stream을 HTTP request로 변환</h3>
 <p><code>HttpSession</code>은 <code>core::io::Session</code>을 상속합니다. 코어가 <code>OnRecv(std::span&lt;const std::byte&gt;)</code>를 호출하면, <code>HttpSession</code>은 받은 바이트를 <code>HttpParser</code>에 공급합니다. parser는 header 완료 시점에 body 처리 방식을 결정하고, 요청이 완성되면 <code>Router</code>로 dispatch합니다.</p>
 <p>이 구조에서 <code>HttpSession</code>이 직접 담당하는 일은 네 가지입니다.</p>
 <ul>
@@ -384,20 +364,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
-<section id="sec-router" class="level3" data-number="3.3">
-<h3 data-number="3.3" class="anchored" data-anchor-id="sec-router"><span class="header-section-number">3.3</span> Router와 RadixTree — 앱 분기를 모듈로 고정</h3>
+<section id="sec-router" class="level3">
+<h3 class="anchored" data-anchor-id="sec-router">Router와 RadixTree — 앱 분기를 모듈로 고정</h3>
 <p>라우팅은 앱마다 <code>if (path == ...)</code>를 반복하지 않도록 <code>Router</code>에 모았습니다. <code>Router</code>는 HTTP method별 handler와 streaming handler를 등록하고, 실제 path match는 <code>RadixTree</code>가 담당합니다.</p>
 <p>지원하는 route 형태는 정적 경로, <code>:param</code>, <code>*wildcard</code>입니다. 예를 들어 <code>GET /hello/:name</code>, <code>GET /files/*path</code>, <code>DELETE /api/files/:id</code> 같은 형태를 같은 자료구조에서 처리합니다. match 결과는 <code>HttpRequest::Param()</code>과 <code>ParamDecoded()</code>로 handler에 노출됩니다.</p>
 <p><code>Use()</code> middleware는 route handler 이전에 실행됩니다. 인증, request id header, 공통 CORS 처리처럼 앱마다 반복되는 전처리를 handler 바깥으로 뺄 수 있습니다. handler가 이미 응답을 보냈다면 이후 route 처리는 진행하지 않는 식으로 요청 수명을 끊을 수 있습니다.</p>
 </section>
-<section id="sec-response" class="level3" data-number="3.4">
-<h3 data-number="3.4" class="anchored" data-anchor-id="sec-response"><span class="header-section-number">3.4</span> HttpResponse — 응답 조립과 전송 경계</h3>
+<section id="sec-response" class="level3">
+<h3 class="anchored" data-anchor-id="sec-response">HttpResponse — 응답 조립과 전송 경계</h3>
 <p><code>HttpResponse</code>는 status line, header, body를 조립하고 <code>HttpSession</code>에 전송을 위임합니다. 앱 handler는 <code>Text()</code>, <code>Json()</code>, <code>Error()</code>, <code>Header()</code>, <code>Status()</code>, <code>Body()</code>, <code>Send()</code> 같은 API로 응답을 구성합니다.</p>
 <p>파일 응답은 <code>HttpResponse::SendFile()</code>을 통해 별도 경로로 빠집니다. 모듈은 파일 크기와 content type을 확인하고, 세션의 file 전송 경로가 buffer를 할당해 send queue에 차례로 넣습니다. 이 덕분에 작은 JSON 응답과 정적 파일 응답이 같은 route API 위에 있지만, 내부 전송 방식은 응답 크기와 종류에 맞게 분리됩니다.</p>
 </section>
 </section>
-<section id="sec-streaming" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="sec-streaming"><span class="header-section-number">4</span> Streaming Body와 파일 응답</h2>
+<section id="sec-streaming" class="level2">
+<h2 class="anchored" data-anchor-id="sec-streaming">Streaming Body와 파일 응답</h2>
 <p><code>RuntimeWeb</code>에서 중요한 구현 지점은 대용량 요청/응답을 <code>HttpRequest::body</code> 하나에 모두 쌓지 않는 것입니다. 일반 JSON API는 request body를 문자열로 모아도 충분하지만, 파일 업로드나 speed test traffic은 body 전체를 메모리에 들고 있으면 느린 클라이언트 하나가 worker의 메모리를 오래 점유합니다.</p>
 <p>이를 위해 <code>Router</code>는 일반 route와 별도로 streaming route를 제공합니다.</p>
 <div id="tbl-runtime-web-streaming" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -446,8 +426,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><code>file_store_server</code>는 <code>PUT /api/files/*path</code>에서 이 경로를 사용해 업로드 chunk를 <code>.part</code> 파일로 바로 기록합니다. <code>dropapp</code>은 <code>POST /api/files</code>에서 TTL 파일 drop 저장소로 body를 흘려보냅니다. 두 앱은 서비스 기능은 다르지만, 사용하는 모듈 경로는 동일합니다. body를 앱 메모리에 누적하지 않고 parser callback에서 chunk 단위로 처리하는 <code>RuntimeWeb</code>의 streaming route입니다.</p>
 <p>응답 쪽에서는 <code>SendFile()</code>과 직접 buffer 전송이 나뉩니다. 정적 파일이나 다운로드 파일은 <code>SendFile()</code> 경로로, <code>speedtest_server</code>처럼 생성 payload를 반복 전송하는 경우는 <code>BufferPool</code>에서 chunk buffer를 확보해 <code>ctx.session.SendResponse()</code>로 보냅니다. 어느 쪽이든 최종 send는 코어 <code>Session</code>의 send queue, short write retry, backpressure 정책을 공유합니다.</p>
 </section>
-<section id="sec-timeout-backpressure" class="level2" data-number="5">
-<h2 data-number="5" class="anchored" data-anchor-id="sec-timeout-backpressure"><span class="header-section-number">5</span> Timeout과 Backpressure</h2>
+<section id="sec-timeout-backpressure" class="level2">
+<h2 class="anchored" data-anchor-id="sec-timeout-backpressure">Timeout과 Backpressure</h2>
 <p>HTTP 서버는 느린 클라이언트와 큰 응답을 함께 다뤄야 하므로, <code>RuntimeWeb</code>은 코어 <code>Session</code>의 정책을 HTTP 설정으로 노출했습니다.</p>
 <div id="tbl-runtime-web-config" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -502,8 +482,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><code>request timeout</code>은 HTTP 요청 하나가 너무 오래 열려 있는 상황을 끊기 위한 정책이고, <code>inactivity timeout</code>은 연결 자체가 idle 상태로 오래 유지되는 상황을 끊기 위한 정책입니다. 둘 다 최종적으로는 코어 timeout event와 <code>Session</code> 종료 경로를 사용하지만, HTTP 모듈에서는 의미를 분리해 설정합니다.</p>
 <p>backpressure는 응답을 보내는 속도보다 handler가 send buffer를 더 빨리 쌓는 상황을 제어합니다. high watermark를 넘으면 세션은 backpressure active 상태가 되고, 설정에 따라 recv를 잠시 멈추거나 일정 시간 뒤 연결을 끊습니다. low watermark 아래로 내려가면 다시 정상 수신으로 돌아옵니다. 이 정책은 Web 전용 구현이 아니라 코어 <code>Session</code>의 공통 기능을 <code>WebServerConfig</code>로 드러낸 것입니다.</p>
 </section>
-<section id="sec-consumers" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="sec-consumers"><span class="header-section-number">6</span> 소비 앱의 역할</h2>
+<section id="sec-consumers" class="level2">
+<h2 class="anchored" data-anchor-id="sec-consumers">소비 앱의 역할</h2>
 <p><code>RuntimeWeb</code> 문서에서 예제 앱은 모듈을 사용하는 소비자입니다. 각 앱은 서로 다른 기능을 갖지만, 모두 같은 HTTP 세션, 라우터, 응답 전송, backpressure 경로를 사용합니다.</p>
 <div id="tbl-runtime-web-consumers" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -558,11 +538,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>이 구분을 유지하면 포트폴리오에서 설명해야 할 구현 단위가 명확해집니다. <code>dropapp</code>이나 <code>webhook_inbox</code>는 서비스 기능을 설명하는 이름이고, 서버 구현 포트폴리오에서 중요한 것은 그 앱들이 공통으로 링크하는 <code>RuntimeWeb</code> 모듈입니다.</p>
 </section>
-<section id="sec-related" class="level2" data-number="7">
-<h2 data-number="7" class="anchored" data-anchor-id="sec-related"><span class="header-section-number">7</span> 본문 문서와의 관계</h2>
+<section id="sec-related" class="level2">
+<h2 class="anchored" data-anchor-id="sec-related">본문 문서와의 관계</h2>
 <p>이 문서는 서버 런타임 본문에서 분리한 Web 모듈 상세 설명입니다. 코어 <code>io_uring</code> 엔진, 세션 수명관리, <code>MSG_RING</code>, <code>JobQueue</code>, 벤치마크는 본문 문서에서 다룹니다.</p>
 <div class="next-docs">
-<p><a href="./ServerCorePortfolio.html">서버 런타임 구현 포트폴리오</a> · <a href="../index.html">포트폴리오 문서 인덱스</a></p>
+<p><a href="/portfolio/servercore/chapters/01-overview.html">서버 런타임 구현 포트폴리오</a> · <a href="/portfolio/">포트폴리오 문서 인덱스</a></p>
 </div>
 </section>
 
@@ -655,11 +635,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
-            // target, if specified
-            link.setAttribute("target", "_blank");
-            if (link.getAttribute("rel") === null) {
-              link.setAttribute("rel", "noopener");
-            }
         }
       }
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
