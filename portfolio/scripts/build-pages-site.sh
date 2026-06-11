@@ -22,6 +22,7 @@ test -f "$site_dir/server/RuntimeWebPortfolio.html"
 test -f "$site_dir/server/RuntimeProxyPortfolio.html"
 test -f "$site_dir/server/RuntimeGamePortfolio.html"
 test -f "$site_dir/client/ClientPortfolio.html"
+test -f "$site_dir/devops/index.html"
 test -f "$site_dir/devops/DevOpsPortfolio.html"
 test -f "$site_dir/devops/OpsDashboard.html"
 

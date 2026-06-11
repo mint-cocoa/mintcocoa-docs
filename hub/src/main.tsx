@@ -31,7 +31,7 @@ type WorkItem = {
 };
 
 const clientThumbnailUrl = "https://img.youtube.com/vi/pnr0sobe3ug/maxresdefault.jpg";
-const liveOpsDashboardUrl = "/portfolio/devops/OpsDashboard.html";
+const opsEvidenceUrl = "/portfolio/devops/OpsDashboard.html";
 const serverThumbnailUrl = "/thumbnails/server-core-iouring-section.png";
 const devopsThumbnailUrl = "/thumbnails/devops-dashboard.png";
 
@@ -85,18 +85,18 @@ const workItems: WorkItem[] = [
     group: "server-app",
   },
   {
-    eyebrow: "DevOps / Live Ops",
-    title: "홈랩 DevOps와 운영 대시보드",
+    eyebrow: "DevOps / Operations",
+    title: "홈랩 DevOps와 운영 관측성",
     icon: Activity,
     thumbnail: devopsThumbnailUrl,
     summary:
-      "C++ 런타임 기반 앱을 GitOps, Argo CD, Kubernetes로 배포하고 Ops API 대시보드에서 상태를 확인합니다.",
+      "C++ 런타임 기반 앱을 GitOps, Argo CD, Kubernetes로 배포하고 운영 관측 증거를 정적 문서로 정리합니다.",
     detailUrl: "/portfolio/devops/DevOpsPortfolio.html",
     chips: ["인프라", "배포 흐름", "워크로드", "인그레스", "관측성"],
     extraLinks: [
       {
-        label: "Ops Dashboard",
-        href: liveOpsDashboardUrl,
+        label: "운영 관측성",
+        href: opsEvidenceUrl,
         icon: Activity,
       },
     ],

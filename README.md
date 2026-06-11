@@ -8,7 +8,7 @@ Production URL: `https://docs.mintcocoa.dev`
 
 ```text
 hub/         React + Vite landing hub served at /
-portfolio/  Quarto documents and the DevOps dashboard served at /portfolio/
+portfolio/  Quarto documents and DevOps documentation served at /portfolio/
 scripts/    Unified build scripts
 ```
 
@@ -19,7 +19,6 @@ mirror, and the OCI OKE deployment serves the same artifact from a container.
 
 ```bash
 npm ci --prefix hub
-npm ci --prefix portfolio/dashboard
 bash scripts/build-site.sh
 ```
 
@@ -28,6 +27,7 @@ Expected output:
 ```text
 _site/index.html
 _site/portfolio/index.html
+_site/portfolio/devops/index.html
 _site/portfolio/devops/OpsDashboard.html
 _site/portfolio/devops/OciOkeGitOpsPortfolio.html
 ```

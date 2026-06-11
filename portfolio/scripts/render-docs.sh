@@ -30,5 +30,4 @@ node scripts/prepare-servercore-docs.js
 "$quarto_bin" render docs/server/RuntimeProxyPortfolio.qmd --to html
 "$quarto_bin" render docs/server/RuntimeGamePortfolio.qmd --to html
 "$quarto_bin" render docs/client/ClientPortfolio.qmd --to html
-"$quarto_bin" render docs/devops/OciOkeGitOpsPortfolio.qmd --to html
 "$repo_root/scripts/render-devops.sh"

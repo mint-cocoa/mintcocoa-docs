@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.38">
+<meta name="generator" content="quarto-1.9.37">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="배진후">
 
-<title>OCI OKE 프로덕션 GitOps 포트폴리오</title>
+<title>OCI OKE 프로덕션 GitOps 포트폴리오 – DevOps 운영 포트폴리오</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -27,30 +27,130 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="OciOkeGitOpsPortfolio_files/libs/clipboard/clipboard.min.js"></script>
-<script src="OciOkeGitOpsPortfolio_files/libs/quarto-html/quarto.js" type="module"></script>
-<script src="OciOkeGitOpsPortfolio_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="OciOkeGitOpsPortfolio_files/libs/quarto-html/popper.min.js"></script>
-<script src="OciOkeGitOpsPortfolio_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="OciOkeGitOpsPortfolio_files/libs/quarto-html/anchor.min.js"></script>
-<link href="OciOkeGitOpsPortfolio_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="OciOkeGitOpsPortfolio_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="OciOkeGitOpsPortfolio_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="OciOkeGitOpsPortfolio_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="OciOkeGitOpsPortfolio_files/libs/bootstrap/bootstrap-2ad086f31e7238a25da6f265a7fdf516.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
-<script src="OciOkeGitOpsPortfolio_files/libs/quarto-diagram/mermaid.min.js"></script>
-<script src="OciOkeGitOpsPortfolio_files/libs/quarto-diagram/mermaid-init.js"></script>
-<link href="OciOkeGitOpsPortfolio_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./OpsDashboard.html" rel="next">
+<link href="./DevOpsPortfolio.html" rel="prev">
+<link href="./favicon.svg" rel="icon" type="image/svg+xml">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-ec174fd7110ec69cf0d482130f647dfe.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "일치 없음",
+    "search-matching-documents-text": "일치된 문서",
+    "search-copy-link-title": "검색 링크 복사",
+    "search-hide-matches-text": "추가 검색 결과 숨기기",
+    "search-more-match-text": "추가 검색결과",
+    "search-more-matches-text": "추가 검색결과",
+    "search-clear-button-title": "제거",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "취소",
+    "search-submit-button-title": "검색",
+    "search-label": "검색"
+  }
+}</script>
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
-<link rel="stylesheet" href="../portfolio.css">
+<link rel="stylesheet" href="portfolio.css">
 </head>
 
-<body class="quarto-light">
+<body class="nav-sidebar floating nav-fixed quarto-light">
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-  <nav id="TOC" role="doc-toc" class="toc-active">
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">DevOps 운영 포트폴리오</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="검색"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="탐색 전환" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html">
+<span class="menu-text">문서</span></a>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="사이드바 전환" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./OciOkeGitOpsPortfolio.html">OCI OKE 프로덕션 GitOps 포트폴리오</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="사이드바 전환" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container">
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./DevOpsPortfolio.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">홈랩 DevOps 포트폴리오</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./OciOkeGitOpsPortfolio.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">OCI OKE 프로덕션 GitOps 포트폴리오</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container">
+  <a href="./OpsDashboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">운영 관측성 구현 기록</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">목차</h2>
 
   <ul>
@@ -69,7 +169,8 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#다음-문서" id="toc-다음-문서" class="nav-link" data-scroll-target="#다음-문서"><span class="header-section-number">13</span> 다음 문서</a></li>
   </ul>
 </nav>
-</div>
+    </div>
+<!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -523,8 +624,8 @@ f6cb7c8 Promote dropapp to ghcr.io/mint-cocoa/dropapp:4f86a2ed21bef5a477f1be027e
 <td>기존 홈랩 Kubernetes 배포 사례</td>
 </tr>
 <tr class="even">
-<td><a href="OpsDashboard.html">Live Ops Dashboard</a></td>
-<td>Prometheus/Proxmox 기반 운영 대시보드</td>
+<td><a href="OpsDashboard.html">운영 관측성 구현 기록</a></td>
+<td>Prometheus/Proxmox 기반 관측 지점과 과거 대시보드 구현 기록</td>
 </tr>
 </tbody>
 </table>
@@ -546,12 +647,13 @@ f6cb7c8 Promote dropapp to ghcr.io/mint-cocoa/dropapp:4f86a2ed21bef5a477f1be027e
 <section id="다음-문서" class="level2" data-number="13">
 <h2 data-number="13" class="anchored" data-anchor-id="다음-문서"><span class="header-section-number">13</span> 다음 문서</h2>
 <div class="next-docs">
-<p><a href="../index.html">포트폴리오 문서 인덱스</a> · <a href="DevOpsPortfolio.html">홈랩 DevOps 포트폴리오</a> · <a href="OpsDashboard.html">Live Ops Dashboard</a></p>
+<p><a href="../index.html">포트폴리오 문서 인덱스</a> · <a href="DevOpsPortfolio.html">홈랩 DevOps 포트폴리오</a> · <a href="OpsDashboard.html">운영 관측성 구현 기록</a></p>
 </div>
+
+
 </section>
 
-</main>
-<!-- /main column -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -957,6 +1059,18 @@ f6cb7c8 Promote dropapp to ghcr.io/mint-cocoa/dropapp:4f86a2ed21bef5a477f1be027e
     }
   });
   </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./DevOpsPortfolio.html" class="pagination-link" aria-label="홈랩 DevOps 포트폴리오">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">홈랩 DevOps 포트폴리오</span>
+      </a>
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./OpsDashboard.html" class="pagination-link" aria-label="운영 관측성 구현 기록">
+        <span class="nav-page-text">운영 관측성 구현 기록</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
 </div> <!-- /content -->
 
 

@@ -210,21 +210,22 @@ GitOps 파이프라인을 정리한 문서입니다. `RuntimeWeb` 기반 `dropap
 :::
 
 ::: {.doc-card .ops}
-### [Live Ops Dashboard](devops/OpsDashboard.html)
+### [운영 관측성 구현 기록](devops/OpsDashboard.html)
 
-`ops-api.mintcocoa.cc`를 통해 Prometheus target, Kubernetes workload,
-Proxmox node/VM 상태를 실시간으로 읽는 대시보드입니다.
+기존 실시간 운영 대시보드는 `archive/live-ops-dashboard/`에 백업하고,
+공개 페이지에서는 Prometheus target, Kubernetes workload, Proxmox node/VM 상태를
+어떤 증거로 정리했는지 설명하는 정적 문서로 교체했습니다.
 
 ::: {.serve-path}
-**서빙/조회 경로**
+**서빙 경로**
 
 `docs.mintcocoa.dev/portfolio/devops/OpsDashboard.html`
 
-`browser` → `OKE static docs page` → `https://ops-api.mintcocoa.cc/api/*`
+`browser` -> `OKE static docs page` -> `Quarto HTML document`
 :::
 
 ::: {.tag-row}
-`Quarto Dashboard` `Prometheus` `Proxmox` `Cloudflare Tunnel`
+`Quarto Website` `Prometheus` `Proxmox` `Archived Dashboard`
 :::
 :::
 :::
@@ -236,7 +237,7 @@ Proxmox node/VM 상태를 실시간으로 읽는 대시보드입니다.
 
 GitHub Pages mirror: `https://mint-cocoa.github.io/mintcocoa-docs/`
 
-`https://docs.mintcocoa.dev/`는 OCI OKE production의 canonical 문서 경로입니다. GitHub Pages는 공개 미러로 유지하며, Live Ops Dashboard는 두 경로 모두에서 `https://ops-api.mintcocoa.cc/api/*`를 호출해 Prometheus와 Proxmox 상태를 읽습니다.
+`https://docs.mintcocoa.dev/`는 OCI OKE production의 canonical 문서 경로입니다. GitHub Pages는 공개 미러로 유지하며, 운영 관측성 페이지는 실시간 호출 없는 정적 Quarto 문서로 제공합니다.
 :::
 
 ## 관련 레포

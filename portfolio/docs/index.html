@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.38">
+<meta name="generator" content="quarto-1.9.37">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -21,7 +21,7 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
 </style>
@@ -34,10 +34,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="index_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="index_files/libs/quarto-html/anchor.min.js"></script>
 <link href="index_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="index_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="index_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="index_files/libs/bootstrap/bootstrap-2ad086f31e7238a25da6f265a7fdf516.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="index_files/libs/bootstrap/bootstrap-b266025aee7dee100f5553a3ab926a66.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 <link rel="stylesheet" href="portfolio.css">
@@ -65,11 +65,11 @@ ul.task-list li input[type="checkbox"] {
              <p>배진후 </p>
           </div>
   </div>
-
-
-
+    
+  
+    
   </div>
-
+  
 
 
 </header>
@@ -200,16 +200,16 @@ ul.task-list li input[type="checkbox"] {
 <p><code>OCI</code> <code>OKE</code> <code>GitOps</code> <code>RuntimeWeb</code> <code>Ingress</code></p>
 </div>
 </section>
-<section id="live-ops-dashboard" class="level3 doc-card ops" data-number="2.8">
-<h3 data-number="2.8" class="anchored" data-anchor-id="live-ops-dashboard"><span class="header-section-number">2.8</span> <a href="devops/OpsDashboard.html">Live Ops Dashboard</a></h3>
-<p><code>ops-api.mintcocoa.cc</code>를 통해 Prometheus target, Kubernetes workload, Proxmox node/VM 상태를 실시간으로 읽는 대시보드입니다.</p>
+<section id="운영-관측성-구현-기록" class="level3 doc-card ops" data-number="2.8">
+<h3 data-number="2.8" class="anchored" data-anchor-id="운영-관측성-구현-기록"><span class="header-section-number">2.8</span> <a href="devops/OpsDashboard.html">운영 관측성 구현 기록</a></h3>
+<p>기존 실시간 운영 대시보드는 <code>archive/live-ops-dashboard/</code>에 백업하고, 공개 페이지에서는 Prometheus target, Kubernetes workload, Proxmox node/VM 상태를 어떤 증거로 정리했는지 설명하는 정적 문서로 교체했습니다.</p>
 <div class="serve-path">
-<p><strong>서빙/조회 경로</strong></p>
+<p><strong>서빙 경로</strong></p>
 <p><code>docs.mintcocoa.dev/portfolio/devops/OpsDashboard.html</code></p>
-<p><code>browser</code> → <code>OKE static docs page</code> → <code>https://ops-api.mintcocoa.cc/api/*</code></p>
+<p><code>browser</code> -&gt; <code>OKE static docs page</code> -&gt; <code>Quarto HTML document</code></p>
 </div>
 <div class="tag-row">
-<p><code>Quarto Dashboard</code> <code>Prometheus</code> <code>Proxmox</code> <code>Cloudflare Tunnel</code></p>
+<p><code>Quarto Website</code> <code>Prometheus</code> <code>Proxmox</code> <code>Archived Dashboard</code></p>
 </div>
 </section>
 </div>
@@ -217,7 +217,7 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>공개 문서 노출 경로</strong></p>
 <p><code>GitHub push</code> → <code>GitHub Actions</code> → <code>_site/</code> render → <code>GHCR image</code> → <code>Argo CD</code> → <code>https://docs.mintcocoa.dev/</code></p>
 <p>GitHub Pages mirror: <code>https://mint-cocoa.github.io/mintcocoa-docs/</code></p>
-<p><code>https://docs.mintcocoa.dev/</code>는 OCI OKE production의 canonical 문서 경로입니다. GitHub Pages는 공개 미러로 유지하며, Live Ops Dashboard는 두 경로 모두에서 <code>https://ops-api.mintcocoa.cc/api/*</code>를 호출해 Prometheus와 Proxmox 상태를 읽습니다.</p>
+<p><code>https://docs.mintcocoa.dev/</code>는 OCI OKE production의 canonical 문서 경로입니다. GitHub Pages는 공개 미러로 유지하며, 운영 관측성 페이지는 실시간 호출 없는 정적 Quarto 문서로 제공합니다.</p>
 </div>
 </section>
 <section id="관련-레포" class="level2" data-number="3">
@@ -279,7 +279,7 @@ ul.task-list li input[type="checkbox"] {
     anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
-        if (clz.startsWith('code-annotation-')) {
+        if (clz.startsWith('code-annotation-')) {                     
           return true;
         }
       }
@@ -299,11 +299,11 @@ ul.task-list li input[type="checkbox"] {
         button.setAttribute("data-bs-toggle", "tooltip");
         button.setAttribute("data-bs-placement", "left");
         button.setAttribute("data-bs-title", "복사완료!");
-        tooltip = new bootstrap.Tooltip(button,
-          { trigger: "manual",
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
             customClass: "code-copy-button-tooltip",
             offset: [0, -8]});
-        tooltip.show();
+        tooltip.show();    
       }
       setTimeout(function() {
         if (tooltip) {
@@ -385,7 +385,7 @@ ul.task-list li input[type="checkbox"] {
       if (onUntriggerFn) {
         config.onUntrigger = onUntriggerFn;
       }
-      window.tippy(el, config);
+      window.tippy(el, config); 
     }
     const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
     for (var i=0; i<noterefs.length; i++) {
@@ -460,7 +460,7 @@ ul.task-list li input[type="checkbox"] {
       tippyHover(xref, undefined, function(instance) {
         instance.disable();
         let url = xref.getAttribute('href');
-        let hash = undefined;
+        let hash = undefined; 
         if (url.startsWith('#')) {
           hash = url;
         } else {
@@ -488,7 +488,7 @@ ul.task-list li input[type="checkbox"] {
               if (note !== null) {
                 const html = processXRef(id, note);
                 instance.setContent(html);
-              }
+              } 
             }).finally(() => {
               instance.enable();
               instance.show();
@@ -512,7 +512,7 @@ ul.task-list li input[type="checkbox"] {
               }
               const html = processXRef(null, note);
               instance.setContent(html);
-            }
+            } 
           }).finally(() => {
             instance.enable();
             instance.show();
@@ -552,7 +552,7 @@ ul.task-list li input[type="checkbox"] {
               height = bottom - top;
             }
             if (top !== null && height !== null && parent !== null) {
-              // cook up a div (if necessary) and position it
+              // cook up a div (if necessary) and position it 
               let div = window.document.getElementById("code-annotation-line-highlight");
               if (div === null) {
                 div = window.document.createElement("div");
