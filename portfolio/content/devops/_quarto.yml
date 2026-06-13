@@ -5,6 +5,7 @@ project:
     - index.qmd
   resources:
     - assets/
+    - production-infrastructure-architecture.md
     - favicon.svg
     - icons.svg
 

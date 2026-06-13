@@ -55,8 +55,14 @@ test ! -d "$site_dir/portfolio/servercore/docs"
 test ! -f "$site_dir/portfolio/devops/DevOpsPortfolio.html"
 test ! -f "$site_dir/portfolio/client/ClientPortfolio.html"
 
-if find "$site_dir" -type f \( -name '*.qmd' -o -name '*.md' \) | grep -q .; then
+allowed_markdown="$site_dir/portfolio/devops/production-infrastructure-architecture.md"
+leaked_markdown="$(
+  find "$site_dir" -type f \( -name '*.qmd' -o -name '*.md' \) \
+    | grep -vFx "$allowed_markdown" || true
+)"
+if [[ -n "$leaked_markdown" ]]; then
   echo "source markdown files leaked into _site" >&2
+  echo "$leaked_markdown" >&2
   exit 1
 fi
 
