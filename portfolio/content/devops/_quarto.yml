@@ -3,14 +3,13 @@ project:
   output-dir: ../../docs/devops
   render:
     - index.qmd
-    - chapters/*.qmd
   resources:
     - assets/
     - favicon.svg
     - icons.svg
 
 website:
-  title: "DevOps 운영 문서"
+  title: "MintCocoa Production Infrastructure Architecture"
   page-navigation: true
   favicon: favicon.svg
   navbar:
@@ -18,7 +17,9 @@ website:
       - text: "문서"
         href: index.qmd
   sidebar:
-    contents: auto
+    contents:
+      - text: "Production Infrastructure Architecture"
+        href: index.qmd
 
 format:
   html:
