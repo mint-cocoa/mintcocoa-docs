@@ -35,7 +35,7 @@ author: "배진후"
 | CNI | OCI VCN native pod networking |
 | Node OS | Oracle Linux 8 managed node image |
 
-![Kubernetes production node status](assets/oci/kubectl-oke-node-status.png)
+![Kubernetes production node status](assets/production-infrastructure/oci/kubectl-oke-node-status.png)
 
 ## 3. Network Boundary와 Security Group
 
@@ -43,13 +43,13 @@ public ingress와 private ingress는 외부 노출 경로와 내부 경로를 �
 
 public-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound traffic은 NAT Gateway 경로를 사용하도록 해 public ingress와 private API, pod outbound traffic의 경로를 분리했습니다.
 
-![OCI routing Terraform capture](assets/architecture/02-oci-routing-boundary.png)
+![OCI routing Terraform capture](assets/production-infrastructure/architecture/oci-routing-boundary.png)
 
 VCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes API endpoint를 위한 공간이고, pods subnet은 OCI VCN native CNI가 자동으로 pod address를 할당하는 영역이므로 별도 CNI를 둘 필요가 없었습니다. management subnet은 집 내부망에서 IPSec 경로로 접근하는 management k3s/Argo CD GitOps manager VM 영역입니다.
 
 보안 그룹(NSG)은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.
 
-![OCI security boundary Terraform capture](assets/architecture/03-oci-security-boundary.png)
+![OCI security boundary Terraform capture](assets/production-infrastructure/architecture/oci-security-boundary.png)
 
 
 | Component | Role |
@@ -64,7 +64,7 @@ VCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes 
 
 운영면에서의 접근은 public user traffic과 분리했습니다. 외부 사용자는 public DNS와 public ingress를 통해 서비스에 접근하지만, 운영자는 home LAN에서 Raspberry Pi IPSec CPE와 GitOps manager를 거쳐 private 운영 경로에 들어옵니다.
 
-![Operator private access runbook capture](assets/architecture/04-operator-private-access.png)
+![Operator private access runbook capture](assets/production-infrastructure/architecture/operator-private-access.png)
 
 public internet에 직접 노출되는 면적을 줄이고,어디서 접속할 수 있는지를 home LAN과 GitOps manager 범위 안에서 통제하기 위해서 이렇게 제한 된 접근 경로로 설정했습니다.
 
@@ -83,12 +83,12 @@ GitOps repo는 역할별 root application으로 나누어집니다.
 
 각 root application은 Kustomize로 구성되어 있고, staging/prod overlay로 나뉩니다. staging은 빠르게 검증할 수 있도록 자동 Sync로 두고, prod는 수동 Sync로 두어 운영자가 변경 내용을 검토하고 승인할 수 있도록 했습니다.
 
-![Argo CD staging root application and child applications](assets/gitops/argocd-staging-root.png)
+![Argo CD staging root application and child applications](assets/production-infrastructure/gitops/argocd-staging-root.png)
 
 production으로 보낼 때는 `mintcocoa-ops`의 promotion workflow가 staging overlay의 현재 `newName`/`newTag`를 읽어 `apps/<app>/overlays/prod/kustomization.yaml`로 복사하는 PR을 만듭니다.
 
-![GitHub promotion PR updating the GitOps image tag](assets/gitops/ops-staging-promotion-pr.png)
+![GitHub promotion PR updating the GitOps image tag](assets/production-infrastructure/gitops/ops-staging-promotion-pr.png)
 
-![GitHub Actions render validation for GitOps manifests](assets/gitops/ops-render-validation.png)
+![GitHub Actions render validation for GitOps manifests](assets/production-infrastructure/gitops/ops-render-validation.png)
 
 이 PR이 merge되면 prod-root가 변경을 감지해 `OutOfSync`로 표시되고, 운영자가 diff와 staging 응답, GitHub Actions validation을 확인한 뒤 수동 Sync합니다. 이렇게 하면 production 배포 의도가 GitHub PR과 Argo CD operation 양쪽에 남게 되어 문제 발생 시 어느 단계에서 의도와 실제 상태가 달라졌는지 추적하기 쉽습니다.

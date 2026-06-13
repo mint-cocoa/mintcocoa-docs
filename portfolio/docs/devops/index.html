@@ -261,7 +261,7 @@ ul.task-list li input[type="checkbox"] {
 </table>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/oci/kubectl-oke-node-status.png" class="img-fluid figure-img"></p>
+<p><img src="assets/production-infrastructure/oci/kubectl-oke-node-status.png" class="img-fluid figure-img"></p>
 <figcaption>Kubernetes production node status</figcaption>
 </figure>
 </div>
@@ -272,7 +272,7 @@ ul.task-list li input[type="checkbox"] {
 <p>public-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound traffic은 NAT Gateway 경로를 사용하도록 해 public ingress와 private API, pod outbound traffic의 경로를 분리했습니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/architecture/02-oci-routing-boundary.png" class="img-fluid figure-img"></p>
+<p><img src="assets/production-infrastructure/architecture/oci-routing-boundary.png" class="img-fluid figure-img"></p>
 <figcaption>OCI routing Terraform capture</figcaption>
 </figure>
 </div>
@@ -280,7 +280,7 @@ ul.task-list li input[type="checkbox"] {
 <p>보안 그룹(NSG)은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/architecture/03-oci-security-boundary.png" class="img-fluid figure-img"></p>
+<p><img src="assets/production-infrastructure/architecture/oci-security-boundary.png" class="img-fluid figure-img"></p>
 <figcaption>OCI security boundary Terraform capture</figcaption>
 </figure>
 </div>
@@ -325,7 +325,7 @@ ul.task-list li input[type="checkbox"] {
 <p>운영면에서의 접근은 public user traffic과 분리했습니다. 외부 사용자는 public DNS와 public ingress를 통해 서비스에 접근하지만, 운영자는 home LAN에서 Raspberry Pi IPSec CPE와 GitOps manager를 거쳐 private 운영 경로에 들어옵니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/architecture/04-operator-private-access.png" class="img-fluid figure-img"></p>
+<p><img src="assets/production-infrastructure/architecture/operator-private-access.png" class="img-fluid figure-img"></p>
 <figcaption>Operator private access runbook capture</figcaption>
 </figure>
 </div>
@@ -344,20 +344,20 @@ ul.task-list li input[type="checkbox"] {
 <p>각 root application은 Kustomize로 구성되어 있고, staging/prod overlay로 나뉩니다. staging은 빠르게 검증할 수 있도록 자동 Sync로 두고, prod는 수동 Sync로 두어 운영자가 변경 내용을 검토하고 승인할 수 있도록 했습니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/gitops/argocd-staging-root.png" class="img-fluid figure-img"></p>
+<p><img src="assets/production-infrastructure/gitops/argocd-staging-root.png" class="img-fluid figure-img"></p>
 <figcaption>Argo CD staging root application and child applications</figcaption>
 </figure>
 </div>
 <p>production으로 보낼 때는 <code>mintcocoa-ops</code>의 promotion workflow가 staging overlay의 현재 <code>newName</code>/<code>newTag</code>를 읽어 <code>apps/&lt;app&gt;/overlays/prod/kustomization.yaml</code>로 복사하는 PR을 만듭니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/gitops/ops-staging-promotion-pr.png" class="img-fluid figure-img"></p>
+<p><img src="assets/production-infrastructure/gitops/ops-staging-promotion-pr.png" class="img-fluid figure-img"></p>
 <figcaption>GitHub promotion PR updating the GitOps image tag</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/gitops/ops-render-validation.png" class="img-fluid figure-img"></p>
+<p><img src="assets/production-infrastructure/gitops/ops-render-validation.png" class="img-fluid figure-img"></p>
 <figcaption>GitHub Actions render validation for GitOps manifests</figcaption>
 </figure>
 </div>
