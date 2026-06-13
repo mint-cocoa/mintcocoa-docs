@@ -4,18 +4,7 @@
     "href": "index.html",
     "title": "MintCocoa Production Infrastructure Architecture",
     "section": "",
-    "text": "MintCocoa production 환경은 public service plane, GitOps control plane, private operator plane을 분리해 구성했습니다. 외부 사용자는 public ingress와 도메인을 통해 서비스에 접근하고, 운영자는 home LAN에서 OCI private network로 들어가는 별도 경로를 사용합니다.\n이 문서는 홈랩 단일 서버 실험에서 출발한 환경을 OCI OKE 위의 production 기준 구조로 옮기면서, 접근 제어, 배포 승인, 관측성, 장애 추적 문제를 어떻게 작게 재현했는지 설명합니다. 핵심은 리소스의 크기가 아니라 책임의 분리입니다.\n\n\n\nMintCocoa production architecture overview\n\n\n\n\n\n\n\n\n\n\nPlane\n책임\n대표 구성\n\n\n\n\nPublic service plane\n외부 사용자에게 공개되는 서비스 경로\ndocs.mintcocoa.dev, drop.mintcocoa.dev, public nginx ingress\n\n\nGitOps control plane\nstaging/prod desired state 선언과 수렴\nmintcocoa-ops, GitOps manager Argo CD, Kustomize overlays\n\n\nPrivate operator plane\n운영자 접근과 관측성 UI\nprivate Kubernetes API, OCI IPSec, GitOps manager, private Grafana ingress",
-    "crumbs": [
-      "문서",
-      "Production Infrastructure Architecture"
-    ]
-  },
-  {
-    "objectID": "index.html#executive-summary",
-    "href": "index.html#executive-summary",
-    "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "",
-    "text": "MintCocoa production 환경은 public service plane, GitOps control plane, private operator plane을 분리해 구성했습니다. 외부 사용자는 public ingress와 도메인을 통해 서비스에 접근하고, 운영자는 home LAN에서 OCI private network로 들어가는 별도 경로를 사용합니다.\n이 문서는 홈랩 단일 서버 실험에서 출발한 환경을 OCI OKE 위의 production 기준 구조로 옮기면서, 접근 제어, 배포 승인, 관측성, 장애 추적 문제를 어떻게 작게 재현했는지 설명합니다. 핵심은 리소스의 크기가 아니라 책임의 분리입니다.\n\n\n\nMintCocoa production architecture overview\n\n\n\n\n\n\n\n\n\n\nPlane\n책임\n대표 구성\n\n\n\n\nPublic service plane\n외부 사용자에게 공개되는 서비스 경로\ndocs.mintcocoa.dev, drop.mintcocoa.dev, public nginx ingress\n\n\nGitOps control plane\nstaging/prod desired state 선언과 수렴\nmintcocoa-ops, GitOps manager Argo CD, Kustomize overlays\n\n\nPrivate operator plane\n운영자 접근과 관측성 UI\nprivate Kubernetes API, OCI IPSec, GitOps manager, private Grafana ingress",
+    "text": "오라클 클라우드 기반 k8s 환경을 클러스터와 인프라를 구축한 과정을 설명한 문서입니다. 홈랩에 의존하는 단일 서버 실험을 넘어 실제 운영시 발생할 문제사항을 고려하여 개발과 프로덕션 환경 분리, 관측성, 접근 권한 문제를 가정하며 설계했습니다.\n\n\n초기에는 집에서 작은 서버 한 대로 하면서 빠르게 세팅할 수 있고 네트워크와 시스템 설정을 직접 다루면서 배울 수 있다는 장점이 있었지만, 네트워크 대역 제한, 집 네트워크에 의존하는 트래픽 경로와 같이 실전적인 환경이 아니라는 한계가 있었습니다.\n그래서 오라클 클라우드의 프리 티어 OKE 클러스터를 이용해 프로덕션과 개발 환경을 분리한다면 home lab의 제약에서 벗어나 실제 프로덕션 환경과 더 유사한 조건에서 운영을 검증할 수 있을 것이라고 판단했습니다.\n\n\n\n먼저 클러스터 안에서 사용자 트래픽, GitOps 제어, 운영자 접근 개념을 분리하고 namespace, ingress class, load balancer, 접근 경로 기준으로 나누었습니다.\n\n\n\n\n\n\n\n\nPlane\n책임\n대표 구성\n\n\n\n\nPublic service plane\n외부 사용자가 접근하는 서비스 노출\ndocs.mintcocoa.dev, drop.mintcocoa.dev, demo.mintcocoa.dev, public nginx ingress\n\n\nGitOps control plane\nstaging/prod desired state 선언과 수렴\nmintcocoa-ops, GitOps manager Argo CD, Kustomize overlays\n\n\nPrivate operator plane\n운영자 접근과 관측성 UI\nprivate Kubernetes API, OCI IPSec/GitOps manager, private Grafana ingress\n\n\n\n\n\n\n\n\n\n영역\n구성\n\n\n\n\nCloud provider\nOracle Cloud Infrastructure\n\n\nRegion\nap-chuncheon-1\n\n\nVCN\n10.30.0.0/16\n\n\nKubernetes\nOKE basic cluster, Kubernetes v1.33.1\n\n\nNode pool\nVM.Standard.A1.Flex, 3 worker nodes\n\n\nCNI\nOCI VCN native pod networking\n\n\nNode OS\nOracle Linux 8 managed node image\n\n\n\n\n\n\nKubernetes production node status\n\n\n\n\n\npublic ingress와 private ingress는 외부 노출 경로와 내부 경로를 분리하기 위해 public host는 외부 사용자 트래픽을 받고, operator-only host는 private access path 안에서만 사용합니다.\npublic-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound traffic은 NAT Gateway 경로를 사용하도록 해 public ingress와 private API, pod outbound traffic의 경로를 분리했습니다.\n\n\n\nOCI routing Terraform capture\n\n\nVCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes API endpoint를 위한 공간이고, pods subnet은 OCI VCN native CNI가 자동으로 pod address를 할당하는 영역이므로 별도 CNI를 둘 필요가 없었습니다. management subnet은 집 내부망에서 IPSec 경로로 접근하는 management k3s/Argo CD GitOps manager VM 영역입니다.\n보안 그룹(NSG)은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.\n\n\n\nOCI security boundary Terraform capture\n\n\n\n\n\n\n\n\n\nComponent\nRole\n\n\n\n\nInternet Gateway\npublic ingress와 OKE public endpoint\n\n\nNAT Gateway\npod subnet의 outbound traffic\n\n\nControl plane NSG\nKubernetes API 접근 제한\n\n\nWorkers NSG\nnode와 pod traffic 경계\n\n\nLoad balancer NSG\npublic/private ingress load balancer traffic 경계\n\n\nManager NSG\nhome LAN SSH/HTTPS, GitOps management 진입점\n\n\n\n운영면에서의 접근은 public user traffic과 분리했습니다. 외부 사용자는 public DNS와 public ingress를 통해 서비스에 접근하지만, 운영자는 home LAN에서 Raspberry Pi IPSec CPE와 GitOps manager를 거쳐 private 운영 경로에 들어옵니다.\n\n\n\nOperator private access runbook capture\n\n\npublic internet에 직접 노출되는 면적을 줄이고,어디서 접속할 수 있는지를 home LAN과 GitOps manager 범위 안에서 통제하기 위해서 이렇게 제한 된 접근 경로로 설정했습니다.\n\n\n\nProduction desired state는 prod 클러스터가 최종적으로 어떤 상태여야 하는지를 의미하고, 모든 상태를 mintcocoa-ops 저장소 안에 선언적으로 표현, Argo CD가 이를 실제 prod 클러스터 상태와 비교해 일치하도록 관리합니다.\nOCI 위에는 GitOps manager VM이 있고, 그 안의 management k3s 클러스터에서 Argo CD가 동작합니다. 이 Argo CD가 mintcocoa-ops 저장소를 바라보면서 “Git에 적힌 상태”와 “실제 Kubernetes 클러스터 상태”를 비교합니다.\nGitOps repo는 역할별 root application으로 나누어집니다.\n\nmanager-root: management 영역 상태를 관리\nstaging-root: staging 클러스터 상태를 관리\nprod-root: production 클러스터 상태를 관리\n\n각 root application은 Kustomize로 구성되어 있고, staging/prod overlay로 나뉩니다. staging은 빠르게 검증할 수 있도록 자동 Sync로 두고, prod는 수동 Sync로 두어 운영자가 변경 내용을 검토하고 승인할 수 있도록 했습니다.\n\n\n\nArgo CD staging root application and child applications\n\n\nproduction으로 보낼 때는 mintcocoa-ops의 promotion workflow가 staging overlay의 현재 newName/newTag를 읽어 apps/&lt;app&gt;/overlays/prod/kustomization.yaml로 복사하는 PR을 만듭니다.\n\n\n\nGitHub promotion PR updating the GitOps image tag\n\n\n\n\n\nGitHub Actions render validation for GitOps manifests\n\n\n이 PR이 merge되면 prod-root가 변경을 감지해 OutOfSync로 표시되고, 운영자가 diff와 staging 응답, GitHub Actions validation을 확인한 뒤 수동 Sync합니다. 이렇게 하면 production 배포 의도가 GitHub PR과 Argo CD operation 양쪽에 남게 되어 문제 발생 시 어느 단계에서 의도와 실제 상태가 달라졌는지 추적하기 쉽습니다.",
     "crumbs": [
       "문서",
       "Production Infrastructure Architecture"
@@ -25,8 +14,8 @@
     "objectID": "index.html#기존-실험-환경과-설계-기준",
     "href": "index.html#기존-실험-환경과-설계-기준",
     "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "2 1. 기존 실험 환경과 설계 기준",
-    "text": "2 1. 기존 실험 환경과 설계 기준\n초기에는 집의 작은 서버 한 대에서 빠르게 실험할 수 있었습니다. 직접 네트워크와 시스템 설정을 다루며 배울 수 있다는 장점은 컸지만, production 관점에서는 집 네트워크 품질, upstream router 설정, 전원, 회선 상태에 너무 많이 의존했습니다.\n문제는 “서비스가 실행된다”와 “운영 가능한 형태로 노출된다”가 다르다는 점이었습니다. 홈랩에서는 LAN 안에서 접속이 되면 성공처럼 보이지만, 실제 운영에서는 사용자 트래픽, 관리자 접근, 배포 승인, 장애 확인 경로가 분리되어야 합니다.\n그래서 Oracle Cloud Infrastructure의 OKE cluster를 production 기준 환경으로 두고, home k3s는 staging과 복구 훈련 역할로 분리했습니다. 이 선택은 managed Kubernetes를 쓰기 위한 목적만이 아니라, 작은 환경에서 production boundary를 검증하기 위한 선택이었습니다.\n\n\n\n\n\n\n\n검증하고 싶었던 조건\n설계 기준\n\n\n\n\nPublic service exposure\n사용자 트래픽은 public ingress와 DNS로만 들어온다\n\n\nOperator access\nKubernetes API와 운영 UI는 private operator path에 둔다\n\n\nDeployment approval\nstaging 검증 후 production은 명시적인 PR과 수동 sync를 거친다\n\n\nObservability boundary\nGrafana 같은 운영 화면은 public service plane과 분리한다",
+    "section": "",
+    "text": "초기에는 집에서 작은 서버 한 대로 하면서 빠르게 세팅할 수 있고 네트워크와 시스템 설정을 직접 다루면서 배울 수 있다는 장점이 있었지만, 네트워크 대역 제한, 집 네트워크에 의존하는 트래픽 경로와 같이 실전적인 환경이 아니라는 한계가 있었습니다.\n그래서 오라클 클라우드의 프리 티어 OKE 클러스터를 이용해 프로덕션과 개발 환경을 분리한다면 home lab의 제약에서 벗어나 실제 프로덕션 환경과 더 유사한 조건에서 운영을 검증할 수 있을 것이라고 판단했습니다.",
     "crumbs": [
       "문서",
       "Production Infrastructure Architecture"
@@ -36,8 +25,8 @@
     "objectID": "index.html#cluster와-gitops-repo-구조",
     "href": "index.html#cluster와-gitops-repo-구조",
     "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "3 2. Cluster와 GitOps Repo 구조",
-    "text": "3 2. Cluster와 GitOps Repo 구조\n클러스터 안에서는 사용자 트래픽, GitOps 제어, 운영자 접근을 namespace, ingress class, load balancer, 접근 경로 기준으로 나누었습니다. GitOps repo도 같은 의도를 드러내도록 환경별 root application과 역할별 group root로 정리했습니다.\n\n\n\n\n\n\n\n계층\n역할\n\n\n\n\nmanager-root\nGitOps manager 자체와 management plane 상태 관리\n\n\nstaging-root\nhome k3s staging cluster 상태 관리\n\n\nprod-root\nOKE production cluster 상태 관리\n\n\nprod-platform-root\ncert-manager, cluster issuer, metrics-server, rollout controller\n\n\nprod-ingress-root\npublic/private ingress controller\n\n\nprod-observability-root\nPrometheus/Grafana, Loki, Promtail, Tempo\n\n\nprod-workloads-root\npublic workload와 prod-services namespace\n\n\n\n이 구조의 트레이드오프는 파일과 Application 수가 늘어난다는 점입니다. 하지만 단일 manifest에 모든 것을 넣으면 어떤 변경이 public 노출을 바꾸는지, 어떤 변경이 운영 접근 경계를 바꾸는지 알기 어려워집니다.\n\n\n\nProduction root sync waves\n\n\n\n\n\nProduction group contents",
+    "section": "",
+    "text": "먼저 클러스터 안에서 사용자 트래픽, GitOps 제어, 운영자 접근 개념을 분리하고 namespace, ingress class, load balancer, 접근 경로 기준으로 나누었습니다.\n\n\n\n\n\n\n\n\nPlane\n책임\n대표 구성\n\n\n\n\nPublic service plane\n외부 사용자가 접근하는 서비스 노출\ndocs.mintcocoa.dev, drop.mintcocoa.dev, demo.mintcocoa.dev, public nginx ingress\n\n\nGitOps control plane\nstaging/prod desired state 선언과 수렴\nmintcocoa-ops, GitOps manager Argo CD, Kustomize overlays\n\n\nPrivate operator plane\n운영자 접근과 관측성 UI\nprivate Kubernetes API, OCI IPSec/GitOps manager, private Grafana ingress",
     "crumbs": [
       "문서",
       "Production Infrastructure Architecture"
@@ -47,8 +36,8 @@
     "objectID": "index.html#oci-vcn과-kubernetes-cluster-구성",
     "href": "index.html#oci-vcn과-kubernetes-cluster-구성",
     "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "4 3. OCI VCN과 Kubernetes Cluster 구성",
-    "text": "4 3. OCI VCN과 Kubernetes Cluster 구성\nOCI 계층은 Terraform으로 관리합니다. Terraform은 VCN, subnet, route table, NSG, OKE cluster처럼 cloud infrastructure의 기반을 관리하고, Kubernetes manifest와 Argo CD는 cluster 안에서 수렴해야 하는 desired state를 관리합니다.\n\n\n\n영역\n구성\n\n\n\n\nCloud provider\nOracle Cloud Infrastructure\n\n\nRegion\nap-chuncheon-1\n\n\nKubernetes\nOKE basic cluster, Kubernetes v1.33.1\n\n\nNode pool\nVM.Standard.A1.Flex, 3 worker nodes\n\n\nCNI\nOCI VCN native pod networking\n\n\nNode OS\nOracle Linux 8 managed node image\n\n\n\n아래 캡처는 production worker node 상태를 kubectl로 확인한 결과입니다. 공개 문서에서는 node IP와 세부 식별자를 마스킹하지만, worker 3대가 모두 Ready이고 Kubernetes v1.33.1로 동작한다는 운영 상태는 남깁니다.\n\n\n\nKubernetes production node status\n\n\nVCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes API endpoint를 위한 공간이고, pod subnet은 OCI VCN native CNI가 pod address를 할당하는 영역입니다. management subnet은 GitOps manager와 operator entry point가 위치하는 곳이라 public service subnet과 같은 의미로 취급하지 않습니다.",
+    "section": "",
+    "text": "영역\n구성\n\n\n\n\nCloud provider\nOracle Cloud Infrastructure\n\n\nRegion\nap-chuncheon-1\n\n\nVCN\n10.30.0.0/16\n\n\nKubernetes\nOKE basic cluster, Kubernetes v1.33.1\n\n\nNode pool\nVM.Standard.A1.Flex, 3 worker nodes\n\n\nCNI\nOCI VCN native pod networking\n\n\nNode OS\nOracle Linux 8 managed node image\n\n\n\n\n\n\nKubernetes production node status",
     "crumbs": [
       "문서",
       "Production Infrastructure Architecture"
@@ -58,19 +47,8 @@
     "objectID": "index.html#network-boundary와-security-group",
     "href": "index.html#network-boundary와-security-group",
     "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "5 4. Network Boundary와 Security Group",
-    "text": "5 4. Network Boundary와 Security Group\npublic ingress와 private ingress는 같은 production cluster 안에 있지만 노출 의도가 다릅니다. public host는 외부 사용자 트래픽을 받고, operator-only host는 private access path 안에서만 사용합니다.\npublic-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound traffic은 NAT Gateway 경로를 사용하도록 해 public ingress, private API, pod outbound traffic의 경로를 분리했습니다.\n\n\n\nOCI routing Terraform capture\n\n\n보안 그룹은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.\n\n\n\nOCI security boundary Terraform capture\n\n\n\n\n\n\n\n\n\nComponent\nRole\n\n\n\n\nInternet Gateway\npublic ingress와 OKE public endpoint\n\n\nNAT Gateway\npod subnet의 outbound traffic\n\n\nControl plane NSG\nKubernetes API 접근 제한\n\n\nWorkers NSG\nnode와 pod traffic 경계\n\n\nLoad balancer NSG\npublic/private ingress load balancer traffic 경계\n\n\nManager NSG\nhome LAN SSH/HTTPS, GitOps management 진입점\n\n\n\n아래 캡처는 같은 경계를 OCI CLI 조회 결과로 요약한 것입니다. public ingress load balancer는 public address를 갖고, private ingress load balancer는 VCN 내부 address만 갖습니다. manager NSG는 home LAN 경로의 SSH/HTTPS만 허용해 operator-only path를 public service path와 분리합니다.\n\n\n\nOCI ingress security boundary",
-    "crumbs": [
-      "문서",
-      "Production Infrastructure Architecture"
-    ]
-  },
-  {
-    "objectID": "index.html#private-operator-access",
-    "href": "index.html#private-operator-access",
-    "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "6 5. Private Operator Access",
-    "text": "6 5. Private Operator Access\n운영 접근은 public user traffic과 분리했습니다. 외부 사용자는 public DNS와 public ingress를 통해 서비스에 접근하지만, 운영자는 home LAN에서 Raspberry Pi IPSec CPE와 GitOps manager를 거쳐 private 운영 경로에 들어옵니다.\nLAN client\n  -&gt; Raspberry Pi IPSec CPE\n  -&gt; OCI Site-to-Site IPSec\n  -&gt; GitOps manager\n  -&gt; OKE private API / private ingress\n이 접근 모델은 public Kubernetes API나 운영 UI를 넓게 여는 방식보다 불편합니다. 대신 public internet에 직접 노출되는 면적을 줄이고, 누가 운영자가 될 수 있고 어디서 접속할 수 있는지를 home LAN과 GitOps manager 범위 안에서 통제할 수 있습니다.\n\n\n\nOperator private access runbook capture",
+    "section": "",
+    "text": "public ingress와 private ingress는 외부 노출 경로와 내부 경로를 분리하기 위해 public host는 외부 사용자 트래픽을 받고, operator-only host는 private access path 안에서만 사용합니다.\npublic-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound traffic은 NAT Gateway 경로를 사용하도록 해 public ingress와 private API, pod outbound traffic의 경로를 분리했습니다.\n\n\n\nOCI routing Terraform capture\n\n\nVCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes API endpoint를 위한 공간이고, pods subnet은 OCI VCN native CNI가 자동으로 pod address를 할당하는 영역이므로 별도 CNI를 둘 필요가 없었습니다. management subnet은 집 내부망에서 IPSec 경로로 접근하는 management k3s/Argo CD GitOps manager VM 영역입니다.\n보안 그룹(NSG)은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.\n\n\n\nOCI security boundary Terraform capture\n\n\n\n\n\n\n\n\n\nComponent\nRole\n\n\n\n\nInternet Gateway\npublic ingress와 OKE public endpoint\n\n\nNAT Gateway\npod subnet의 outbound traffic\n\n\nControl plane NSG\nKubernetes API 접근 제한\n\n\nWorkers NSG\nnode와 pod traffic 경계\n\n\nLoad balancer NSG\npublic/private ingress load balancer traffic 경계\n\n\nManager NSG\nhome LAN SSH/HTTPS, GitOps management 진입점\n\n\n\n운영면에서의 접근은 public user traffic과 분리했습니다. 외부 사용자는 public DNS와 public ingress를 통해 서비스에 접근하지만, 운영자는 home LAN에서 Raspberry Pi IPSec CPE와 GitOps manager를 거쳐 private 운영 경로에 들어옵니다.\n\n\n\nOperator private access runbook capture\n\n\npublic internet에 직접 노출되는 면적을 줄이고,어디서 접속할 수 있는지를 home LAN과 GitOps manager 범위 안에서 통제하기 위해서 이렇게 제한 된 접근 경로로 설정했습니다.",
     "crumbs": [
       "문서",
       "Production Infrastructure Architecture"
@@ -80,41 +58,8 @@
     "objectID": "index.html#gitops-control-plane",
     "href": "index.html#gitops-control-plane",
     "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "7 6. GitOps Control Plane",
-    "text": "7 6. GitOps Control Plane\nProduction desired state는 prod cluster가 최종적으로 어떤 상태여야 하는지를 의미합니다. 이 상태는 mintcocoa-ops 저장소 안에 선언되어 있고, GitOps manager의 Argo CD가 실제 cluster 상태와 비교해 일치하도록 관리합니다.\nStaging은 빠르게 검증할 수 있도록 자동 sync에 가깝게 운영하고, production은 promotion PR과 수동 sync gate를 둡니다. 이 차이는 속도와 안정성의 절충입니다.\napplication repo push\n  -&gt; image build\n  -&gt; staging overlay update\n  -&gt; staging runtime validation\n  -&gt; production promotion PR\n  -&gt; operator review\n  -&gt; Argo CD production sync\n\n\n\nStaging CI PR contract\n\n\n\n\n\nStaging auto sync validation\n\n\nProduction으로 보낼 때는 mintcocoa-ops의 promotion workflow가 staging overlay의 현재 image name/tag를 읽어 prod overlay로 복사하는 PR을 만듭니다. 이 방식은 운영자가 임의의 tag를 production에 직접 입력하는 대신, staging에서 확인된 tag를 production으로 승격했다는 기록을 남깁니다.\n\n\n\nProduction promotion tag copy\n\n\nPR이 merge되면 Argo CD는 변경을 감지해 OutOfSync로 표시하고, 운영자가 diff, staging 응답, GitHub Actions validation을 확인한 뒤 수동 sync합니다. 이렇게 하면 production 배포 의도가 GitHub PR과 Argo CD operation 양쪽에 남습니다.\n\n\n\nProduction manual sync gate",
-    "crumbs": [
-      "문서",
-      "Production Infrastructure Architecture"
-    ]
-  },
-  {
-    "objectID": "index.html#observability-boundary",
-    "href": "index.html#observability-boundary",
-    "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "8 7. Observability Boundary",
-    "text": "8 7. Observability Boundary\n관측성 구성도 public service plane과 분리했습니다. Prometheus, Loki, Tempo는 cluster 내부 서비스로 남기고, Grafana만 private ingress 뒤에서 운영자가 접근합니다.\n\n\n\n\n\n\n\n구성요소\n역할\n\n\n\n\nmetrics-server\n기본 resource metrics\n\n\nkube-prometheus-stack\nPrometheus, Grafana, Alertmanager, kube-state-metrics, node-exporter\n\n\nloki\nlog storage\n\n\npromtail\nnode log shipping\n\n\ntempo\ntrace ingest/query\n\n\ngrafana-datasources\nLoki와 Tempo datasource 연결\n\n\n\nproduction 비용과 footprint를 줄이기 위해 observability storage는 작은 cluster에 맞춘 profile로 정리했습니다. 이 선택은 데이터 장기 보존보다 작은 OKE 환경에서의 운영 확인을 우선한 결과입니다.\n\n\n\nPrivate observability boundary\n\n\n\n\n\nLog shipping flow",
-    "crumbs": [
-      "문서",
-      "Production Infrastructure Architecture"
-    ]
-  },
-  {
-    "objectID": "index.html#design-tradeoffs",
-    "href": "index.html#design-tradeoffs",
-    "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "9 8. Design Tradeoffs",
-    "text": "9 8. Design Tradeoffs\n이 구조는 free-tier 규모의 작은 cluster를 전제로 합니다. 고가용성이나 대규모 트래픽보다 boundary와 traceability를 우선했습니다.\n\n\n\n\n\n\n\n\n선택\n장점\n비용\n\n\n\n\nOKE production과 home staging 분리\n집 네트워크 장애가 public service availability를 좌우하지 않음\n운영자가 두 환경의 차이를 이해해야 함\n\n\npublic/private ingress 분리\n사용자 트래픽과 운영 UI 노출면 분리\ningress class와 DNS 관리가 늘어남\n\n\nGitOps root/group application 분리\n변경 책임과 sync 단위가 명확함\nApplication 수가 늘어남\n\n\nstaging-first promotion\nproduction image tag의 출처를 추적 가능\n즉시 배포보다 절차가 길어짐\n\n\nprivate operator path\nAPI/UI 공개 면적 감소\n초기 네트워크 설정과 접근 검증이 복잡함",
-    "crumbs": [
-      "문서",
-      "Production Infrastructure Architecture"
-    ]
-  },
-  {
-    "objectID": "index.html#runtime-verification",
-    "href": "index.html#runtime-verification",
-    "title": "MintCocoa Production Infrastructure Architecture",
-    "section": "10 9. Runtime Verification",
-    "text": "10 9. Runtime Verification\n현재 runtime 검증은 세 축으로 남깁니다.\n\n\n\n\n\n\n\n확인 대상\n검증 방식\n\n\n\n\nOKE runtime\nkubectl get nodes, OKE cluster/node pool status\n\n\nNetwork boundary\nOCI route table, security list, NSG, load balancer 조회\n\n\nGitOps deployment\nGitHub PR, Argo CD sync state, production rollout 상태\n\n\n\n공개 문서에는 domain, repository, application name, commit hash처럼 검증 가능한 식별자는 남깁니다. 반면 Kubernetes API IP, OCID, token, Secret value는 그대로 노출하지 않고 역할과 경계만 설명합니다.",
+    "section": "",
+    "text": "Production desired state는 prod 클러스터가 최종적으로 어떤 상태여야 하는지를 의미하고, 모든 상태를 mintcocoa-ops 저장소 안에 선언적으로 표현, Argo CD가 이를 실제 prod 클러스터 상태와 비교해 일치하도록 관리합니다.\nOCI 위에는 GitOps manager VM이 있고, 그 안의 management k3s 클러스터에서 Argo CD가 동작합니다. 이 Argo CD가 mintcocoa-ops 저장소를 바라보면서 “Git에 적힌 상태”와 “실제 Kubernetes 클러스터 상태”를 비교합니다.\nGitOps repo는 역할별 root application으로 나누어집니다.\n\nmanager-root: management 영역 상태를 관리\nstaging-root: staging 클러스터 상태를 관리\nprod-root: production 클러스터 상태를 관리\n\n각 root application은 Kustomize로 구성되어 있고, staging/prod overlay로 나뉩니다. staging은 빠르게 검증할 수 있도록 자동 Sync로 두고, prod는 수동 Sync로 두어 운영자가 변경 내용을 검토하고 승인할 수 있도록 했습니다.\n\n\n\nArgo CD staging root application and child applications\n\n\nproduction으로 보낼 때는 mintcocoa-ops의 promotion workflow가 staging overlay의 현재 newName/newTag를 읽어 apps/&lt;app&gt;/overlays/prod/kustomization.yaml로 복사하는 PR을 만듭니다.\n\n\n\nGitHub promotion PR updating the GitOps image tag\n\n\n\n\n\nGitHub Actions render validation for GitOps manifests\n\n\n이 PR이 merge되면 prod-root가 변경을 감지해 OutOfSync로 표시되고, 운영자가 diff와 staging 응답, GitHub Actions validation을 확인한 뒤 수동 Sync합니다. 이렇게 하면 production 배포 의도가 GitHub PR과 Argo CD operation 양쪽에 남게 되어 문제 발생 시 어느 단계에서 의도와 실제 상태가 달라졌는지 추적하기 쉽습니다.",
     "crumbs": [
       "문서",
       "Production Infrastructure Architecture"

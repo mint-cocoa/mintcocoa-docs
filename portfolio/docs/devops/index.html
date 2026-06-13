@@ -137,16 +137,14 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">목차</h2>
 
   <ul>
-  <li><a href="#executive-summary" id="toc-executive-summary" class="nav-link active" data-scroll-target="#executive-summary"><span class="header-section-number">1</span> Executive Summary</a></li>
-  <li><a href="#기존-실험-환경과-설계-기준" id="toc-기존-실험-환경과-설계-기준" class="nav-link" data-scroll-target="#기존-실험-환경과-설계-기준"><span class="header-section-number">2</span> 1. 기존 실험 환경과 설계 기준</a></li>
-  <li><a href="#cluster와-gitops-repo-구조" id="toc-cluster와-gitops-repo-구조" class="nav-link" data-scroll-target="#cluster와-gitops-repo-구조"><span class="header-section-number">3</span> 2. Cluster와 GitOps Repo 구조</a></li>
-  <li><a href="#oci-vcn과-kubernetes-cluster-구성" id="toc-oci-vcn과-kubernetes-cluster-구성" class="nav-link" data-scroll-target="#oci-vcn과-kubernetes-cluster-구성"><span class="header-section-number">4</span> 3. OCI VCN과 Kubernetes Cluster 구성</a></li>
-  <li><a href="#network-boundary와-security-group" id="toc-network-boundary와-security-group" class="nav-link" data-scroll-target="#network-boundary와-security-group"><span class="header-section-number">5</span> 4. Network Boundary와 Security Group</a></li>
-  <li><a href="#private-operator-access" id="toc-private-operator-access" class="nav-link" data-scroll-target="#private-operator-access"><span class="header-section-number">6</span> 5. Private Operator Access</a></li>
-  <li><a href="#gitops-control-plane" id="toc-gitops-control-plane" class="nav-link" data-scroll-target="#gitops-control-plane"><span class="header-section-number">7</span> 6. GitOps Control Plane</a></li>
-  <li><a href="#observability-boundary" id="toc-observability-boundary" class="nav-link" data-scroll-target="#observability-boundary"><span class="header-section-number">8</span> 7. Observability Boundary</a></li>
-  <li><a href="#design-tradeoffs" id="toc-design-tradeoffs" class="nav-link" data-scroll-target="#design-tradeoffs"><span class="header-section-number">9</span> 8. Design Tradeoffs</a></li>
-  <li><a href="#runtime-verification" id="toc-runtime-verification" class="nav-link" data-scroll-target="#runtime-verification"><span class="header-section-number">10</span> 9. Runtime Verification</a></li>
+  <li><a href="#mintcocoa-production-infrastructure-architecture" id="toc-mintcocoa-production-infrastructure-architecture" class="nav-link active" data-scroll-target="#mintcocoa-production-infrastructure-architecture"><span class="header-section-number">1</span> MintCocoa Production Infrastructure Architecture</a>
+  <ul class="collapse">
+  <li><a href="#기존-실험-환경과-설계-기준" id="toc-기존-실험-환경과-설계-기준" class="nav-link" data-scroll-target="#기존-실험-환경과-설계-기준"><span class="header-section-number">1.1</span> 1. 기존 실험 환경과 설계 기준</a></li>
+  <li><a href="#cluster와-gitops-repo-구조" id="toc-cluster와-gitops-repo-구조" class="nav-link" data-scroll-target="#cluster와-gitops-repo-구조"><span class="header-section-number">1.2</span> 2. Cluster와 GitOps Repo 구조</a></li>
+  <li><a href="#oci-vcn과-kubernetes-cluster-구성" id="toc-oci-vcn과-kubernetes-cluster-구성" class="nav-link" data-scroll-target="#oci-vcn과-kubernetes-cluster-구성"><span class="header-section-number">1.3</span> 2. OCI VCN과 Kubernetes Cluster 구성</a></li>
+  <li><a href="#network-boundary와-security-group" id="toc-network-boundary와-security-group" class="nav-link" data-scroll-target="#network-boundary와-security-group"><span class="header-section-number">1.4</span> 3. Network Boundary와 Security Group</a></li>
+  <li><a href="#gitops-control-plane" id="toc-gitops-control-plane" class="nav-link" data-scroll-target="#gitops-control-plane"><span class="header-section-number">1.5</span> 4. GitOps Control Plane</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -156,7 +154,6 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">MintCocoa Production Infrastructure Architecture</h1>
-<p class="subtitle lead">OKE production boundary, GitOps control plane, and private operator access</p>
 </div>
 
 
@@ -179,16 +176,17 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="executive-summary" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="executive-summary"><span class="header-section-number">1</span> Executive Summary</h2>
-<p>MintCocoa production 환경은 public service plane, GitOps control plane, private operator plane을 분리해 구성했습니다. 외부 사용자는 public ingress와 도메인을 통해 서비스에 접근하고, 운영자는 home LAN에서 OCI private network로 들어가는 별도 경로를 사용합니다.</p>
-<p>이 문서는 홈랩 단일 서버 실험에서 출발한 환경을 OCI OKE 위의 production 기준 구조로 옮기면서, 접근 제어, 배포 승인, 관측성, 장애 추적 문제를 어떻게 작게 재현했는지 설명합니다. 핵심은 리소스의 크기가 아니라 책임의 분리입니다.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/architecture/01-architecture-overview.png" class="img-fluid figure-img"></p>
-<figcaption>MintCocoa production architecture overview</figcaption>
-</figure>
-</div>
+<section id="mintcocoa-production-infrastructure-architecture" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> MintCocoa Production Infrastructure Architecture</h1>
+<p>오라클 클라우드 기반 k8s 환경을 클러스터와 인프라를 구축한 과정을 설명한 문서입니다. 홈랩에 의존하는 단일 서버 실험을 넘어 실제 운영시 발생할 문제사항을 고려하여 개발과 프로덕션 환경 분리, 관측성, 접근 권한 문제를 가정하며 설계했습니다.</p>
+<section id="기존-실험-환경과-설계-기준" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="기존-실험-환경과-설계-기준"><span class="header-section-number">1.1</span> 1. 기존 실험 환경과 설계 기준</h2>
+<p>초기에는 집에서 작은 서버 한 대로 하면서 빠르게 세팅할 수 있고 네트워크와 시스템 설정을 직접 다루면서 배울 수 있다는 장점이 있었지만, 네트워크 대역 제한, 집 네트워크에 의존하는 트래픽 경로와 같이 실전적인 환경이 아니라는 한계가 있었습니다.</p>
+<p>그래서 오라클 클라우드의 프리 티어 OKE 클러스터를 이용해 프로덕션과 개발 환경을 분리한다면 home lab의 제약에서 벗어나 실제 프로덕션 환경과 더 유사한 조건에서 운영을 검증할 수 있을 것이라고 판단했습니다.</p>
+</section>
+<section id="cluster와-gitops-repo-구조" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="cluster와-gitops-repo-구조"><span class="header-section-number">1.2</span> 2. Cluster와 GitOps Repo 구조</h2>
+<p>먼저 클러스터 안에서 사용자 트래픽, GitOps 제어, 운영자 접근 개념을 분리하고 namespace, ingress class, load balancer, 접근 경로 기준으로 나누었습니다.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -205,8 +203,8 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td>Public service plane</td>
-<td>외부 사용자에게 공개되는 서비스 경로</td>
-<td><code>docs.mintcocoa.dev</code>, <code>drop.mintcocoa.dev</code>, public <code>nginx</code> ingress</td>
+<td>외부 사용자가 접근하는 서비스 노출</td>
+<td><code>docs.mintcocoa.dev</code>, <code>drop.mintcocoa.dev</code>, <code>demo.mintcocoa.dev</code>, public <code>nginx</code> ingress</td>
 </tr>
 <tr class="even">
 <td>GitOps control plane</td>
@@ -216,109 +214,13 @@ ul.task-list li input[type="checkbox"] {
 <tr class="odd">
 <td>Private operator plane</td>
 <td>운영자 접근과 관측성 UI</td>
-<td>private Kubernetes API, OCI IPSec, GitOps manager, private Grafana ingress</td>
+<td>private Kubernetes API, OCI IPSec/GitOps manager, private Grafana ingress</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="기존-실험-환경과-설계-기준" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="기존-실험-환경과-설계-기준"><span class="header-section-number">2</span> 1. 기존 실험 환경과 설계 기준</h2>
-<p>초기에는 집의 작은 서버 한 대에서 빠르게 실험할 수 있었습니다. 직접 네트워크와 시스템 설정을 다루며 배울 수 있다는 장점은 컸지만, production 관점에서는 집 네트워크 품질, upstream router 설정, 전원, 회선 상태에 너무 많이 의존했습니다.</p>
-<p>문제는 “서비스가 실행된다”와 “운영 가능한 형태로 노출된다”가 다르다는 점이었습니다. 홈랩에서는 LAN 안에서 접속이 되면 성공처럼 보이지만, 실제 운영에서는 사용자 트래픽, 관리자 접근, 배포 승인, 장애 확인 경로가 분리되어야 합니다.</p>
-<p>그래서 Oracle Cloud Infrastructure의 OKE cluster를 production 기준 환경으로 두고, home k3s는 staging과 복구 훈련 역할로 분리했습니다. 이 선택은 managed Kubernetes를 쓰기 위한 목적만이 아니라, 작은 환경에서 production boundary를 검증하기 위한 선택이었습니다.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>검증하고 싶었던 조건</th>
-<th>설계 기준</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Public service exposure</td>
-<td>사용자 트래픽은 public ingress와 DNS로만 들어온다</td>
-</tr>
-<tr class="even">
-<td>Operator access</td>
-<td>Kubernetes API와 운영 UI는 private operator path에 둔다</td>
-</tr>
-<tr class="odd">
-<td>Deployment approval</td>
-<td>staging 검증 후 production은 명시적인 PR과 수동 sync를 거친다</td>
-</tr>
-<tr class="even">
-<td>Observability boundary</td>
-<td>Grafana 같은 운영 화면은 public service plane과 분리한다</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="cluster와-gitops-repo-구조" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="cluster와-gitops-repo-구조"><span class="header-section-number">3</span> 2. Cluster와 GitOps Repo 구조</h2>
-<p>클러스터 안에서는 사용자 트래픽, GitOps 제어, 운영자 접근을 namespace, ingress class, load balancer, 접근 경로 기준으로 나누었습니다. GitOps repo도 같은 의도를 드러내도록 환경별 root application과 역할별 group root로 정리했습니다.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>계층</th>
-<th>역할</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>manager-root</code></td>
-<td>GitOps manager 자체와 management plane 상태 관리</td>
-</tr>
-<tr class="even">
-<td><code>staging-root</code></td>
-<td>home k3s staging cluster 상태 관리</td>
-</tr>
-<tr class="odd">
-<td><code>prod-root</code></td>
-<td>OKE production cluster 상태 관리</td>
-</tr>
-<tr class="even">
-<td><code>prod-platform-root</code></td>
-<td>cert-manager, cluster issuer, metrics-server, rollout controller</td>
-</tr>
-<tr class="odd">
-<td><code>prod-ingress-root</code></td>
-<td>public/private ingress controller</td>
-</tr>
-<tr class="even">
-<td><code>prod-observability-root</code></td>
-<td>Prometheus/Grafana, Loki, Promtail, Tempo</td>
-</tr>
-<tr class="odd">
-<td><code>prod-workloads-root</code></td>
-<td>public workload와 <code>prod-services</code> namespace</td>
-</tr>
-</tbody>
-</table>
-<p>이 구조의 트레이드오프는 파일과 Application 수가 늘어난다는 점입니다. 하지만 단일 manifest에 모든 것을 넣으면 어떤 변경이 public 노출을 바꾸는지, 어떤 변경이 운영 접근 경계를 바꾸는지 알기 어려워집니다.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/architecture/05-prod-root-sync-waves.png" class="img-fluid figure-img"></p>
-<figcaption>Production root sync waves</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/architecture/06-prod-group-contents.png" class="img-fluid figure-img"></p>
-<figcaption>Production group contents</figcaption>
-</figure>
-</div>
-</section>
-<section id="oci-vcn과-kubernetes-cluster-구성" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="oci-vcn과-kubernetes-cluster-구성"><span class="header-section-number">4</span> 3. OCI VCN과 Kubernetes Cluster 구성</h2>
-<p>OCI 계층은 Terraform으로 관리합니다. Terraform은 VCN, subnet, route table, NSG, OKE cluster처럼 cloud infrastructure의 기반을 관리하고, Kubernetes manifest와 Argo CD는 cluster 안에서 수렴해야 하는 desired state를 관리합니다.</p>
+<section id="oci-vcn과-kubernetes-cluster-구성" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="oci-vcn과-kubernetes-cluster-구성"><span class="header-section-number">1.3</span> 2. OCI VCN과 Kubernetes Cluster 구성</h2>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -336,43 +238,46 @@ ul.task-list li input[type="checkbox"] {
 <td><code>ap-chuncheon-1</code></td>
 </tr>
 <tr class="odd">
+<td>VCN</td>
+<td><code>10.30.0.0/16</code></td>
+</tr>
+<tr class="even">
 <td>Kubernetes</td>
 <td>OKE basic cluster, Kubernetes <code>v1.33.1</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Node pool</td>
 <td><code>VM.Standard.A1.Flex</code>, 3 worker nodes</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>CNI</td>
 <td>OCI VCN native pod networking</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Node OS</td>
 <td>Oracle Linux 8 managed node image</td>
 </tr>
 </tbody>
 </table>
-<p>아래 캡처는 production worker node 상태를 <code>kubectl</code>로 확인한 결과입니다. 공개 문서에서는 node IP와 세부 식별자를 마스킹하지만, worker 3대가 모두 <code>Ready</code>이고 Kubernetes <code>v1.33.1</code>로 동작한다는 운영 상태는 남깁니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/oke-node-status-public.png" class="img-fluid figure-img"></p>
+<p><img src="assets/oci/kubectl-oke-node-status.png" class="img-fluid figure-img"></p>
 <figcaption>Kubernetes production node status</figcaption>
 </figure>
 </div>
-<p>VCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes API endpoint를 위한 공간이고, pod subnet은 OCI VCN native CNI가 pod address를 할당하는 영역입니다. management subnet은 GitOps manager와 operator entry point가 위치하는 곳이라 public service subnet과 같은 의미로 취급하지 않습니다.</p>
 </section>
-<section id="network-boundary와-security-group" class="level2" data-number="5">
-<h2 data-number="5" class="anchored" data-anchor-id="network-boundary와-security-group"><span class="header-section-number">5</span> 4. Network Boundary와 Security Group</h2>
-<p>public ingress와 private ingress는 같은 production cluster 안에 있지만 노출 의도가 다릅니다. public host는 외부 사용자 트래픽을 받고, operator-only host는 private access path 안에서만 사용합니다.</p>
-<p>public-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound traffic은 NAT Gateway 경로를 사용하도록 해 public ingress, private API, pod outbound traffic의 경로를 분리했습니다.</p>
+<section id="network-boundary와-security-group" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="network-boundary와-security-group"><span class="header-section-number">1.4</span> 3. Network Boundary와 Security Group</h2>
+<p>public ingress와 private ingress는 외부 노출 경로와 내부 경로를 분리하기 위해 public host는 외부 사용자 트래픽을 받고, operator-only host는 private access path 안에서만 사용합니다.</p>
+<p>public-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound traffic은 NAT Gateway 경로를 사용하도록 해 public ingress와 private API, pod outbound traffic의 경로를 분리했습니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="assets/architecture/02-oci-routing-boundary.png" class="img-fluid figure-img"></p>
 <figcaption>OCI routing Terraform capture</figcaption>
 </figure>
 </div>
-<p>보안 그룹은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.</p>
+<p>VCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes API endpoint를 위한 공간이고, pods subnet은 OCI VCN native CNI가 자동으로 pod address를 할당하는 영역이므로 별도 CNI를 둘 필요가 없었습니다. management subnet은 집 내부망에서 IPSec 경로로 접근하는 management k3s/Argo CD GitOps manager VM 영역입니다.</p>
+<p>보안 그룹(NSG)은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="assets/architecture/03-oci-security-boundary.png" class="img-fluid figure-img"></p>
@@ -417,200 +322,49 @@ ul.task-list li input[type="checkbox"] {
 </tr>
 </tbody>
 </table>
-<p>아래 캡처는 같은 경계를 OCI CLI 조회 결과로 요약한 것입니다. public ingress load balancer는 public address를 갖고, private ingress load balancer는 VCN 내부 address만 갖습니다. manager NSG는 home LAN 경로의 SSH/HTTPS만 허용해 operator-only path를 public service path와 분리합니다.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/ingress-security-boundary-public.png" class="img-fluid figure-img"></p>
-<figcaption>OCI ingress security boundary</figcaption>
-</figure>
-</div>
-</section>
-<section id="private-operator-access" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="private-operator-access"><span class="header-section-number">6</span> 5. Private Operator Access</h2>
-<p>운영 접근은 public user traffic과 분리했습니다. 외부 사용자는 public DNS와 public ingress를 통해 서비스에 접근하지만, 운영자는 home LAN에서 Raspberry Pi IPSec CPE와 GitOps manager를 거쳐 private 운영 경로에 들어옵니다.</p>
-<pre class="text"><code>LAN client
-  -&gt; Raspberry Pi IPSec CPE
-  -&gt; OCI Site-to-Site IPSec
-  -&gt; GitOps manager
-  -&gt; OKE private API / private ingress</code></pre>
-<p>이 접근 모델은 public Kubernetes API나 운영 UI를 넓게 여는 방식보다 불편합니다. 대신 public internet에 직접 노출되는 면적을 줄이고, 누가 운영자가 될 수 있고 어디서 접속할 수 있는지를 home LAN과 GitOps manager 범위 안에서 통제할 수 있습니다.</p>
+<p>운영면에서의 접근은 public user traffic과 분리했습니다. 외부 사용자는 public DNS와 public ingress를 통해 서비스에 접근하지만, 운영자는 home LAN에서 Raspberry Pi IPSec CPE와 GitOps manager를 거쳐 private 운영 경로에 들어옵니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="assets/architecture/04-operator-private-access.png" class="img-fluid figure-img"></p>
 <figcaption>Operator private access runbook capture</figcaption>
 </figure>
 </div>
+<p>public internet에 직접 노출되는 면적을 줄이고,어디서 접속할 수 있는지를 home LAN과 GitOps manager 범위 안에서 통제하기 위해서 이렇게 제한 된 접근 경로로 설정했습니다.</p>
 </section>
-<section id="gitops-control-plane" class="level2" data-number="7">
-<h2 data-number="7" class="anchored" data-anchor-id="gitops-control-plane"><span class="header-section-number">7</span> 6. GitOps Control Plane</h2>
-<p>Production desired state는 prod cluster가 최종적으로 어떤 상태여야 하는지를 의미합니다. 이 상태는 <code>mintcocoa-ops</code> 저장소 안에 선언되어 있고, GitOps manager의 Argo CD가 실제 cluster 상태와 비교해 일치하도록 관리합니다.</p>
-<p>Staging은 빠르게 검증할 수 있도록 자동 sync에 가깝게 운영하고, production은 promotion PR과 수동 sync gate를 둡니다. 이 차이는 속도와 안정성의 절충입니다.</p>
-<pre class="text"><code>application repo push
-  -&gt; image build
-  -&gt; staging overlay update
-  -&gt; staging runtime validation
-  -&gt; production promotion PR
-  -&gt; operator review
-  -&gt; Argo CD production sync</code></pre>
+<section id="gitops-control-plane" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="gitops-control-plane"><span class="header-section-number">1.5</span> 4. GitOps Control Plane</h2>
+<p>Production desired state는 prod 클러스터가 최종적으로 어떤 상태여야 하는지를 의미하고, 모든 상태를 mintcocoa-ops 저장소 안에 선언적으로 표현, Argo CD가 이를 실제 prod 클러스터 상태와 비교해 일치하도록 관리합니다.</p>
+<p>OCI 위에는 GitOps manager VM이 있고, 그 안의 management k3s 클러스터에서 Argo CD가 동작합니다. 이 Argo CD가 mintcocoa-ops 저장소를 바라보면서 “Git에 적힌 상태”와 “실제 Kubernetes 클러스터 상태”를 비교합니다.</p>
+<p>GitOps repo는 역할별 root application으로 나누어집니다.</p>
+<ul>
+<li>manager-root: management 영역 상태를 관리</li>
+<li>staging-root: staging 클러스터 상태를 관리</li>
+<li>prod-root: production 클러스터 상태를 관리</li>
+</ul>
+<p>각 root application은 Kustomize로 구성되어 있고, staging/prod overlay로 나뉩니다. staging은 빠르게 검증할 수 있도록 자동 Sync로 두고, prod는 수동 Sync로 두어 운영자가 변경 내용을 검토하고 승인할 수 있도록 했습니다.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/architecture/07-staging-ci-pr-contract.png" class="img-fluid figure-img"></p>
-<figcaption>Staging CI PR contract</figcaption>
+<p><img src="assets/gitops/argocd-staging-root.png" class="img-fluid figure-img"></p>
+<figcaption>Argo CD staging root application and child applications</figcaption>
+</figure>
+</div>
+<p>production으로 보낼 때는 <code>mintcocoa-ops</code>의 promotion workflow가 staging overlay의 현재 <code>newName</code>/<code>newTag</code>를 읽어 <code>apps/&lt;app&gt;/overlays/prod/kustomization.yaml</code>로 복사하는 PR을 만듭니다.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/gitops/ops-staging-promotion-pr.png" class="img-fluid figure-img"></p>
+<figcaption>GitHub promotion PR updating the GitOps image tag</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/architecture/08-staging-auto-sync-validation.png" class="img-fluid figure-img"></p>
-<figcaption>Staging auto sync validation</figcaption>
+<p><img src="assets/gitops/ops-render-validation.png" class="img-fluid figure-img"></p>
+<figcaption>GitHub Actions render validation for GitOps manifests</figcaption>
 </figure>
 </div>
-<p>Production으로 보낼 때는 <code>mintcocoa-ops</code>의 promotion workflow가 staging overlay의 현재 image name/tag를 읽어 prod overlay로 복사하는 PR을 만듭니다. 이 방식은 운영자가 임의의 tag를 production에 직접 입력하는 대신, staging에서 확인된 tag를 production으로 승격했다는 기록을 남깁니다.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/architecture/09-prod-promotion-tag-copy.png" class="img-fluid figure-img"></p>
-<figcaption>Production promotion tag copy</figcaption>
-</figure>
-</div>
-<p>PR이 merge되면 Argo CD는 변경을 감지해 <code>OutOfSync</code>로 표시하고, 운영자가 diff, staging 응답, GitHub Actions validation을 확인한 뒤 수동 sync합니다. 이렇게 하면 production 배포 의도가 GitHub PR과 Argo CD operation 양쪽에 남습니다.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/architecture/10-prod-manual-sync-gate.png" class="img-fluid figure-img"></p>
-<figcaption>Production manual sync gate</figcaption>
-</figure>
-</div>
-</section>
-<section id="observability-boundary" class="level2" data-number="8">
-<h2 data-number="8" class="anchored" data-anchor-id="observability-boundary"><span class="header-section-number">8</span> 7. Observability Boundary</h2>
-<p>관측성 구성도 public service plane과 분리했습니다. Prometheus, Loki, Tempo는 cluster 내부 서비스로 남기고, Grafana만 private ingress 뒤에서 운영자가 접근합니다.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>구성요소</th>
-<th>역할</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>metrics-server</code></td>
-<td>기본 resource metrics</td>
-</tr>
-<tr class="even">
-<td><code>kube-prometheus-stack</code></td>
-<td>Prometheus, Grafana, Alertmanager, kube-state-metrics, node-exporter</td>
-</tr>
-<tr class="odd">
-<td><code>loki</code></td>
-<td>log storage</td>
-</tr>
-<tr class="even">
-<td><code>promtail</code></td>
-<td>node log shipping</td>
-</tr>
-<tr class="odd">
-<td><code>tempo</code></td>
-<td>trace ingest/query</td>
-</tr>
-<tr class="even">
-<td><code>grafana-datasources</code></td>
-<td>Loki와 Tempo datasource 연결</td>
-</tr>
-</tbody>
-</table>
-<p>production 비용과 footprint를 줄이기 위해 observability storage는 작은 cluster에 맞춘 profile로 정리했습니다. 이 선택은 데이터 장기 보존보다 작은 OKE 환경에서의 운영 확인을 우선한 결과입니다.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/architecture/12-private-observability-boundary.png" class="img-fluid figure-img"></p>
-<figcaption>Private observability boundary</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/architecture/13-log-shipping-flow.png" class="img-fluid figure-img"></p>
-<figcaption>Log shipping flow</figcaption>
-</figure>
-</div>
-</section>
-<section id="design-tradeoffs" class="level2" data-number="9">
-<h2 data-number="9" class="anchored" data-anchor-id="design-tradeoffs"><span class="header-section-number">9</span> 8. Design Tradeoffs</h2>
-<p>이 구조는 free-tier 규모의 작은 cluster를 전제로 합니다. 고가용성이나 대규모 트래픽보다 boundary와 traceability를 우선했습니다.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>선택</th>
-<th>장점</th>
-<th>비용</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>OKE production과 home staging 분리</td>
-<td>집 네트워크 장애가 public service availability를 좌우하지 않음</td>
-<td>운영자가 두 환경의 차이를 이해해야 함</td>
-</tr>
-<tr class="even">
-<td>public/private ingress 분리</td>
-<td>사용자 트래픽과 운영 UI 노출면 분리</td>
-<td>ingress class와 DNS 관리가 늘어남</td>
-</tr>
-<tr class="odd">
-<td>GitOps root/group application 분리</td>
-<td>변경 책임과 sync 단위가 명확함</td>
-<td>Application 수가 늘어남</td>
-</tr>
-<tr class="even">
-<td>staging-first promotion</td>
-<td>production image tag의 출처를 추적 가능</td>
-<td>즉시 배포보다 절차가 길어짐</td>
-</tr>
-<tr class="odd">
-<td>private operator path</td>
-<td>API/UI 공개 면적 감소</td>
-<td>초기 네트워크 설정과 접근 검증이 복잡함</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="runtime-verification" class="level2" data-number="10">
-<h2 data-number="10" class="anchored" data-anchor-id="runtime-verification"><span class="header-section-number">10</span> 9. Runtime Verification</h2>
-<p>현재 runtime 검증은 세 축으로 남깁니다.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>확인 대상</th>
-<th>검증 방식</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>OKE runtime</td>
-<td><code>kubectl get nodes</code>, OKE cluster/node pool status</td>
-</tr>
-<tr class="even">
-<td>Network boundary</td>
-<td>OCI route table, security list, NSG, load balancer 조회</td>
-</tr>
-<tr class="odd">
-<td>GitOps deployment</td>
-<td>GitHub PR, Argo CD sync state, production rollout 상태</td>
-</tr>
-</tbody>
-</table>
-<p>공개 문서에는 domain, repository, application name, commit hash처럼 검증 가능한 식별자는 남깁니다. 반면 Kubernetes API IP, OCID, token, Secret value는 그대로 노출하지 않고 역할과 경계만 설명합니다.</p>
+<p>이 PR이 merge되면 prod-root가 변경을 감지해 <code>OutOfSync</code>로 표시되고, 운영자가 diff와 staging 응답, GitHub Actions validation을 확인한 뒤 수동 Sync합니다. 이렇게 하면 production 배포 의도가 GitHub PR과 Argo CD operation 양쪽에 남게 되어 문제 발생 시 어느 단계에서 의도와 실제 상태가 달라졌는지 추적하기 쉽습니다.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
