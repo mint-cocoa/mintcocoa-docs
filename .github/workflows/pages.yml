@@ -90,7 +90,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
-          file="mintcocoa-ops/apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml"
+          file="mintcocoa-ops/apps/mintcocoa-docs/overlays/prod/kustomization.yaml"
           if [ ! -f "$file" ]; then
             echo "GitOps overlay is not present yet; skipping promotion."
             exit 0
@@ -100,7 +100,7 @@ jobs:
           cd mintcocoa-ops
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml
+          git add apps/mintcocoa-docs/overlays/prod/kustomization.yaml
           git diff --cached --quiet && exit 0
           git commit -m "Promote mintcocoa-docs to ${GITHUB_SHA}"
           git push
