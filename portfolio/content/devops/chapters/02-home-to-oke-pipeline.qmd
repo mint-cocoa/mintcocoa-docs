@@ -1,5 +1,5 @@
 ---
-title: "2. home에서 OKE로 승격하는 배포 경계"
+title: "2. staging에서 production으로 승격하는 배포 경계"
 order: 2
 description: "base/overlay 구조와 수동 promotion workflow가 맡는 책임"
 ---

@@ -1,6 +1,6 @@
 ---
 title: "DevOps 운영 문서"
-subtitle: "mintcocoa-ops 원격 HEAD 기준 OKE production GitOps 구조"
+subtitle: "OKE production, staging, private operator path 기준 GitOps 운영 구조"
 author: "배진후"
 listing:
   id: document-listing
