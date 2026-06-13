@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -78,10 +78,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-ec174fd7110ec69cf0d482130f647dfe.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-7076de66b990a17eb22f509e5ab06121.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -278,7 +278,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td>GitOps overlay</td>
-<td><code>apps/mintcocoa-docs/overlays/oke-prod</code></td>
+<td><code>apps/mintcocoa-docs/overlays/prod</code></td>
 <td>production image tag와 Ingress 선언</td>
 </tr>
 <tr class="odd">
@@ -303,7 +303,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="oke-production-ingress" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="oke-production-ingress"><span class="header-section-number">3</span> OKE production Ingress</h2>
-<p><code>mintcocoa-ops</code>의 <code>apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml</code>은 <code>docs.mintcocoa.dev</code> host를 <code>mintcocoa-docs</code> service로 연결합니다. TLS는 <code>letsencrypt-prod</code> ClusterIssuer annotation으로 관리합니다.</p>
+<p><code>mintcocoa-ops</code>의 <code>apps/mintcocoa-docs/overlays/prod/ingress.yaml</code>은 <code>docs.mintcocoa.dev</code> host를 <code>mintcocoa-docs</code> service로 연결합니다. TLS는 <code>letsencrypt-prod</code> ClusterIssuer annotation으로 관리합니다.</p>
 <p>공개 문서에서는 Kubernetes API endpoint나 load balancer IP를 노출하지 않고, 도메인과 GitOps 경로만 남깁니다.</p>
 <table class="caption-top table">
 <thead>
@@ -377,8 +377,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="확인-명령" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="확인-명령"><span class="header-section-number">5</span> 확인 명령</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show <span class="at">--stat</span> c8c64c0</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:apps/mintcocoa-docs/overlays/prod/kustomization.yaml</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:apps/mintcocoa-docs/overlays/prod/ingress.yaml</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/build-site.sh</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
 
 

@@ -22,7 +22,7 @@ git -C /home/cocoa/mintcocoa-ops log --date=short --pretty=format:'%h %ad %s' or
 | 2026-06-10 | `5a0a12d` | `dropapp` base, home overlay, OKE overlay, Ingress, cert-manager 경로 추가 |
 | 2026-06-10 | `03adb83` | `mintcocoa-docs` OKE GitOps app 추가 |
 | 2026-06-10 | `9e7cc0b` | OCI OKE resources를 OpenTofu로 채택 |
-| 2026-06-11 | `224261d` | OKE 관리를 위한 WireGuard bastion 추가 |
+| 2026-06-11 | `224261d` | OKE 관리를 위한 private operator path 추가 |
 | 2026-06-11 | `ffe5619` | private ingress를 통한 Grafana 경로 추가 |
 | 2026-06-11 | `10100ad` | private Grafana host 이름 정리 |
 | 2026-06-11 | `c8c64c0` | `mintcocoa-docs` production image tag를 최신 문서 commit으로 승격 |
@@ -38,7 +38,7 @@ git -C /home/cocoa/mintcocoa-ops log --date=short --pretty=format:'%h %ad %s' or
 | cloud/home 실험과 scaffold 혼재 | OKE production first |
 | 여러 migration report와 diagram 산재 | current-state, operations, runbook 중심 |
 | 앱별 manifest 경계가 불명확 | `apps/<app>/base`와 overlay 구조 |
-| 외부 접근 경로가 여러 후보로 남음 | public ingress, private ingress, WireGuard 경계 분리 |
+| 외부 접근 경로가 여러 후보로 남음 | public ingress, private ingress, operator path 경계 분리 |
 
 ## application 추가 흐름
 

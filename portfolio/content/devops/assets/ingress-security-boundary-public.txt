@@ -1,0 +1,69 @@
+# OCI ingress security boundary evidence
+# Captured: 2026-06-13
+# Source: OCI CLI load balancer, security list, and NSG queries
+
+$ oci lb load-balancer list --compartment-id "$COMPARTMENT_ID" --region ap-chuncheon-1 | jq ...
+[
+  {
+    "name": "private-ingress-lb",
+    "state": "ACTIVE",
+    "exposure": "private",
+    "addresses": [
+      {
+        "ip": "10.30.4.x",
+        "public": false
+      }
+    ]
+  },
+  {
+    "name": "public-ingress-lb",
+    "state": "ACTIVE",
+    "exposure": "public",
+    "addresses": [
+      {
+        "ip": "<public-lb-ip>",
+        "public": true
+      }
+    ]
+  }
+]
+
+$ oci network security-list get --security-list-id "$PUBLIC_SL_ID" | jq ...
+[
+  {
+    "source": "0.0.0.0/0",
+    "protocol": "tcp",
+    "port": 80
+  },
+  {
+    "source": "0.0.0.0/0",
+    "protocol": "tcp",
+    "port": 443
+  },
+  {
+    "source": "10.30.0.0/16",
+    "protocol": "tcp",
+    "port": 80
+  },
+  {
+    "source": "10.30.0.0/16",
+    "protocol": "tcp",
+    "port": 443
+  }
+]
+
+$ oci network nsg rules list --nsg-id "$MGR_NSG_ID" | jq ...
+[
+  {
+    "direction": "INGRESS",
+    "source": "home-lan-cidr",
+    "port": 22,
+    "description": "Allow home LAN SSH to the GitOps manager over OCI Site-to-Site IPSec."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "home-lan-cidr",
+    "port": 443,
+    "description": "Allow home LAN HTTPS access to manager private ingress over OCI Site-to-Site IPSec."
+  }
+]

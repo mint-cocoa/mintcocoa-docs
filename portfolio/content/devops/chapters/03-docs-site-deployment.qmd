@@ -13,7 +13,7 @@ description: "mintcocoa-docs가 개인 도메인에서 서빙되기까지의 CI�
 | site render | `scripts/build-site.sh` | home과 portfolio 문서 산출물 생성 |
 | image build | `.github/workflows/pages.yml` | GHCR image push |
 | runtime image | `Dockerfile`, `nginx.conf` | `_site`를 Nginx root로 서빙 |
-| GitOps overlay | `apps/mintcocoa-docs/overlays/oke-prod` | production image tag와 Ingress 선언 |
+| GitOps overlay | `apps/mintcocoa-docs/overlays/prod` | production image tag와 Ingress 선언 |
 | Argo CD app | `prod-mintcocoa-docs` | OKE cluster에 desired state 반영 |
 
 ## GitHub Pages를 배포 대상에서 제외하는 이유
@@ -34,7 +34,7 @@ GitHub push
 
 ## OKE production Ingress
 
-`mintcocoa-ops`의 `apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml`은 `docs.mintcocoa.dev` host를 `mintcocoa-docs` service로 연결합니다. TLS는 `letsencrypt-prod` ClusterIssuer annotation으로 관리합니다.
+`mintcocoa-ops`의 `apps/mintcocoa-docs/overlays/prod/ingress.yaml`은 `docs.mintcocoa.dev` host를 `mintcocoa-docs` service로 연결합니다. TLS는 `letsencrypt-prod` ClusterIssuer annotation으로 관리합니다.
 
 공개 문서에서는 Kubernetes API endpoint나 load balancer IP를 노출하지 않고, 도메인과 GitOps 경로만 남깁니다.
 
@@ -62,7 +62,7 @@ Quarto는 일부 문서를 `RuntimeWebPortfolio.html`처럼 렌더링하지만, 
 
 ```bash
 git -C /home/cocoa/mintcocoa-ops show --stat c8c64c0
-git -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml
-git -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml
+git -C /home/cocoa/mintcocoa-ops show HEAD:apps/mintcocoa-docs/overlays/prod/kustomization.yaml
+git -C /home/cocoa/mintcocoa-ops show HEAD:apps/mintcocoa-docs/overlays/prod/ingress.yaml
 bash scripts/build-site.sh
 ```

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -78,10 +78,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-ec174fd7110ec69cf0d482130f647dfe.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-7076de66b990a17eb22f509e5ab06121.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -305,7 +305,7 @@ window.Quarto = {
 
 <section id="문서-구성" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="문서-구성"><span class="header-section-number">1</span> 문서 구성</h2>
-<p>이 문서는 <code>mintcocoa-ops</code> 저장소의 <code>origin/main</code>에서 확인한 운영 구조를 기준으로 정리했습니다. 홈랩 Kubernetes 실험을 그대로 production으로 부르는 대신, OKE production과 home k3s의 역할을 분리하고, GitOps 저장소가 어떤 desired state를 관리하는지 장별로 나눕니다.</p>
+<p>이 문서는 <code>mintcocoa-ops</code> 저장소에서 확인한 운영 구조를 기준으로 정리했습니다. 홈랩 Kubernetes 실험을 그대로 production으로 부르는 대신, OKE production과 home k3s staging의 역할을 분리하고, GitOps 저장소가 어떤 desired state를 관리하는지 장별로 나눕니다.</p>
 <div id="listing-document-listing" class="quarto-listing quarto-listing-container-table">
 <div class="listing-actions-group">
     <div class="input-group input-group-sm quarto-listing-filter">
@@ -329,7 +329,7 @@ window.Quarto = {
 </thead>
 <tbody class="list">
 
-<tr data-index="0" data-listing-file-modified-sort="1781154822309" data-listing-reading-time-sort="2" data-listing-word-count-sort="379" data-listing-title-sort="1. OKE production GitOps 구조" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="0" data-listing-file-modified-sort="1781348197378" data-listing-reading-time-sort="3" data-listing-word-count-sort="417" data-listing-title-sort="1. OKE production GitOps 구조" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/01-oke-production-gitops.html" class="title listing-title">1. OKE production GitOps 구조</a>
@@ -340,7 +340,7 @@ window.Quarto = {
 
 </tr>
 
-<tr data-index="1" data-listing-file-modified-sort="1781154747108" data-listing-reading-time-sort="2" data-listing-word-count-sort="344" data-listing-title-sort="2. home에서 OKE로 승격하는 배포 경계" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="1" data-listing-file-modified-sort="1781348179044" data-listing-reading-time-sort="2" data-listing-word-count-sort="340" data-listing-title-sort="2. home에서 OKE로 승격하는 배포 경계" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/02-home-to-oke-pipeline.html" class="title listing-title">2. home에서 OKE로 승격하는 배포 경계</a>
@@ -351,7 +351,7 @@ window.Quarto = {
 
 </tr>
 
-<tr data-index="2" data-listing-file-modified-sort="1781154827872" data-listing-reading-time-sort="2" data-listing-word-count-sort="296" data-listing-title-sort="3. docs.mintcocoa.dev 배포 경로" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="2" data-listing-file-modified-sort="1781348160306" data-listing-reading-time-sort="2" data-listing-word-count-sort="296" data-listing-title-sort="3. docs.mintcocoa.dev 배포 경로" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/03-docs-site-deployment.html" class="title listing-title">3. docs.mintcocoa.dev 배포 경로</a>
@@ -362,18 +362,18 @@ window.Quarto = {
 
 </tr>
 
-<tr data-index="3" data-listing-file-modified-sort="1781154787692" data-listing-reading-time-sort="2" data-listing-word-count-sort="345" data-listing-title-sort="4. 관측성과 운영 접근 경계" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="3" data-listing-file-modified-sort="1781348138659" data-listing-reading-time-sort="3" data-listing-word-count-sort="421" data-listing-title-sort="4. 관측성과 운영 접근 경계" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/04-observability-access.html" class="title listing-title">4. 관측성과 운영 접근 경계</a>
 </td>
 <td>
-<span class="listing-description">private ingress, WireGuard bastion, observability stack의 공개/비공개 경계</span>
+<span class="listing-description">private ingress, IPSec operator path, observability stack의 공개/비공개 경계</span>
 </td>
 
 </tr>
 
-<tr data-index="4" data-listing-file-modified-sort="1781154811744" data-listing-reading-time-sort="3" data-listing-word-count-sort="401" data-listing-title-sort="5. Git 이력으로 확인한 운영 구조 변화" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="4" data-listing-file-modified-sort="1781348197378" data-listing-reading-time-sort="3" data-listing-word-count-sort="403" data-listing-title-sort="5. Git 이력으로 확인한 운영 구조 변화" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/05-git-history-evidence.html" class="title listing-title">5. Git 이력으로 확인한 운영 구조 변화</a>
@@ -408,7 +408,7 @@ window.Quarto = {
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>mintcocoa-ops</code> <code>origin/main</code></td>
+<td><code>mintcocoa-ops</code></td>
 <td>OKE production GitOps, home k3s staging, Argo CD Application 구조</td>
 </tr>
 <tr class="even">
@@ -416,12 +416,12 @@ window.Quarto = {
 <td><code>_site</code> 렌더, GHCR 이미지, <code>mintcocoa-ops</code> OKE overlay image tag 갱신</td>
 </tr>
 <tr class="odd">
-<td><code>apps/mintcocoa-docs/overlays/oke-prod</code></td>
+<td><code>apps/mintcocoa-docs/overlays/prod</code></td>
 <td><code>docs.mintcocoa.dev</code> Ingress와 production image tag</td>
 </tr>
 <tr class="even">
-<td><code>apps/dropapp/overlays/oke-prod</code></td>
-<td><code>drop.mintcocoa.dev</code> Ingress, OKE 전용 seccomp patch</td>
+<td><code>apps/dropapp/overlays/prod</code></td>
+<td><code>drop.mintcocoa.dev</code> Ingress, production resource/security patch</td>
 </tr>
 <tr class="odd">
 <td><code>infrastructure/kubernetes/private-observability-ingress</code></td>
@@ -432,10 +432,10 @@ window.Quarto = {
 </section>
 <section id="확인-명령" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="확인-명령"><span class="header-section-number">4</span> 확인 명령</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops fetch origin main <span class="at">--prune</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops log <span class="at">--date</span><span class="op">=</span>short <span class="at">--pretty</span><span class="op">=</span>format:<span class="st">'%h %ad %s'</span> origin/main <span class="at">--max-count</span><span class="op">=</span>35</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops status <span class="at">--short</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops log <span class="at">--date</span><span class="op">=</span>short <span class="at">--pretty</span><span class="op">=</span>format:<span class="st">'%h %ad %s'</span> <span class="at">--max-count</span><span class="op">=</span>35</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:apps/mintcocoa-docs/overlays/prod/kustomization.yaml</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:apps/mintcocoa-docs/overlays/prod/ingress.yaml</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 

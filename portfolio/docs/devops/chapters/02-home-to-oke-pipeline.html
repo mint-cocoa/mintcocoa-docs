@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -78,10 +78,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-ec174fd7110ec69cf0d482130f647dfe.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-7076de66b990a17eb22f509e5ab06121.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -248,14 +248,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="1" class="anchored" data-anchor-id="같은-workload를-두-환경에-배치하는-방식"><span class="header-section-number">1</span> 같은 workload를 두 환경에 배치하는 방식</h2>
 <p><code>mintcocoa-ops</code>는 home k3s와 OKE production을 같은 manifest로 직접 공유하지 않습니다. 공통 부분은 <code>apps/&lt;app&gt;/base</code>에 두고, 환경별 차이는 overlay에서 관리합니다.</p>
 <pre class="text"><code>apps/&lt;app&gt;/base
-  -&gt; apps/&lt;app&gt;/overlays/home
-  -&gt; apps/&lt;app&gt;/overlays/oke-prod</code></pre>
+  -&gt; apps/&lt;app&gt;/overlays/staging
+  -&gt; apps/&lt;app&gt;/overlays/prod</code></pre>
 <p>이 구조의 목적은 home에서 먼저 실행해 볼 수 있는 workload와 production에 공개되는 workload를 같은 앱으로 묶되, 노출 방식과 리소스 정책을 섞지 않는 것입니다.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>앱</th>
-<th>home overlay</th>
+<th>staging overlay</th>
 <th>OKE production overlay</th>
 </tr>
 </thead>
@@ -280,7 +280,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="promotion-workflow" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="promotion-workflow"><span class="header-section-number">2</span> promotion workflow</h2>
-<p>production 반영은 <code>Promote home overlay to OKE</code> workflow로 분리되어 있습니다. 이 workflow는 app 이름과 image reference를 입력받아 OKE overlay의 image name/tag를 바꾸고, 변경 commit을 push합니다.</p>
+<p>production 반영은 staging에서 검증된 image tag를 prod overlay로 승격하는 workflow로 분리되어 있습니다. 이 workflow는 app 이름과 staging overlay의 image reference를 읽어 prod overlay의 image name/tag를 바꾸고, 변경 PR을 남깁니다.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
@@ -295,23 +295,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>입력</td>
-<td><code>app</code>, <code>image</code></td>
+<td><code>app</code></td>
 </tr>
 <tr class="even">
 <td>검증</td>
-<td><code>apps/&lt;app&gt;/overlays/home</code>, <code>apps/&lt;app&gt;/overlays/oke-prod</code> 존재 확인</td>
+<td><code>apps/&lt;app&gt;/overlays/staging</code>, <code>apps/&lt;app&gt;/overlays/prod</code> 존재 확인</td>
 </tr>
 <tr class="odd">
 <td>변경</td>
-<td><code>apps/&lt;app&gt;/overlays/oke-prod/kustomization.yaml</code>의 <code>newName</code>, <code>newTag</code> 갱신</td>
+<td>staging의 <code>newName</code>, <code>newTag</code>를 prod <code>kustomization.yaml</code>로 복사</td>
 </tr>
 <tr class="even">
 <td>기록</td>
-<td><code>Promote &lt;app&gt; to &lt;image&gt;</code> commit 생성</td>
+<td>production promotion PR 생성</td>
 </tr>
 </tbody>
 </table>
-<p>자동 배포가 모든 환경을 바로 바꾸는 방식이 아니라, home 검증과 OKE 승격 사이에 명시적인 Git commit을 남기는 방식입니다.</p>
+<p>자동 배포가 모든 환경을 바로 바꾸는 방식이 아니라, staging 검증과 production 승격 사이에 명시적인 GitHub PR을 남기는 방식입니다.</p>
 </section>
 <section id="dropapp에서-확인되는-환경-차이" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="dropapp에서-확인되는-환경-차이"><span class="header-section-number">3</span> dropapp에서 확인되는 환경 차이</h2>
@@ -327,7 +327,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>namespace</td>
-<td><code>home-services</code></td>
+<td><code>staging-services</code></td>
 <td><code>prod-services</code></td>
 </tr>
 <tr class="even">
@@ -346,13 +346,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><code>letsencrypt-prod</code> ClusterIssuer</td>
 </tr>
 <tr class="odd">
-<td>OKE 전용 patch</td>
+<td>production patch</td>
 <td>없음</td>
-<td><code>seccompProfile: Unconfined</code></td>
+<td>resource/security policy</td>
 </tr>
 </tbody>
 </table>
-<p>OKE overlay에 <code>seccomp-patch.yaml</code>이 있는 이유는 production node의 kernel/seccomp 조건에서 <code>io_uring</code> setup을 허용해야 했기 때문입니다. 이 차이는 앱 코드가 아니라 OKE 실행 환경에 붙은 운영 제약이므로 overlay patch에만 남깁니다.</p>
+<p>production overlay에는 staging보다 보수적인 resource와 security policy를 둡니다. 이 차이는 앱 코드가 아니라 OKE 실행 환경에 붙은 운영 제약이므로 overlay patch에만 남깁니다.</p>
 </section>
 <section id="검증-workflow" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="검증-workflow"><span class="header-section-number">4</span> 검증 workflow</h2>
@@ -371,11 +371,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>cluster root</td>
-<td><code>clusters/home</code>, <code>clusters/oke-prod</code></td>
+<td><code>clusters/staging</code>, <code>clusters/prod</code></td>
 </tr>
 <tr class="even">
 <td>app overlay</td>
-<td><code>apps/whoami/overlays/*</code>, <code>apps/dropapp/overlays/*</code>, <code>apps/mintcocoa-docs/overlays/oke-prod</code></td>
+<td><code>apps/whoami/overlays/*</code>, <code>apps/dropapp/overlays/*</code>, <code>apps/mintcocoa-docs/overlays/prod</code></td>
 </tr>
 <tr class="odd">
 <td>shared infrastructure</td>
@@ -390,10 +390,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="확인-명령" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="확인-명령"><span class="header-section-number">5</span> 확인 명령</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:.github/workflows/gitops-validate.yml</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:.github/workflows/promote-home-to-oke.yml</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:apps/dropapp/overlays/oke-prod/kustomization.yaml</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:apps/dropapp/overlays/oke-prod/seccomp-patch.yaml</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:.github/workflows/gitops-validate.yml</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:.github/workflows/promote-staging-to-prod.yml</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:apps/dropapp/overlays/prod/kustomization.yaml</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:apps/dropapp/overlays/prod/production-resources.yaml</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

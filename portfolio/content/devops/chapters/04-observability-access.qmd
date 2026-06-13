@@ -1,21 +1,26 @@
 ---
 title: "4. 관측성과 운영 접근 경계"
 order: 4
-description: "private ingress, WireGuard bastion, observability stack의 공개/비공개 경계"
+description: "private ingress, IPSec operator path, observability stack의 공개/비공개 경계"
 ---
 
 ## 공개 서비스와 운영 화면을 분리한 이유
 
 production cluster에는 public ingress와 private ingress가 동시에 있습니다. 외부 사용자에게 필요한 서비스는 public ingress로 열고, 운영자가 보는 Grafana는 private ingress 뒤에 둡니다.
 
-이 분리는 인증 UI를 공개 인터넷에 그대로 노출하지 않고, home LAN과 WireGuard 경로를 통해서만 운영 화면에 접근하게 만들기 위한 경계입니다.
+이 분리는 인증 UI를 공개 인터넷에 그대로 노출하지 않고, home LAN에서 OCI Site-to-Site IPSec과 GitOps manager 경로를 통해서만 운영 화면에 접근하게 만들기 위한 경계입니다.
 
 | 경로 | 역할 |
 | --- | --- |
 | public `nginx` ingress | `docs.mintcocoa.dev`, `drop.mintcocoa.dev` |
 | private `private-nginx` ingress | 내부 Grafana 접근 |
-| WireGuard bastion | home LAN에서 OKE private network로 들어가는 관리 경로 |
+| OCI Site-to-Site IPSec | home LAN에서 OKE private network로 들어가는 관리 경로 |
+| GitOps manager | private management entry point와 Argo CD control plane |
 | Kubernetes port-forward | private ingress 장애 시 fallback |
+
+아래 캡처는 OCI CLI 조회 결과를 공개 문서용으로 마스킹한 것입니다. public ingress load balancer는 public address를 갖고, private ingress load balancer는 VCN 내부 address만 갖습니다. manager NSG는 home LAN 경로의 SSH/HTTPS만 허용해 operator-only path를 public service path와 분리합니다.
+
+![OCI ingress security boundary](../assets/ingress-security-boundary-public.png)
 
 ## observability stack
 
@@ -48,12 +53,13 @@ production 비용과 footprint를 줄이기 위해 observability storage는 현�
 
 ## 운영 접근 방식
 
-`docs/runbooks/access.md`는 operator access를 WireGuard bastion과 OpenWrt gateway 경로로 정리합니다. 일반 운영 접근은 public Kubernetes API를 넓게 열어두는 방식이 아니라 private endpoint와 routed private network를 사용하는 방식입니다.
+`docs/runbooks/access.md`는 operator access를 home LAN, Raspberry Pi IPSec CPE, GitOps manager 경로로 정리합니다. 일반 운영 접근은 public Kubernetes API를 넓게 열어두는 방식이 아니라 private endpoint와 routed private network를 사용하는 방식입니다.
 
 ```text
 LAN client
-  -> OpenWrt gateway
-  -> WireGuard bastion
+  -> Raspberry Pi IPSec CPE
+  -> OCI Site-to-Site IPSec
+  -> GitOps manager
   -> OKE private API / private ingress
 ```
 
@@ -62,8 +68,9 @@ LAN client
 ## 확인 명령
 
 ```bash
-git -C /home/cocoa/mintcocoa-ops show origin/main:docs/runbooks/access.md
-git -C /home/cocoa/mintcocoa-ops show origin/main:docs/runbooks/observability.md
-git -C /home/cocoa/mintcocoa-ops show origin/main:infrastructure/kubernetes/private-observability-ingress/grafana-ingress.yaml
-git -C /home/cocoa/mintcocoa-ops show origin/main:clusters/oke-prod/applications/private-ingress-nginx.yaml
+git -C /home/cocoa/mintcocoa-ops show HEAD:docs/runbooks/access.md
+git -C /home/cocoa/mintcocoa-ops show HEAD:docs/runbooks/observability.md
+git -C /home/cocoa/mintcocoa-ops show HEAD:infrastructure/kubernetes/private-observability-ingress/grafana-ingress.yaml
+git -C /home/cocoa/mintcocoa-ops show HEAD:clusters/prod/ingress/private-ingress-nginx.yaml
+oci network nsg rules list --nsg-id "$MGR_NSG_ID" --region ap-chuncheon-1
 ```

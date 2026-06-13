@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -77,10 +77,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-ec174fd7110ec69cf0d482130f647dfe.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-7076de66b990a17eb22f509e5ab06121.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -246,8 +246,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="운영-기준-환경" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="운영-기준-환경"><span class="header-section-number">1</span> 운영 기준 환경</h2>
 <p><code>mintcocoa-ops</code>의 현재 기준은 OKE production입니다. home k3s는 staging, 개발, 내부 도구, 복구 훈련에 사용할 수 있지만 production workload가 home lab availability에 의존하지 않도록 분리했습니다.</p>
-<p>이 분리는 단순한 이름 구분이 아닙니다. Argo CD root application, cluster application, workload overlay가 모두 <code>oke-prod</code>와 <code>home</code>을 별도 경로로 관리합니다. production 상태는 OKE 클러스터 안의 Argo CD가 수렴시키고, home cluster는 필요한 경우 같은 control plane에서 원격 target으로 등록됩니다.</p>
+<p>이 분리는 단순한 이름 구분이 아닙니다. Argo CD root application, cluster application, workload overlay가 <code>manager</code>, <code>staging</code>, <code>prod</code> 경계를 따라 나뉘어 있습니다. production 상태는 GitOps manager의 Argo CD가 원격 OKE cluster에 수렴시키고, staging은 home k3s에서 먼저 검증하는 대상으로 유지합니다.</p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>경계</th>
@@ -256,39 +260,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>bootstrap/oke-prod-root.yaml</code></td>
-<td>OKE production root application</td>
+<td><code>bootstrap/manager-root.yaml</code></td>
+<td>GitOps manager management plane root</td>
 </tr>
 <tr class="even">
-<td><code>bootstrap/home-root.yaml</code></td>
-<td>home k3s root application</td>
+<td><code>bootstrap/staging-root.yaml</code></td>
+<td>home k3s staging root</td>
 </tr>
 <tr class="odd">
-<td><code>clusters/oke-prod</code></td>
-<td>production child applications</td>
+<td><code>bootstrap/prod-root.yaml</code></td>
+<td>OKE production root</td>
 </tr>
 <tr class="even">
-<td><code>clusters/home</code></td>
-<td>home staging child applications</td>
+<td><code>clusters/manager</code></td>
+<td>manager private ingress와 control plane application</td>
+</tr>
+<tr class="odd">
+<td><code>clusters/staging</code></td>
+<td>staging child applications</td>
+</tr>
+<tr class="even">
+<td><code>clusters/prod</code></td>
+<td>production group root applications</td>
 </tr>
 <tr class="odd">
 <td><code>apps/&lt;app&gt;/base</code></td>
 <td>환경 공통 workload 정의</td>
 </tr>
 <tr class="even">
-<td><code>apps/&lt;app&gt;/overlays/home</code></td>
-<td>home k3s용 차이</td>
+<td><code>apps/&lt;app&gt;/overlays/staging</code></td>
+<td>home k3s staging용 차이</td>
 </tr>
 <tr class="odd">
-<td><code>apps/&lt;app&gt;/overlays/oke-prod</code></td>
+<td><code>apps/&lt;app&gt;/overlays/prod</code></td>
 <td>OKE production용 차이</td>
 </tr>
 </tbody>
 </table>
+<p>아래 캡처는 production OKE cluster의 worker node 상태를 <code>kubectl</code>로 확인한 결과입니다. 공개 문서에서는 node private/public IP와 세부 식별자를 마스킹하지만, 3개 worker node가 모두 <code>Ready</code>이고 Kubernetes <code>v1.33.1</code>로 동작한다는 운영 상태는 남깁니다.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../assets/oke-node-status-public.png" class="img-fluid figure-img"></p>
+<figcaption>Kubernetes production node status</figcaption>
+</figure>
+</div>
 </section>
 <section id="application-계층" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="application-계층"><span class="header-section-number">2</span> Application 계층</h2>
-<p>OKE production의 cluster root는 infrastructure와 workload application을 함께 참조합니다. <code>clusters/oke-prod/applications</code> 아래에는 ingress, certificate, observability, production services namespace, 앱별 workload가 분리되어 있습니다.</p>
+<p>OKE production의 cluster root는 역할별 group root application을 먼저 참조합니다. <code>clusters/prod/root-applications</code> 아래에서 platform, ingress, observability, workloads를 나누고, 각 group root가 자기 영역의 child application을 관리합니다.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
@@ -302,58 +321,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>ingress-nginx</code></td>
-<td>public ingress controller</td>
+<td><code>prod-platform-root</code></td>
+<td><code>cert-manager</code>, <code>cluster-issuers</code>, <code>metrics-server</code>, <code>argo-rollouts</code></td>
 </tr>
 <tr class="even">
-<td><code>cert-manager</code></td>
-<td>TLS certificate automation</td>
+<td><code>prod-ingress-root</code></td>
+<td>public <code>ingress-nginx</code>, private <code>private-ingress-nginx</code></td>
 </tr>
 <tr class="odd">
-<td><code>cluster-issuers</code></td>
-<td><code>letsencrypt-prod</code> ClusterIssuer</td>
+<td><code>prod-observability-root</code></td>
+<td>Prometheus/Grafana, Loki, Promtail, Tempo, datasource, private Grafana ingress</td>
 </tr>
 <tr class="even">
-<td><code>prod-services-namespace</code></td>
-<td>public service namespace ownership</td>
-</tr>
-<tr class="odd">
-<td><code>prod-mintcocoa-docs</code></td>
-<td><code>docs.mintcocoa.dev</code> 문서 사이트</td>
-</tr>
-<tr class="even">
-<td><code>prod-dropapp</code></td>
-<td><code>drop.mintcocoa.dev</code> RuntimeWeb 앱</td>
-</tr>
-<tr class="odd">
-<td><code>observability-stack</code>, <code>loki</code>, <code>promtail</code>, <code>tempo</code></td>
-<td>metrics, logs, traces</td>
-</tr>
-<tr class="even">
-<td><code>private-ingress-nginx</code></td>
-<td>내부용 ingress controller</td>
-</tr>
-<tr class="odd">
-<td><code>private-observability-ingress</code></td>
-<td>private Grafana ingress</td>
+<td><code>prod-workloads-root</code></td>
+<td><code>prod-services</code> namespace, docs, dropapp, whoami, pipeline-demo</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="desired-state가-두-저장소로-나뉘는-이유" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="desired-state가-두-저장소로-나뉘는-이유"><span class="header-section-number">3</span> desired state가 두 저장소로 나뉘는 이유</h2>
-<p>애플리케이션 저장소는 이미지를 만들고, 운영 저장소는 어떤 이미지가 어떤 환경에 배포되는지를 기록합니다. <code>mintcocoa-docs</code> 저장소는 <code>_site</code>를 렌더링하고 GHCR 이미지를 만들지만, OKE production에서 그 이미지를 쓰는 최종 선언은 <code>mintcocoa-ops/apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml</code>에 남습니다.</p>
+<p>애플리케이션 저장소는 이미지를 만들고, 운영 저장소는 어떤 이미지가 어떤 환경에 배포되는지를 기록합니다. <code>mintcocoa-docs</code> 저장소는 <code>_site</code>를 렌더링하고 GHCR 이미지를 만들지만, OKE production에서 그 이미지를 쓰는 최종 선언은 <code>mintcocoa-ops/apps/mintcocoa-docs/overlays/prod/kustomization.yaml</code>에 남습니다.</p>
 <p>이 구조에서는 배포된 이미지 tag가 Git commit SHA와 연결됩니다. 문제가 생기면 production manifest에서 image tag를 확인하고, 해당 tag가 어떤 문서 저장소 commit에서 만들어졌는지 되짚을 수 있습니다.</p>
 <pre class="text"><code>mintcocoa-docs push
   -&gt; render _site
   -&gt; build ghcr.io/mint-cocoa/mintcocoa-docs:&lt;sha&gt;
-  -&gt; update mintcocoa-ops apps/mintcocoa-docs/overlays/oke-prod
+  -&gt; update mintcocoa-ops apps/mintcocoa-docs/overlays/prod
   -&gt; Argo CD sync prod-mintcocoa-docs</code></pre>
 </section>
 <section id="공개-문서에서-마스킹한-값" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="공개-문서에서-마스킹한-값"><span class="header-section-number">4</span> 공개 문서에서 마스킹한 값</h2>
 <p><code>mintcocoa-ops</code> 문서에는 운영자가 확인하기 위한 endpoint와 network 값이 일부 남아 있습니다. 공개 포트폴리오에서는 값 자체보다 경계를 설명하는 것이 목적이므로 아래 값은 원문 그대로 노출하지 않습니다.</p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>값 종류</th>
@@ -367,7 +370,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td>private subnet IP</td>
-<td>WireGuard와 private ingress 경계만 설명</td>
+<td>IPSec, GitOps manager, private ingress 경계만 설명</td>
 </tr>
 <tr class="odd">
 <td>OCID</td>
@@ -386,9 +389,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="확인-명령" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="확인-명령"><span class="header-section-number">5</span> 확인 명령</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:README.md</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:README.md</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> /home/cocoa/mintcocoa-ops/apps /home/cocoa/mintcocoa-ops/clusters /home/cocoa/mintcocoa-ops/infrastructure <span class="at">-maxdepth</span> 3 <span class="at">-type</span> f</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:clusters/oke-prod/kustomization.yaml</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:clusters/prod/kustomization.yaml</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">kubectl</span> <span class="at">--context</span> <span class="op">&lt;</span>prod-context<span class="op">&gt;</span> get nodes <span class="at">-o</span> wide</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

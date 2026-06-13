@@ -20,7 +20,7 @@ listing:
 
 ## 문서 구성
 
-이 문서는 `mintcocoa-ops` 저장소의 `origin/main`에서 확인한 운영 구조를 기준으로 정리했습니다. 홈랩 Kubernetes 실험을 그대로 production으로 부르는 대신, OKE production과 home k3s의 역할을 분리하고, GitOps 저장소가 어떤 desired state를 관리하는지 장별로 나눕니다.
+이 문서는 `mintcocoa-ops` 저장소에서 확인한 운영 구조를 기준으로 정리했습니다. 홈랩 Kubernetes 실험을 그대로 production으로 부르는 대신, OKE production과 home k3s staging의 역할을 분리하고, GitOps 저장소가 어떤 desired state를 관리하는지 장별로 나눕니다.
 
 ::: {#document-listing}
 :::
@@ -33,17 +33,17 @@ listing:
 
 | 근거 | 확인한 내용 |
 | --- | --- |
-| `mintcocoa-ops` `origin/main` | OKE production GitOps, home k3s staging, Argo CD Application 구조 |
+| `mintcocoa-ops` | OKE production GitOps, home k3s staging, Argo CD Application 구조 |
 | `mintcocoa-docs` workflow | `_site` 렌더, GHCR 이미지, `mintcocoa-ops` OKE overlay image tag 갱신 |
-| `apps/mintcocoa-docs/overlays/oke-prod` | `docs.mintcocoa.dev` Ingress와 production image tag |
-| `apps/dropapp/overlays/oke-prod` | `drop.mintcocoa.dev` Ingress, OKE 전용 seccomp patch |
+| `apps/mintcocoa-docs/overlays/prod` | `docs.mintcocoa.dev` Ingress와 production image tag |
+| `apps/dropapp/overlays/prod` | `drop.mintcocoa.dev` Ingress, production resource/security patch |
 | `infrastructure/kubernetes/private-observability-ingress` | private ingress를 통한 Grafana 내부 노출 |
 
 ## 확인 명령
 
 ```bash
-git -C /home/cocoa/mintcocoa-ops fetch origin main --prune
-git -C /home/cocoa/mintcocoa-ops log --date=short --pretty=format:'%h %ad %s' origin/main --max-count=35
-git -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/kustomization.yaml
-git -C /home/cocoa/mintcocoa-ops show origin/main:apps/mintcocoa-docs/overlays/oke-prod/ingress.yaml
+git -C /home/cocoa/mintcocoa-ops status --short
+git -C /home/cocoa/mintcocoa-ops log --date=short --pretty=format:'%h %ad %s' --max-count=35
+git -C /home/cocoa/mintcocoa-ops show HEAD:apps/mintcocoa-docs/overlays/prod/kustomization.yaml
+git -C /home/cocoa/mintcocoa-ops show HEAD:apps/mintcocoa-docs/overlays/prod/ingress.yaml
 ```

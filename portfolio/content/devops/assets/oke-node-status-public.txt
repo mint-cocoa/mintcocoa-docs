@@ -1,0 +1,37 @@
+# Kubernetes production node status evidence
+# Captured: 2026-06-13
+# Source: kubectl --context <prod-context> get nodes
+
+$ kubectl --context <prod-context> get nodes -o wide
+NAME           STATUS   ROLES   AGE    VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE
+worker-a       Ready    node    4d14h  v1.33.1   10.30.2.x       <redacted>    Oracle Linux Server 8.10
+worker-b       Ready    node    4d14h  v1.33.1   10.30.2.x       <redacted>    Oracle Linux Server 8.10
+worker-c       Ready    node    4d15h  v1.33.1   10.30.2.x       <redacted>    Oracle Linux Server 8.10
+
+$ kubectl --context <prod-context> get nodes -o json | jq ...
+[
+  {
+    "name": "worker-a",
+    "ready": "True",
+    "version": "v1.33.1",
+    "os": "Oracle Linux Server 8.10",
+    "runtime": "cri-o://1.33.x",
+    "internalIP": "10.30.2.x"
+  },
+  {
+    "name": "worker-b",
+    "ready": "True",
+    "version": "v1.33.1",
+    "os": "Oracle Linux Server 8.10",
+    "runtime": "cri-o://1.33.x",
+    "internalIP": "10.30.2.x"
+  },
+  {
+    "name": "worker-c",
+    "ready": "True",
+    "version": "v1.33.1",
+    "os": "Oracle Linux Server 8.10",
+    "runtime": "cri-o://1.33.x",
+    "internalIP": "10.30.2.x"
+  }
+]

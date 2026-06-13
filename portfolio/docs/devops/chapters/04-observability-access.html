@@ -2,11 +2,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="private ingress, WireGuard bastion, observability stack의 공개/비공개 경계">
+<meta name="description" content="private ingress, IPSec operator path, observability stack의 공개/비공개 경계">
 
 <title>4. 관측성과 운영 접근 경계 – DevOps 운영 문서</title>
 <style>
@@ -78,10 +78,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-ec174fd7110ec69cf0d482130f647dfe.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-7076de66b990a17eb22f509e5ab06121.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -227,7 +227,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div>
   <div class="description">
-    private ingress, WireGuard bastion, observability stack의 공개/비공개 경계
+    private ingress, IPSec operator path, observability stack의 공개/비공개 경계
   </div>
 </div>
 
@@ -247,7 +247,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="공개-서비스와-운영-화면을-분리한-이유" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="공개-서비스와-운영-화면을-분리한-이유"><span class="header-section-number">1</span> 공개 서비스와 운영 화면을 분리한 이유</h2>
 <p>production cluster에는 public ingress와 private ingress가 동시에 있습니다. 외부 사용자에게 필요한 서비스는 public ingress로 열고, 운영자가 보는 Grafana는 private ingress 뒤에 둡니다.</p>
-<p>이 분리는 인증 UI를 공개 인터넷에 그대로 노출하지 않고, home LAN과 WireGuard 경로를 통해서만 운영 화면에 접근하게 만들기 위한 경계입니다.</p>
+<p>이 분리는 인증 UI를 공개 인터넷에 그대로 노출하지 않고, home LAN에서 OCI Site-to-Site IPSec과 GitOps manager 경로를 통해서만 운영 화면에 접근하게 만들기 위한 경계입니다.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
@@ -269,15 +269,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>내부 Grafana 접근</td>
 </tr>
 <tr class="odd">
-<td>WireGuard bastion</td>
+<td>OCI Site-to-Site IPSec</td>
 <td>home LAN에서 OKE private network로 들어가는 관리 경로</td>
 </tr>
 <tr class="even">
+<td>GitOps manager</td>
+<td>private management entry point와 Argo CD control plane</td>
+</tr>
+<tr class="odd">
 <td>Kubernetes port-forward</td>
 <td>private ingress 장애 시 fallback</td>
 </tr>
 </tbody>
 </table>
+<p>아래 캡처는 OCI CLI 조회 결과를 공개 문서용으로 마스킹한 것입니다. public ingress load balancer는 public address를 갖고, private ingress load balancer는 VCN 내부 address만 갖습니다. manager NSG는 home LAN 경로의 SSH/HTTPS만 허용해 operator-only path를 public service path와 분리합니다.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../assets/ingress-security-boundary-public.png" class="img-fluid figure-img"></p>
+<figcaption>OCI ingress security boundary</figcaption>
+</figure>
+</div>
 </section>
 <section id="observability-stack" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="observability-stack"><span class="header-section-number">2</span> observability stack</h2>
@@ -359,19 +370,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="운영-접근-방식" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="운영-접근-방식"><span class="header-section-number">4</span> 운영 접근 방식</h2>
-<p><code>docs/runbooks/access.md</code>는 operator access를 WireGuard bastion과 OpenWrt gateway 경로로 정리합니다. 일반 운영 접근은 public Kubernetes API를 넓게 열어두는 방식이 아니라 private endpoint와 routed private network를 사용하는 방식입니다.</p>
+<p><code>docs/runbooks/access.md</code>는 operator access를 home LAN, Raspberry Pi IPSec CPE, GitOps manager 경로로 정리합니다. 일반 운영 접근은 public Kubernetes API를 넓게 열어두는 방식이 아니라 private endpoint와 routed private network를 사용하는 방식입니다.</p>
 <pre class="text"><code>LAN client
-  -&gt; OpenWrt gateway
-  -&gt; WireGuard bastion
+  -&gt; Raspberry Pi IPSec CPE
+  -&gt; OCI Site-to-Site IPSec
+  -&gt; GitOps manager
   -&gt; OKE private API / private ingress</code></pre>
 <p>모바일이나 GUI client처럼 OCI CLI token exec를 실행하기 어려운 환경은 별도 ServiceAccount token을 만들 수 있지만, 공개 문서와 Git 저장소에는 token 값을 남기지 않습니다.</p>
 </section>
 <section id="확인-명령" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="확인-명령"><span class="header-section-number">5</span> 확인 명령</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:docs/runbooks/access.md</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:docs/runbooks/observability.md</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:infrastructure/kubernetes/private-observability-ingress/grafana-ingress.yaml</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show origin/main:clusters/oke-prod/applications/private-ingress-nginx.yaml</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:docs/runbooks/access.md</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:docs/runbooks/observability.md</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:infrastructure/kubernetes/private-observability-ingress/grafana-ingress.yaml</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> <span class="at">-C</span> /home/cocoa/mintcocoa-ops show HEAD:clusters/prod/ingress/private-ingress-nginx.yaml</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">oci</span> network nsg rules list <span class="at">--nsg-id</span> <span class="st">"</span><span class="va">$MGR_NSG_ID</span><span class="st">"</span> <span class="at">--region</span> ap-chuncheon-1</span></code></pre></div><button title="클립보드 복사" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
