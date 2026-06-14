@@ -96,11 +96,11 @@ body {
 
 .doc-row {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 22px;
   align-items: stretch;
-  min-height: 126px;
-  padding: 12px;
+  min-height: 162px;
+  padding: 14px;
   border: 1px solid var(--mc-line);
   border-radius: 6px;
   background: #ffffff;
@@ -108,7 +108,7 @@ body {
 
 .doc-thumb {
   display: block;
-  min-height: 102px;
+  min-height: 132px;
   border: 1px solid #e5eaf2;
   border-radius: 4px;
   background: var(--mc-soft);
@@ -185,14 +185,14 @@ body {
   }
 
   .doc-row {
-    grid-template-columns: 120px minmax(0, 1fr);
-    gap: 12px;
-    min-height: auto;
-    padding: 10px;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 14px;
+    min-height: 132px;
+    padding: 11px;
   }
 
   .doc-thumb {
-    min-height: 92px;
+    min-height: 108px;
   }
 
   .home a,
