@@ -4,47 +4,113 @@ subtitle: "포트폴리오와 운영 문서"
 ---
 
 ::: {.home}
-::: {.intro}
+::: {.hero}
+::: {.hero-copy}
+::: {.eyebrow}
+Portfolio / Operations Notes
+:::
+
 ## MintCocoa Docs
 
-개인 포트폴리오와 운영 문서를 모아 둔 정적 문서 사이트입니다. 서버 런타임과
-클라우드·홈랩 운영 파이프라인 문서를 중심으로 정리합니다.
+서버 런타임을 직접 설계하고, 그 결과물을 실제 배포 파이프라인 위에서 운영한
+과정을 정리한 문서 사이트입니다.
 
 ::: {.intro-links}
 [io_uring 기반 C++ 서버 런타임 개발](/portfolio/servercore/){.primary-link}
-[오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/){.plain-link}
+[개발-운영 파이프라인 구축](/portfolio/devops/){.plain-link}
 :::
 :::
 
-::: {.section-heading}
-### 문서
+::: {.hero-panel}
+::: {.signal}
+**Focus**
 
-공개 진입점으로 유지하는 문서입니다.
+네트워크 I/O 실행 계층과 GitOps 운영 경계를 함께 다룹니다.
+:::
+
+::: {.metric-grid}
+::: {.metric}
+**C++**
+
+io_uring runtime
+:::
+
+::: {.metric}
+**GitOps**
+
+Actions / GHCR / Argo CD
+:::
+
+::: {.metric}
+**OKE**
+
+production cluster
+:::
+:::
+:::
+:::
+
+::: {.section-heading .compact}
+### 문서 컬렉션
+
+핵심 구현 경험과 운영 설계 기록을 두 축으로 묶었습니다.
 :::
 
 ::: {.doc-list}
 ::: {.doc-row}
+::: {.doc-kicker}
+Server Runtime
+:::
+
 #### [io_uring 기반 C++ 서버 런타임 개발](/portfolio/servercore/)
 
-`io_uring` 기반 C++ 서버 런타임의 수명관리, 버퍼, 직렬화, backpressure를 정리한 문서입니다.
+`io_uring` 기반 C++ 서버 런타임의 수명관리, 버퍼, 직렬화, backpressure를
+설계 선택과 구현 경계 중심으로 정리한 문서입니다.
+
+::: {.doc-tags}
+`C++` `io_uring` `backpressure`
+:::
 :::
 
 ::: {.doc-row}
+::: {.doc-kicker}
+Production GitOps
+:::
+
 #### [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/)
 
-GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영 관측성 문서입니다.
+GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영 관측성까지 이어지는
+개발-운영 파이프라인 문서입니다.
+
+::: {.doc-tags}
+`OKE` `Argo CD` `observability`
+:::
 :::
 :::
 
 ::: {.section-heading}
-### 최근 정리한 문서
+### 대표 장
 
-경로 정리 후 유지하는 대표 장입니다.
+처음 읽기 좋은 진입점을 골라 두었습니다.
 :::
 
 ::: {.chapter-list}
-- [io_uring 기반 C++ 서버 런타임 개발: Overview](/portfolio/servercore/chapters/01-overview.html)
-- [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축: OKE Production GitOps](/portfolio/devops/chapters/01-oke-production-gitops.html)
-- [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축: Docs Site Deployment](/portfolio/devops/chapters/03-docs-site-deployment.html)
+::: {.chapter-row}
+[io_uring 기반 C++ 서버 런타임 개발: Overview](/portfolio/servercore/chapters/01-overview.html)
+
+구조, 책임 경계, 구현 흐름을 가장 먼저 훑는 장입니다.
+:::
+
+::: {.chapter-row}
+[오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축: OKE Production GitOps](/portfolio/devops/chapters/01-oke-production-gitops.html)
+
+프로덕션 클러스터와 GitOps 배포 경계를 설명합니다.
+:::
+
+::: {.chapter-row}
+[오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축: Docs Site Deployment](/portfolio/devops/chapters/03-docs-site-deployment.html)
+
+이 문서 사이트가 어떻게 이미지 빌드와 배포로 연결되는지 정리합니다.
+:::
 :::
 :::
