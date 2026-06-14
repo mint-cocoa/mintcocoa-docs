@@ -81,11 +81,9 @@ production으로 보낼 때는 `mintcocoa-ops`의 promotion workflow가 staging 
 
 수동 실행 화면에서는 앱 이름만 입력합니다. workflow는 입력받은 앱의 staging/prod overlay 경로를 계산하고, staging에 기록된 image tag를 prod overlay로 복사합니다.
 
-![GitHub Actions promotion workflow input](assets/production-infrastructure/gitops/gitops-promotion-workflow-dispatch-input.png)
-
 `pipeline-demo` promotion PR은 staging에서 검증된 image tag와 staging/prod overlay 경로를 함께 남겨 production 변경이 어떤 staging 결과에서 왔는지 PR에서 바로 추적할 수 있습니다.
 
-![pipeline-demo production promotion PR](assets/production-infrastructure/gitops/gitops-pipeline-demo-prod-promotion-pr.png)
+![pipeline-demo 프로덕션 승격 PR](assets/production-infrastructure/gitops/gitops-pipeline-demo-prod-promotion-pr.png)
 
 ![GitHub Actions render validation for GitOps manifests](assets/production-infrastructure/gitops/ops-render-validation.png)
 
