@@ -21,6 +21,12 @@
 
 ## 2. OCI VCN과 Kubernetes Cluster 구성
 
+프로덕션 환경은 단순히 Kubernetes 클러스터를 하나 띄우는 것이 아니라, 네트워크 주소 공간과 워커 노드, Pod IP 할당 방식, 외부 노출 경로를 함께 설계해야 했습니다. 그래서 OCI VCN을 기준으로 클러스터의 기본 네트워크 경계를 먼저 만들고, 그 안에서 OKE가 worker node와 pod network를 관리하도록 구성했습니다.
+
+OKE는 managed control plane을 제공하므로 직접 control plane VM을 운영하지 않아도 Kubernetes API와 node pool을 분리해서 다룰 수 있습니다. worker node는 프리 티어에서 사용할 수 있는 ARM 기반 `VM.Standard.A1.Flex`로 구성했고, pod network는 OCI VCN native CNI를 사용해 Kubernetes 내부 주소 체계가 VCN subnet 설계와 자연스럽게 연결되도록 했습니다.
+
+이 구성의 목적은 작은 비용으로도 production과 유사한 운영 조건을 만드는 것입니다. worker node 3대가 모두 `Ready` 상태인지 확인하고, 이후 Network Boundary와 Security Group 섹션에서 public ingress, private API, pod outbound traffic이 어떤 경로로 분리되는지 검증합니다.
+
 | 영역 | 구성 |
 | --- | --- |
 | Cloud provider | Oracle Cloud Infrastructure |
@@ -42,6 +48,44 @@ public-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound
 ![OCI routing Terraform capture](assets/production-infrastructure/architecture/oci-routing-boundary.png)
 
 VCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes API endpoint를 위한 공간이고, pods subnet은 OCI VCN native CNI가 자동으로 pod address를 할당하는 영역이므로 별도 CNI를 둘 필요가 없었습니다. management subnet은 집 내부망에서 IPSec 경로로 접근하는 management k3s/Argo CD GitOps manager VM 영역입니다.
+
+```{mermaid}
+flowchart LR
+  publicUsers["External users"] --> publicDns["Public DNS"]
+  publicDns --> igw["Internet Gateway"]
+
+  operator["Operator<br/>Home LAN"] --> cpe["Raspberry Pi<br/>IPSec CPE"]
+  cpe --> ipsec["OCI Site-to-Site<br/>IPSec"]
+
+  subgraph vcn["OCI VCN 10.30.0.0/16"]
+    subgraph publicPath["Public exposure path"]
+      igw --> publicLb["Public Load Balancer"]
+      publicLb --> publicIngress["public nginx ingress"]
+      publicIngress --> services["prod-services workloads"]
+    end
+
+    subgraph privatePath["Private operator path"]
+      ipsec --> manager["GitOps manager<br/>management subnet"]
+      manager --> privateApi["OKE private API<br/>endpoint subnet"]
+      manager --> privateLb["Private Load Balancer"]
+      privateLb --> privateIngress["private nginx ingress<br/>operator-only hosts"]
+    end
+
+    subgraph outboundPath["Pod outbound path"]
+      services --> pods["VCN-native pod addresses<br/>pods subnet"]
+      pods --> nat["NAT Gateway"]
+    end
+  end
+
+  nat --> internetOut["Outbound internet"]
+
+  classDef public fill:#e8f2ff,stroke:#2563eb,color:#111827
+  classDef private fill:#ecfdf3,stroke:#16a34a,color:#111827
+  classDef outbound fill:#fff7ed,stroke:#ea580c,color:#111827
+  class publicUsers,publicDns,igw,publicLb,publicIngress,services public
+  class operator,cpe,ipsec,manager,privateApi,privateLb,privateIngress private
+  class pods,nat,internetOut outbound
+```
 
 보안 그룹(NSG)은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.
 

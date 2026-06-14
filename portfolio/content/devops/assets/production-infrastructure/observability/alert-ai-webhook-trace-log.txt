@@ -1,0 +1,170 @@
+alert-ai-webhook trace capture
+date: 2026-06-14
+cluster context: context-cvv2sfbic3q
+namespace: observability
+
+Capture command:
+kubectl --context context-cvv2sfbic3q -n observability logs deploy/alert-ai-webhook --tail=500 | rg 'aiops-doc-trace-test|ai_trace raw_alertmanager_payload|ai_trace alert_fact_context|ai_trace ai_requested_tools|ai_trace tool_results|POST /alertmanager'
+
+Test workload:
+kubectl --context context-cvv2sfbic3q -n prod-services create deployment aiops-doc-trace-test --image=busybox:1.36 -- /bin/sh -c 'echo aiops doc trace test; exit 1'
+
+Sanitized trace excerpt:
+
+INFO: ai_trace raw_alertmanager_payload
+{
+  "receiver": "observability/alert-ai-webhook/alert-ai-webhook",
+  "status": "firing",
+  "groupLabels": {
+    "alertname": "KubePodCrashLooping",
+    "namespace": "prod-services",
+    "severity": "warning"
+  },
+  "commonLabels": {
+    "alertname": "KubePodCrashLooping",
+    "namespace": "prod-services",
+    "pod": "aiops-doc-trace-test-5bd98c44c8-npl6w",
+    "container": "busybox",
+    "reason": "CrashLoopBackOff",
+    "severity": "warning"
+  },
+  "commonAnnotations": {
+    "summary": "Pod is crash looping.",
+    "description": "Pod prod-services/aiops-doc-trace-test-5bd98c44c8-npl6w container busybox is waiting in CrashLoopBackOff."
+  }
+}
+
+INFO: ai_trace alert_fact_context
+{
+  "incident": {
+    "alert_count": 1,
+    "receiver": "observability/alert-ai-webhook/alert-ai-webhook",
+    "status": "firing",
+    "target": {
+      "alertname": "KubePodCrashLooping",
+      "namespace": "prod-services",
+      "pod": "aiops-doc-trace-test-5bd98c44c8-npl6w",
+      "container": "busybox",
+      "reason": "CrashLoopBackOff",
+      "severity": "warning"
+    },
+    "window": {
+      "lookback_minutes": 15
+    }
+  },
+  "tool_results": []
+}
+
+INFO: ai_trace ai_requested_tools
+[
+  {
+    "name": "kubernetes_get_pod",
+    "arguments": {
+      "namespace": "prod-services",
+      "pod": "aiops-doc-trace-test-5bd98c44c8-npl6w"
+    }
+  },
+  {
+    "name": "kubernetes_get_events",
+    "arguments": {
+      "namespace": "prod-services",
+      "object_name": "aiops-doc-trace-test-5bd98c44c8-npl6w"
+    }
+  },
+  {
+    "name": "loki_error_logs",
+    "arguments": {
+      "namespace": "prod-services",
+      "pod": "aiops-doc-trace-test-5bd98c44c8-npl6w",
+      "container": "busybox",
+      "keywords": ["error", "exception", "failed", "panic", "CrashLoopBackOff", "Back-off"]
+    }
+  },
+  {
+    "name": "prometheus_query",
+    "arguments": {
+      "name": "container_restart_and_waiting",
+      "query": "kube_pod_container_status_restarts_total or kube_pod_container_status_waiting_reason or kube_pod_container_status_last_terminated_reason"
+    }
+  },
+  {
+    "name": "prometheus_query",
+    "arguments": {
+      "name": "pod_owner_phase_ready",
+      "query": "kube_pod_owner or kube_pod_status_phase or kube_pod_status_ready"
+    }
+  }
+]
+
+INFO: ai_trace tool_results
+[
+  {
+    "source": "kubernetes",
+    "name": "kubernetes_get_pod",
+    "command": "kubectl -n prod-services get pod aiops-doc-trace-test-5bd98c44c8-npl6w -o json",
+    "result": {
+      "phase": "Running",
+      "container_statuses": [
+        {
+          "name": "busybox",
+          "ready": false,
+          "restart_count": 2,
+          "state": {
+            "waiting": {
+              "reason": "CrashLoopBackOff",
+              "message": "back-off restarting failed container=busybox"
+            }
+          },
+          "last_state": {
+            "terminated": {
+              "exitCode": 1,
+              "reason": "Error"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "source": "kubernetes",
+    "name": "kubernetes_get_events",
+    "result": [
+      {"type": "Normal", "reason": "Scheduled"},
+      {"type": "Normal", "reason": "Pulled", "count": 3},
+      {"type": "Normal", "reason": "Created", "count": 3},
+      {"type": "Normal", "reason": "Started", "count": 3},
+      {"type": "Warning", "reason": "BackOff", "count": 4}
+    ]
+  },
+  {
+    "source": "loki",
+    "name": "loki_error_logs",
+    "query": "{namespace=\"prod-services\",pod=\"aiops-doc-trace-test-5bd98c44c8-npl6w\",container=\"busybox\"} |~ \"(?i)(error|exception|failed|panic)\"",
+    "result": {
+      "lines": []
+    }
+  },
+  {
+    "source": "prometheus",
+    "name": "container_restart_and_waiting",
+    "result": [
+      {"metric": "kube_pod_container_status_restarts_total", "value": "2"},
+      {"metric": "kube_pod_container_status_waiting_reason", "reason": "CrashLoopBackOff", "value": "1"},
+      {"metric": "kube_pod_container_status_last_terminated_reason", "reason": "Error", "value": "1"}
+    ]
+  },
+  {
+    "source": "prometheus",
+    "name": "pod_owner_phase_ready",
+    "result": [
+      {"metric": "kube_pod_owner", "owner_kind": "ReplicaSet"},
+      {"metric": "kube_pod_status_phase", "phase": "Running", "value": "1"},
+      {"metric": "kube_pod_status_ready", "condition": "false", "value": "1"}
+    ]
+  }
+]
+
+INFO: 127.0.0.1:33640 - "POST /alertmanager HTTP/1.1" 200 OK
+
+Cleanup:
+kubectl --context context-cvv2sfbic3q -n prod-services delete deployment aiops-doc-trace-test

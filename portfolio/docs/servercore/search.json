@@ -1,15 +1,17 @@
 [
   {
-    "objectID": "chapters/01-overview.html",
-    "href": "chapters/01-overview.html",
-    "title": "1. 전체 구조",
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "서버 런타임 구현 포트폴리오",
     "section": "",
-    "text": "0.1 전체 구조\nServerCore는 Linux io_uring을 기반으로 구현한 비동기 서버 런타임입니다.\n처음에는 게임 서버를 만들기 위한 기반 코드로 시작했지만, 구현을 진행하면서 TCP 연결 수락, 수신/송신, 시간 초과와 취소, 버퍼 소유권, 세션 수명주기, 스레드 간 작업 전달과 같은 요소들이 특정 게임 로직에만 종속되는 기능이 아니라는 점을 알게 되었습니다.\n이들은 여러 서버 애플리케이션에서 공통적으로 필요한 실행 기반에 가깝다고 판단했고, 해당 기능들을 게임 서버 코드에 직접 묶어두지 않고 여러 프로토콜과 서비스가 공유할 수 있는 Core 런타임으로 분리했습니다.\nCore의 역할은 바이트 스트림을 수신하고 송신하며, 비동기 I/O 완료 통지를 처리하는 것입니다. 다만 수신된 바이트가 HTTP 요청인지, 프록시 스트림인지, 게임 패킷인지는 Core가 해석하지 않고, HTTP, Proxy, Game은 Core 위에 올라가는 선택 모듈로 분리되며 각 모듈은 자신에게 필요한 파서, 라우팅, 패킷 프레이밍, Room 실행 모델과 같은 기능만 추가합니다.\n구현된 런타임은 io_uring 기반 TCP 비동기 I/O 처리와 그 수명주기를 관리합니다. 각 소켓은 Session 단위로 감싸지며, 연결 수락, 수신/송신, 버퍼 관리, 시간 초과, 취소, 동시성 제어, 세션 수명주기 처리는 Core에서 담당합니다.\n프로토콜 해석과 애플리케이션 정책은 상위 모듈로 분리됩니다. 예를 들어 Web 요청은 Core의 Session을 통해 수신된 뒤 HttpSession::OnRecv()로 전달되고, HTTP 파싱, 라우팅, 핸들러 실행은 Web 모듈에서 처리됩니다. 응답 데이터는 다시 Core의 Session::Send()를 통해 송신 경로로 내려갑니다.\nHttpSession과 PacketSession은 모두 Core의 Session을 기반으로 동작하지만, 수신된 TCP 바이트 스트림을 메시지 단위로 해석하는 방식이 다릅니다. PacketSession은 [size][id][payload] 형식의 고정 헤더를 기준으로 패킷 경계를 판단하고, HttpSession은 HTTP 파서 상태를 유지하며 헤더 종료, Content-Length, chunked 본문, 파이프라이닝 여부를 해석합니다.\nCore는 연결 수명주기와 비동기 I/O 처리, 버퍼 및 완료 이벤트 관리를 공통으로 담당하고, 스트림을 어떤 메시지 모델로 변환할지는 각 프로토콜 세션이 담당합니다. 이를 통해 게임 서버뿐 아니라 HTTP 서버, 프록시 서버, 패킷 기반 서비스 등 다양한 서버 모듈이 동일한 Core 런타임 위에서 동작할 수 있도록 설계했습니다.\n\n\n\nfig servercore eventloop group\n\n\n\n\n0.2 주요 클래스\n\n\n\nCore\n설명\n\n\n\n\nListener\n소켓 bind/listen, 다중 완료 연결 수락, 연결 분산\n\n\nSession\nfd 상태, 수신/송신 흐름, 닫힘 상태 전환\n\n\nIoRing\nSQE 제출, CQE 비우기, user_data 기반 이벤트 복원\n\n\nRingBuffer\n제공 버퍼 관리, 뷰 생성, 반환 정책\n\n\nSendQueue\n대기 중인 송신 관리, 부분 송신 재시도, watermark\n\n\nTimeout / Cancel\n비활성 시간, deadline, 취소 요청\n\n\nOwner Ring\n세션 I/O 상태 직렬화\n\n\n\n\n\n0.3 실행 루프\n실행 흐름의 중심은 IoRing입니다. IoRing은 사용자 객체를 IoEvent로 감싼 뒤 SQE에 연결해 커널에 제출하고, CQE가 도착하면 user_data에서 다시 IoEvent를 복원합니다. 복원된 이벤트는 해당 Session 또는 Listener로 dispatch됩니다.\n이때 IoRing은 완료 통지를 사용자 객체로 되돌리는 실행 장치이고, Session은 그 완료가 연결 상태, 수신/송신 큐, 버퍼 반환, 종료 절차에 어떤 의미를 갖는지 판단하는 소유 객체입니다.\n실행 루프는 다음 다섯 구간으로 나눌 수 있습니다.\n\n\n\n\n\n\n\n\n구간\n책임\n의미\n\n\n\n\nsubmit\nIoEvent를 SQE에 연결하고 커널에 제출\n사용자 객체와 커널 작업을 묶는 지점\n\n\nkernel\nio_uring이 비동기 작업을 수행하고 CQE 생성\n사용자 코드 밖에서 I/O가 진행되는 구간\n\n\ncqe restore\nIoRing이 CQE를 꺼내 user_data에서 이벤트 복원\n커널 완료가 런타임 객체로 돌아오는 경계\n\n\ndispatch\n복원된 이벤트를 Session 또는 Listener 콜백으로 전달\n완료 통지를 소유 객체에 넘기는 경계\n\n\ndisposition\n콜백 결과로 이벤트 처분 결정\n완료, 유지, 재제출 중 무엇을 할지 판단\n\n\n\n세션 콜백은 이번 CQE로 이벤트가 끝났는지, 같은 multishot 제출이 계속 살아 있는지, 또는 같은 이벤트 객체로 새 SQE를 재제출했는지를 반환합니다. 이 결과에 따라 IoRing은 이벤트를 정리하거나 유지하거나 다시 제출 상태로 둡니다.\n\n전체 흐름은 다음과 같습니다.\n상위 모듈\n  -&gt; Session::Send() / OnRecv()\n  -&gt; Core Session 상태 변경\n  -&gt; IoEvent 생성\n  -&gt; IoRing submit\n  -&gt; kernel io_uring 처리\n  -&gt; CQE 도착\n  -&gt; IoRing user_data 복원\n  -&gt; Session / Listener dispatch\n  -&gt; DispatchResult에 따라 완료, 유지, 재제출\n\n\n\nfig servercore execution timeline\n\n\n이 구조 덕분에 Core는 프로토콜을 해석하지 않으면서도, 비동기 I/O 완료, 버퍼 수명, 세션 종료, 재제출 여부를 일관된 실행 모델 안에서 처리할 수 있습니다.",
-    "crumbs": [
-      "문서",
-      "Chapters",
-      "1. 전체 구조"
-    ]
+    "text": "Obsidian Vault의 Markdown 원본을 GitHub Actions에서 Quarto 문서로 렌더링한 각 장입니다.\n\n\n    \n      \n      \n    \n\n\n\n\n\n\n문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. 전체 구조\n\n\n1. io_uring 기반으로 구현한 Core 런타임의 전체 구조와 실행 모델을 설명\n\n\n\n\n\n\n2. 제출된 I/O와 콜백 대상 생존\n\n\n2. SessionManager, IoEvent, pending_io_, SessionState가 각각 어느 생존 범위를 판단하는지 분리\n\n\n\n\n\n\n3. 수신 버퍼\n\n\n3. 수신 fast/slow path와 송신 순서 보장, 부분 송신 복구를 설명\n\n\n\n\n\n\n4. Room과 Session 직렬화\n\n\n4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명\n\n\n\n\n\n\n5. SendQueue를 메모리 압력 측정 단위로\n\n\n5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결\n\n\n\n\n\n\n6. 선택 모듈로 확장한 결과\n\n\n6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리\n\n\n\n\n\n\n일치 없음\n\n\n\n\n\n항목\n링크\n\n\n\n\n구현 저장소\niouring-runtime\n\n\n문서 URL\ndocs.mintcocoa.dev/portfolio/servercore/\n\n\nPDF\nServerCore-Portfolio-jinhoo.pdf"
+  },
+  {
+    "objectID": "index.html#문서-구성",
+    "href": "index.html#문서-구성",
+    "title": "서버 런타임 구현 포트폴리오",
+    "section": "",
+    "text": "Obsidian Vault의 Markdown 원본을 GitHub Actions에서 Quarto 문서로 렌더링한 각 장입니다.\n\n\n    \n      \n      \n    \n\n\n\n\n\n\n문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. 전체 구조\n\n\n1. io_uring 기반으로 구현한 Core 런타임의 전체 구조와 실행 모델을 설명\n\n\n\n\n\n\n2. 제출된 I/O와 콜백 대상 생존\n\n\n2. SessionManager, IoEvent, pending_io_, SessionState가 각각 어느 생존 범위를 판단하는지 분리\n\n\n\n\n\n\n3. 수신 버퍼\n\n\n3. 수신 fast/slow path와 송신 순서 보장, 부분 송신 복구를 설명\n\n\n\n\n\n\n4. Room과 Session 직렬화\n\n\n4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명\n\n\n\n\n\n\n5. SendQueue를 메모리 압력 측정 단위로\n\n\n5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결\n\n\n\n\n\n\n6. 선택 모듈로 확장한 결과\n\n\n6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리\n\n\n\n\n\n\n일치 없음\n\n\n\n\n\n항목\n링크\n\n\n\n\n구현 저장소\niouring-runtime\n\n\n문서 URL\ndocs.mintcocoa.dev/portfolio/servercore/\n\n\nPDF\nServerCore-Portfolio-jinhoo.pdf"
   },
   {
     "objectID": "chapters/03-buffer-management.html",
@@ -45,6 +47,42 @@
       "문서",
       "Chapters",
       "3. 수신 버퍼"
+    ]
+  },
+  {
+    "objectID": "chapters/02-lifecycle-management.html",
+    "href": "chapters/02-lifecycle-management.html",
+    "title": "2. 제출된 I/O와 콜백 대상 생존",
+    "section": "",
+    "text": "클라이언트와 서버 간의 연결을 Session으로 관리하려고 하니 세션의 생존과 해제 조건이 명확하지 않다는 문제가 생겼습니다. 세션이 살아 있다는 말이 “세션이 연결 목록에 남아 있다”는 뜻인지, “이미 제출된 I/O의 CQE가 아직 돌아올 수 있다”는 뜻인지, “CQE 콜백을 실행하는 동안 콜백 대상이 파괴되지 않아야 한다”는 뜻인지가 서로 다르기 때문입니다. 그래서 세션 수명 관리 장치를 하나의 소유권 이야기로 합치는 것이 아니라, 각 장치가 보장하는 방식으로 수명 관리를 설계했습니다. *** ## 제출된 I/O와 콜백 대상 생존\nSessionManager는 외부에서 세션을 “현재 연결된 세션”으로 취급하는 동안의 소유자입니다. 하지만 이것만으로는 이미 io_uring에 제출된 I/O의 CQE 콜백 대상 생존을 보장할 수 없습니다.\nio_uring의 SQE user_data에는 제출된 I/O 하나를 대표하는 IoEvent*가 들어갑니다. CQE가 도착하면 IoRing은 그 포인터를 복원하고, 이벤트 객체의 Complete()를 호출합니다.\nIoRing은 이 이벤트가 Session 작업인지, Listener 작업인지 알 필요가 없습니다. IoEvent::Complete() 안에서 operation 타입별 Dispatch()가 실행되고, RecvOp, SendOp, DisconnectOp, AcceptOp 같은 제출 이벤트가 자기 owner의 handler로 완료를 넘깁니다.\n따라서 콜백 대상 생존은 SessionManager가 아니라 제출된 operation 객체가 보장합니다. SessionManager는 “현재 연결 목록”을 관리하고, 제출 이벤트는 “이미 커널에 제출된 I/O가 완료될 때까지 콜백 대상을 살려두는 책임”을 가집니다.",
+    "crumbs": [
+      "문서",
+      "Chapters",
+      "2. 제출된 I/O와 콜백 대상 생존"
+    ]
+  },
+  {
+    "objectID": "chapters/02-lifecycle-management.html#dispatchresult와-pending_io_",
+    "href": "chapters/02-lifecycle-management.html#dispatchresult와-pending_io_",
+    "title": "2. 제출된 I/O와 콜백 대상 생존",
+    "section": "1 DispatchResult와 pending_io_",
+    "text": "1 DispatchResult와 pending_io_\nCQE를 처리한 뒤에는 두 가지를 따로 판단해야 합니다.\n\n이번 CQE를 받은 IoEvent 객체를 끝내도 되는지\n세션 전체에서 아직 돌아오지 않은 제출 I/O가 남아 있는지\n\n\n\n\nioevent lifetime\n\n\nmultishot 수신에서는 하나의 SQE가 여러 CQE를 만들 수 있습니다. 중간 CQE는 데이터를 하나 전달하지만, 같은 수신 제출은 계속 살아 있을 수 있습니다. 따라서 CQE 하나를 받았다고 해서 항상 제출 I/O 하나가 끝났다고 볼 수 없습니다.\n이를 분리하기 위해 이벤트 콜백은 DispatchResult를 반환하고, 세션은 제출 I/O 단위로 pending_io_를 관리합니다.\n\n\n\n\n\n\n\n\n\n경로\nCQE 의미\nDispatchResult\npending_io_ 처리\n\n\n\n\n단일 송신 완료\n제출한 send 하나가 끝남\nkComplete\n감소\n\n\n짧은 쓰기\n같은 SendOp를 남은 바이트로 재제출\nkPending\n재제출 성공 시 유지\n\n\nmultishot 수신 중간 CQE\n같은 수신 제출이 계속 살아 있음\nkPending\n유지\n\n\nmultishot 수신 최종 CQE\nmultishot 제출이 종료됨\nkComplete\n감소\n\n\ncancel/shutdown 완료\n종료용 제출이 완료됨\nkComplete\n감소\n\n\n\nkPending은 이벤트 객체가 아직 끝나지 않았다는 뜻입니다. multishot receive에서 IORING_CQE_F_MORE가 붙은 CQE가 대표적입니다. 같은 수신 SQE에서 CQE가 더 올 수 있으므로 이벤트 객체를 유지하고, pending_io_도 감소시키지 않습니다.\n부분 send도 같은 이유로 kPending이 될 수 있습니다. CQE를 받은 뒤 같은 SendOp를 남은 바이트 범위의 새 send SQE에 다시 연결해야 하므로 이벤트 객체를 삭제하지 않습니다. 재제출이 성공하면 기존 제출 흐름을 유지하고, 재제출이 실패한 경우에만 CompletePendingIo()로 기존 제출분을 정리합니다.\nkComplete는 이번 CQE 처리 뒤 이벤트 객체를 완료 처리할 수 있다는 뜻입니다. 단일 send 완료, cancel 완료, shutdown 완료, 또는 IORING_CQE_F_MORE가 없는 multishot 최종 CQE가 여기에 해당합니다.",
+    "crumbs": [
+      "문서",
+      "Chapters",
+      "2. 제출된 I/O와 콜백 대상 생존"
+    ]
+  },
+  {
+    "objectID": "chapters/02-lifecycle-management.html#종료-상태와-해제-조건",
+    "href": "chapters/02-lifecycle-management.html#종료-상태와-해제-조건",
+    "title": "2. 제출된 I/O와 콜백 대상 생존",
+    "section": "2 종료 상태와 해제 조건",
+    "text": "2 종료 상태와 해제 조건\npending_io_는 이미 제출된 I/O가 남았는지만 셉니다. 하지만 종료가 시작된 세션이 새 수신, 송신, 등록 작업을 받아도 되는지는 별도의 상태 판단입니다.\n\n\n\nSessionState\n의미\n\n\n\n\nkOpen\n정상 송수신 가능\n\n\nkClosing\n종료 시작, 새 일반 작업 차단\n\n\nkDraining\n종료 관련 제출 이후 남은 CQE를 비우는 중\n\n\nkClosed\n연결 종료 통지와 manager 해제 완료\n\n\n\n종료 흐름은 “새 작업 차단 → 종료 관련 작업 제출 → 남은 CQE 비우기 → 한 번만 해제” 순서로 진행됩니다.\n\n\n\nsession close flow timeline\n\n\n\nDisconnect()가 호출되면 SessionState를 kClosing으로 전환합니다.\nkOpen이 아니면 새 수신, 새 송신, 새 등록 작업을 차단합니다.\n이미 큐에 들어간 송신 데이터는 정책에 따라 폐기하거나, 종료 전에 drain할지 결정합니다.\n취소, shutdown, close 관련 정리처럼 커널 제출이 필요한 종료 작업을 등록합니다.\n제출에 성공한 종료 작업은 pending_io_에 반영합니다.\nCQE가 도착할 때마다 이벤트 dispatch가 DispatchResult를 반환합니다.\n최종 완료 CQE는 pending_io_를 감소시킵니다.\nClosingStarted() && pending_io_ == 0 && !disconnected_notified_ 조건을 통과하면 TryRelease()가 OnDisconnected()와 manager 해제를 한 번만 실행합니다.\n해제가 끝나면 상태를 kClosed로 전환합니다.\n\nSessionState가 없으면 이미 종료가 시작된 세션에 새 작업이 다시 들어갈 수 있습니다. 예를 들어 수신 CQE에서 res == 0을 보고 peer close를 감지해 종료를 시작했는데, 다른 경로의 Send()나 RegisterRecv()가 아직 세션을 정상 상태로 보고 새 SQE를 제출할 수 있습니다.\n이 경우 닫히는 세션에 multishot recv가 다시 걸리거나, 이미 닫히는 소켓에 새 송신이 들어가거나, drain 중이던 pending_io_가 다시 증가할 수 있습니다. 더 나쁘게는 서로 다른 CQE 경로가 동시에 종료 조건을 만족해 OnDisconnected()가 중복 호출될 수도 있습니다.\n따라서 pending_io_는 “이미 제출한 I/O가 모두 끝났는가?”를 판단하고, SessionState는 “지금 새 I/O를 받아도 되는가?”를 판단합니다. 둘 중 하나만으로는 안전한 종료 조건을 만들 수 없습니다.\n세션 해제는 다음 조건이 모두 만족될 때만 가능합니다.\n1. 세션이 종료를 시작한 상태.\n2. 새 일반 작업이 차단되어 있음.\n3. 이미 제출된 I/O의 최종 CQE가 모두 돌아왔음.\n4. 종료 통지가 아직 실행되지 않았음.\n이를 코드 관점으로 표현하면 다음과 같습니다.\nbool Session::CanRelease() const {\n    return ClosingStarted()\n        && pending_io_ == 0\n        && !disconnected_notified_;\n}\nTryRelease()는 이 조건을 통과한 경우에만 OnDisconnected()와 SessionManager 해제를 수행합니다. 또한 disconnected_notified_를 통해 동일 세션의 종료 통지가 한 번만 실행되도록 막습니다.\nvoid Session::TryRelease() {\n    if (!CanRelease()) {\n        return;\n    }\n\n    disconnected_notified_ = true;\n    state_ = SessionState::kClosed;\n\n    OnDisconnected();\n    manager_-&gt;Remove(session_id_);\n\n    // 세션 소유자 실행 문맥에서 호출되어야 순서가 보장됨\n}\n수명 관리는 하나의 세션 소유자를 관리하는것이 아니라, 각 장치가 보장하는 방식으로 설계되었습니다. SessionManager는 외부에 노출되는 연결 목록을 관리하고, OwnerBoundEvent는 CQE 콜백 대상의 생존을 보장하며, DispatchResult는 이벤트를 완료할지 유지할지 재사용할지 결정합니다. 여기에 pending_io_가 최종 CQE 대기 수를 추적하고, SessionState가 새 작업 허용 여부와 종료 단계를 막아 줍니다.\n결국 세션은 새 작업이 차단되고, 제출된 I/O의 최종 CQE가 모두 돌아오고, 종료 통지가 아직 실행되지 않았을 때만 해제될 수 있습니다. 이 경계가 닫혀야 이후 장에서 다루는 버퍼와 송신 큐도 반환된 세션이나 버퍼를 다시 참조하지 않습니다.",
+    "crumbs": [
+      "문서",
+      "Chapters",
+      "2. 제출된 I/O와 콜백 대상 생존"
     ]
   },
   {
@@ -94,20 +132,6 @@
       "Chapters",
       "6. 선택 모듈로 확장한 결과"
     ]
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "서버 런타임 구현 포트폴리오",
-    "section": "",
-    "text": "Obsidian Vault의 Markdown 원본을 GitHub Actions에서 Quarto 문서로 렌더링한 각 장입니다.\n\n\n    \n      \n      \n    \n\n\n\n\n\n\n문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. 전체 구조\n\n\n1. io_uring 기반으로 구현한 Core 런타임의 전체 구조와 실행 모델을 설명\n\n\n\n\n\n\n2. 제출된 I/O와 콜백 대상 생존\n\n\n2. SessionManager, IoEvent, pending_io_, SessionState가 각각 어느 생존 범위를 판단하는지 분리\n\n\n\n\n\n\n3. 수신 버퍼\n\n\n3. 수신 fast/slow path와 송신 순서 보장, 부분 송신 복구를 설명\n\n\n\n\n\n\n4. Room과 Session 직렬화\n\n\n4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명\n\n\n\n\n\n\n5. SendQueue를 메모리 압력 측정 단위로\n\n\n5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결\n\n\n\n\n\n\n6. 선택 모듈로 확장한 결과\n\n\n6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리\n\n\n\n\n\n\n일치 없음\n\n\n\n\n\n항목\n링크\n\n\n\n\n구현 저장소\niouring-runtime\n\n\n문서 URL\ndocs.mintcocoa.dev/portfolio/servercore/\n\n\nPDF\nServerCore-Portfolio-jinhoo.pdf"
-  },
-  {
-    "objectID": "index.html#문서-구성",
-    "href": "index.html#문서-구성",
-    "title": "서버 런타임 구현 포트폴리오",
-    "section": "",
-    "text": "Obsidian Vault의 Markdown 원본을 GitHub Actions에서 Quarto 문서로 렌더링한 각 장입니다.\n\n\n    \n      \n      \n    \n\n\n\n\n\n\n문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. 전체 구조\n\n\n1. io_uring 기반으로 구현한 Core 런타임의 전체 구조와 실행 모델을 설명\n\n\n\n\n\n\n2. 제출된 I/O와 콜백 대상 생존\n\n\n2. SessionManager, IoEvent, pending_io_, SessionState가 각각 어느 생존 범위를 판단하는지 분리\n\n\n\n\n\n\n3. 수신 버퍼\n\n\n3. 수신 fast/slow path와 송신 순서 보장, 부분 송신 복구를 설명\n\n\n\n\n\n\n4. Room과 Session 직렬화\n\n\n4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명\n\n\n\n\n\n\n5. SendQueue를 메모리 압력 측정 단위로\n\n\n5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결\n\n\n\n\n\n\n6. 선택 모듈로 확장한 결과\n\n\n6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리\n\n\n\n\n\n\n일치 없음\n\n\n\n\n\n항목\n링크\n\n\n\n\n구현 저장소\niouring-runtime\n\n\n문서 URL\ndocs.mintcocoa.dev/portfolio/servercore/\n\n\nPDF\nServerCore-Portfolio-jinhoo.pdf"
   },
   {
     "objectID": "chapters/04-concurrency-management.html",
@@ -194,39 +218,15 @@
     ]
   },
   {
-    "objectID": "chapters/02-lifecycle-management.html",
-    "href": "chapters/02-lifecycle-management.html",
-    "title": "2. 제출된 I/O와 콜백 대상 생존",
+    "objectID": "chapters/01-overview.html",
+    "href": "chapters/01-overview.html",
+    "title": "1. 전체 구조",
     "section": "",
-    "text": "클라이언트와 서버 간의 연결을 Session으로 관리하려고 하니 세션의 생존과 해제 조건이 명확하지 않다는 문제가 생겼습니다. 세션이 살아 있다는 말이 “세션이 연결 목록에 남아 있다”는 뜻인지, “이미 제출된 I/O의 CQE가 아직 돌아올 수 있다”는 뜻인지, “CQE 콜백을 실행하는 동안 콜백 대상이 파괴되지 않아야 한다”는 뜻인지가 서로 다르기 때문입니다. 그래서 세션 수명 관리 장치를 하나의 소유권 이야기로 합치는 것이 아니라, 각 장치가 보장하는 방식으로 수명 관리를 설계했습니다. *** ## 제출된 I/O와 콜백 대상 생존\nSessionManager는 외부에서 세션을 “현재 연결된 세션”으로 취급하는 동안의 소유자입니다. 하지만 이것만으로는 이미 io_uring에 제출된 I/O의 CQE 콜백 대상 생존을 보장할 수 없습니다.\nio_uring의 SQE user_data에는 제출된 I/O 하나를 대표하는 IoEvent*가 들어갑니다. CQE가 도착하면 IoRing은 그 포인터를 복원하고, 이벤트 객체의 Complete()를 호출합니다.\nIoRing은 이 이벤트가 Session 작업인지, Listener 작업인지 알 필요가 없습니다. IoEvent::Complete() 안에서 operation 타입별 Dispatch()가 실행되고, RecvOp, SendOp, DisconnectOp, AcceptOp 같은 제출 이벤트가 자기 owner의 handler로 완료를 넘깁니다.\n따라서 콜백 대상 생존은 SessionManager가 아니라 제출된 operation 객체가 보장합니다. SessionManager는 “현재 연결 목록”을 관리하고, 제출 이벤트는 “이미 커널에 제출된 I/O가 완료될 때까지 콜백 대상을 살려두는 책임”을 가집니다.",
+    "text": "0.1 전체 구조\nServerCore는 Linux io_uring을 기반으로 구현한 비동기 서버 런타임입니다.\n처음에는 게임 서버를 만들기 위한 기반 코드로 시작했지만, 구현을 진행하면서 TCP 연결 수락, 수신/송신, 시간 초과와 취소, 버퍼 소유권, 세션 수명주기, 스레드 간 작업 전달과 같은 요소들이 특정 게임 로직에만 종속되는 기능이 아니라는 점을 알게 되었습니다.\n이들은 여러 서버 애플리케이션에서 공통적으로 필요한 실행 기반에 가깝다고 판단했고, 해당 기능들을 게임 서버 코드에 직접 묶어두지 않고 여러 프로토콜과 서비스가 공유할 수 있는 Core 런타임으로 분리했습니다.\nCore의 역할은 바이트 스트림을 수신하고 송신하며, 비동기 I/O 완료 통지를 처리하는 것입니다. 다만 수신된 바이트가 HTTP 요청인지, 프록시 스트림인지, 게임 패킷인지는 Core가 해석하지 않고, HTTP, Proxy, Game은 Core 위에 올라가는 선택 모듈로 분리되며 각 모듈은 자신에게 필요한 파서, 라우팅, 패킷 프레이밍, Room 실행 모델과 같은 기능만 추가합니다.\n구현된 런타임은 io_uring 기반 TCP 비동기 I/O 처리와 그 수명주기를 관리합니다. 각 소켓은 Session 단위로 감싸지며, 연결 수락, 수신/송신, 버퍼 관리, 시간 초과, 취소, 동시성 제어, 세션 수명주기 처리는 Core에서 담당합니다.\n프로토콜 해석과 애플리케이션 정책은 상위 모듈로 분리됩니다. 예를 들어 Web 요청은 Core의 Session을 통해 수신된 뒤 HttpSession::OnRecv()로 전달되고, HTTP 파싱, 라우팅, 핸들러 실행은 Web 모듈에서 처리됩니다. 응답 데이터는 다시 Core의 Session::Send()를 통해 송신 경로로 내려갑니다.\nHttpSession과 PacketSession은 모두 Core의 Session을 기반으로 동작하지만, 수신된 TCP 바이트 스트림을 메시지 단위로 해석하는 방식이 다릅니다. PacketSession은 [size][id][payload] 형식의 고정 헤더를 기준으로 패킷 경계를 판단하고, HttpSession은 HTTP 파서 상태를 유지하며 헤더 종료, Content-Length, chunked 본문, 파이프라이닝 여부를 해석합니다.\nCore는 연결 수명주기와 비동기 I/O 처리, 버퍼 및 완료 이벤트 관리를 공통으로 담당하고, 스트림을 어떤 메시지 모델로 변환할지는 각 프로토콜 세션이 담당합니다. 이를 통해 게임 서버뿐 아니라 HTTP 서버, 프록시 서버, 패킷 기반 서비스 등 다양한 서버 모듈이 동일한 Core 런타임 위에서 동작할 수 있도록 설계했습니다.\n\n\n\nfig servercore eventloop group\n\n\n\n\n0.2 주요 클래스\n\n\n\nCore\n설명\n\n\n\n\nListener\n소켓 bind/listen, 다중 완료 연결 수락, 연결 분산\n\n\nSession\nfd 상태, 수신/송신 흐름, 닫힘 상태 전환\n\n\nIoRing\nSQE 제출, CQE 비우기, user_data 기반 이벤트 복원\n\n\nRingBuffer\n제공 버퍼 관리, 뷰 생성, 반환 정책\n\n\nSendQueue\n대기 중인 송신 관리, 부분 송신 재시도, watermark\n\n\nTimeout / Cancel\n비활성 시간, deadline, 취소 요청\n\n\nOwner Ring\n세션 I/O 상태 직렬화\n\n\n\n\n\n0.3 실행 루프\n실행 흐름의 중심은 IoRing입니다. IoRing은 사용자 객체를 IoEvent로 감싼 뒤 SQE에 연결해 커널에 제출하고, CQE가 도착하면 user_data에서 다시 IoEvent를 복원합니다. 복원된 이벤트는 해당 Session 또는 Listener로 dispatch됩니다.\n이때 IoRing은 완료 통지를 사용자 객체로 되돌리는 실행 장치이고, Session은 그 완료가 연결 상태, 수신/송신 큐, 버퍼 반환, 종료 절차에 어떤 의미를 갖는지 판단하는 소유 객체입니다.\n실행 루프는 다음 다섯 구간으로 나눌 수 있습니다.\n\n\n\n\n\n\n\n\n구간\n책임\n의미\n\n\n\n\nsubmit\nIoEvent를 SQE에 연결하고 커널에 제출\n사용자 객체와 커널 작업을 묶는 지점\n\n\nkernel\nio_uring이 비동기 작업을 수행하고 CQE 생성\n사용자 코드 밖에서 I/O가 진행되는 구간\n\n\ncqe restore\nIoRing이 CQE를 꺼내 user_data에서 이벤트 복원\n커널 완료가 런타임 객체로 돌아오는 경계\n\n\ndispatch\n복원된 이벤트를 Session 또는 Listener 콜백으로 전달\n완료 통지를 소유 객체에 넘기는 경계\n\n\ndisposition\n콜백 결과로 이벤트 처분 결정\n완료, 유지, 재제출 중 무엇을 할지 판단\n\n\n\n세션 콜백은 이번 CQE로 이벤트가 끝났는지, 같은 multishot 제출이 계속 살아 있는지, 또는 같은 이벤트 객체로 새 SQE를 재제출했는지를 반환합니다. 이 결과에 따라 IoRing은 이벤트를 정리하거나 유지하거나 다시 제출 상태로 둡니다.\n\n전체 흐름은 다음과 같습니다.\n상위 모듈\n  -&gt; Session::Send() / OnRecv()\n  -&gt; Core Session 상태 변경\n  -&gt; IoEvent 생성\n  -&gt; IoRing submit\n  -&gt; kernel io_uring 처리\n  -&gt; CQE 도착\n  -&gt; IoRing user_data 복원\n  -&gt; Session / Listener dispatch\n  -&gt; DispatchResult에 따라 완료, 유지, 재제출\n\n\n\nfig servercore execution timeline\n\n\n이 구조 덕분에 Core는 프로토콜을 해석하지 않으면서도, 비동기 I/O 완료, 버퍼 수명, 세션 종료, 재제출 여부를 일관된 실행 모델 안에서 처리할 수 있습니다.",
     "crumbs": [
       "문서",
       "Chapters",
-      "2. 제출된 I/O와 콜백 대상 생존"
-    ]
-  },
-  {
-    "objectID": "chapters/02-lifecycle-management.html#dispatchresult와-pending_io_",
-    "href": "chapters/02-lifecycle-management.html#dispatchresult와-pending_io_",
-    "title": "2. 제출된 I/O와 콜백 대상 생존",
-    "section": "1 DispatchResult와 pending_io_",
-    "text": "1 DispatchResult와 pending_io_\nCQE를 처리한 뒤에는 두 가지를 따로 판단해야 합니다.\n\n이번 CQE를 받은 IoEvent 객체를 끝내도 되는지\n세션 전체에서 아직 돌아오지 않은 제출 I/O가 남아 있는지\n\n\n\n\nioevent lifetime\n\n\nmultishot 수신에서는 하나의 SQE가 여러 CQE를 만들 수 있습니다. 중간 CQE는 데이터를 하나 전달하지만, 같은 수신 제출은 계속 살아 있을 수 있습니다. 따라서 CQE 하나를 받았다고 해서 항상 제출 I/O 하나가 끝났다고 볼 수 없습니다.\n이를 분리하기 위해 이벤트 콜백은 DispatchResult를 반환하고, 세션은 제출 I/O 단위로 pending_io_를 관리합니다.\n\n\n\n\n\n\n\n\n\n경로\nCQE 의미\nDispatchResult\npending_io_ 처리\n\n\n\n\n단일 송신 완료\n제출한 send 하나가 끝남\nkComplete\n감소\n\n\n짧은 쓰기\n같은 SendOp를 남은 바이트로 재제출\nkPending\n재제출 성공 시 유지\n\n\nmultishot 수신 중간 CQE\n같은 수신 제출이 계속 살아 있음\nkPending\n유지\n\n\nmultishot 수신 최종 CQE\nmultishot 제출이 종료됨\nkComplete\n감소\n\n\ncancel/shutdown 완료\n종료용 제출이 완료됨\nkComplete\n감소\n\n\n\nkPending은 이벤트 객체가 아직 끝나지 않았다는 뜻입니다. multishot receive에서 IORING_CQE_F_MORE가 붙은 CQE가 대표적입니다. 같은 수신 SQE에서 CQE가 더 올 수 있으므로 이벤트 객체를 유지하고, pending_io_도 감소시키지 않습니다.\n부분 send도 같은 이유로 kPending이 될 수 있습니다. CQE를 받은 뒤 같은 SendOp를 남은 바이트 범위의 새 send SQE에 다시 연결해야 하므로 이벤트 객체를 삭제하지 않습니다. 재제출이 성공하면 기존 제출 흐름을 유지하고, 재제출이 실패한 경우에만 CompletePendingIo()로 기존 제출분을 정리합니다.\nkComplete는 이번 CQE 처리 뒤 이벤트 객체를 완료 처리할 수 있다는 뜻입니다. 단일 send 완료, cancel 완료, shutdown 완료, 또는 IORING_CQE_F_MORE가 없는 multishot 최종 CQE가 여기에 해당합니다.",
-    "crumbs": [
-      "문서",
-      "Chapters",
-      "2. 제출된 I/O와 콜백 대상 생존"
-    ]
-  },
-  {
-    "objectID": "chapters/02-lifecycle-management.html#종료-상태와-해제-조건",
-    "href": "chapters/02-lifecycle-management.html#종료-상태와-해제-조건",
-    "title": "2. 제출된 I/O와 콜백 대상 생존",
-    "section": "2 종료 상태와 해제 조건",
-    "text": "2 종료 상태와 해제 조건\npending_io_는 이미 제출된 I/O가 남았는지만 셉니다. 하지만 종료가 시작된 세션이 새 수신, 송신, 등록 작업을 받아도 되는지는 별도의 상태 판단입니다.\n\n\n\nSessionState\n의미\n\n\n\n\nkOpen\n정상 송수신 가능\n\n\nkClosing\n종료 시작, 새 일반 작업 차단\n\n\nkDraining\n종료 관련 제출 이후 남은 CQE를 비우는 중\n\n\nkClosed\n연결 종료 통지와 manager 해제 완료\n\n\n\n종료 흐름은 “새 작업 차단 → 종료 관련 작업 제출 → 남은 CQE 비우기 → 한 번만 해제” 순서로 진행됩니다.\n\n\n\nsession close flow timeline\n\n\n\nDisconnect()가 호출되면 SessionState를 kClosing으로 전환합니다.\nkOpen이 아니면 새 수신, 새 송신, 새 등록 작업을 차단합니다.\n이미 큐에 들어간 송신 데이터는 정책에 따라 폐기하거나, 종료 전에 drain할지 결정합니다.\n취소, shutdown, close 관련 정리처럼 커널 제출이 필요한 종료 작업을 등록합니다.\n제출에 성공한 종료 작업은 pending_io_에 반영합니다.\nCQE가 도착할 때마다 이벤트 dispatch가 DispatchResult를 반환합니다.\n최종 완료 CQE는 pending_io_를 감소시킵니다.\nClosingStarted() && pending_io_ == 0 && !disconnected_notified_ 조건을 통과하면 TryRelease()가 OnDisconnected()와 manager 해제를 한 번만 실행합니다.\n해제가 끝나면 상태를 kClosed로 전환합니다.\n\nSessionState가 없으면 이미 종료가 시작된 세션에 새 작업이 다시 들어갈 수 있습니다. 예를 들어 수신 CQE에서 res == 0을 보고 peer close를 감지해 종료를 시작했는데, 다른 경로의 Send()나 RegisterRecv()가 아직 세션을 정상 상태로 보고 새 SQE를 제출할 수 있습니다.\n이 경우 닫히는 세션에 multishot recv가 다시 걸리거나, 이미 닫히는 소켓에 새 송신이 들어가거나, drain 중이던 pending_io_가 다시 증가할 수 있습니다. 더 나쁘게는 서로 다른 CQE 경로가 동시에 종료 조건을 만족해 OnDisconnected()가 중복 호출될 수도 있습니다.\n따라서 pending_io_는 “이미 제출한 I/O가 모두 끝났는가?”를 판단하고, SessionState는 “지금 새 I/O를 받아도 되는가?”를 판단합니다. 둘 중 하나만으로는 안전한 종료 조건을 만들 수 없습니다.\n세션 해제는 다음 조건이 모두 만족될 때만 가능합니다.\n1. 세션이 종료를 시작한 상태.\n2. 새 일반 작업이 차단되어 있음.\n3. 이미 제출된 I/O의 최종 CQE가 모두 돌아왔음.\n4. 종료 통지가 아직 실행되지 않았음.\n이를 코드 관점으로 표현하면 다음과 같습니다.\nbool Session::CanRelease() const {\n    return ClosingStarted()\n        && pending_io_ == 0\n        && !disconnected_notified_;\n}\nTryRelease()는 이 조건을 통과한 경우에만 OnDisconnected()와 SessionManager 해제를 수행합니다. 또한 disconnected_notified_를 통해 동일 세션의 종료 통지가 한 번만 실행되도록 막습니다.\nvoid Session::TryRelease() {\n    if (!CanRelease()) {\n        return;\n    }\n\n    disconnected_notified_ = true;\n    state_ = SessionState::kClosed;\n\n    OnDisconnected();\n    manager_-&gt;Remove(session_id_);\n\n    // 세션 소유자 실행 문맥에서 호출되어야 순서가 보장됨\n}\n수명 관리는 하나의 세션 소유자를 관리하는것이 아니라, 각 장치가 보장하는 방식으로 설계되었습니다. SessionManager는 외부에 노출되는 연결 목록을 관리하고, OwnerBoundEvent는 CQE 콜백 대상의 생존을 보장하며, DispatchResult는 이벤트를 완료할지 유지할지 재사용할지 결정합니다. 여기에 pending_io_가 최종 CQE 대기 수를 추적하고, SessionState가 새 작업 허용 여부와 종료 단계를 막아 줍니다.\n결국 세션은 새 작업이 차단되고, 제출된 I/O의 최종 CQE가 모두 돌아오고, 종료 통지가 아직 실행되지 않았을 때만 해제될 수 있습니다. 이 경계가 닫혀야 이후 장에서 다루는 버퍼와 송신 큐도 반환된 세션이나 버퍼를 다시 참조하지 않습니다.",
-    "crumbs": [
-      "문서",
-      "Chapters",
-      "2. 제출된 I/O와 콜백 대상 생존"
+      "1. 전체 구조"
     ]
   }
 ]
