@@ -134,10 +134,6 @@ listing:
     description: "내용"
 ---
 
-## 문서 구성
-
-Obsidian Vault의 Markdown 원본을 GitHub Actions에서 Quarto 문서로 렌더링한 각 장입니다.
-
 ::: {#document-listing}
 :::
 

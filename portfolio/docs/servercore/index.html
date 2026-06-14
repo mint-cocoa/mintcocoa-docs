@@ -20,7 +20,7 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
   vertical-align: middle;
 }
 </style>
@@ -78,12 +78,12 @@ ul.task-list li input[type="checkbox"] {
     const listingTargetEl = window.document.querySelector('#listing-document-listing .list');
     if (!listingTargetEl) {
       // No listing discovered, do not attach.
-      return; 
+      return;
     }
 
     const options = {
       valueNames: ['listing-title','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
-      
+
       searchColumns: ["listing-title","listing-description"],
     };
 
@@ -153,9 +153,9 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link active" href="./index.html" aria-current="page">
 <span class="menu-text">문서</span></a>
-  </li>  
+  </li>
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -168,7 +168,7 @@ window.Quarto = {
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">서버 런타임 구현 포트폴리오</li></ol></nav>
-        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="사이드바 전환" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="사이드바 전환" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         </a>
     </div>
   </nav>
@@ -177,49 +177,49 @@ window.Quarto = {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    <div class="sidebar-menu-container"> 
+    <div class="sidebar-menu-container">
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
+      <div class="sidebar-item-container">
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
  <span class="menu-text">Chapters</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="토글 섹션">
             <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
+          </a>
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
           <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
+  <div class="sidebar-item-container">
   <a href="./chapters/01-overview.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">1. 전체 구조</span></a>
   </div>
 </li>
           <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
+  <div class="sidebar-item-container">
   <a href="./chapters/02-lifecycle-management.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">2. 제출된 I/O와 콜백 대상 생존</span></a>
   </div>
 </li>
           <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
+  <div class="sidebar-item-container">
   <a href="./chapters/03-buffer-management.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">3. 수신 버퍼</span></a>
   </div>
 </li>
           <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
+  <div class="sidebar-item-container">
   <a href="./chapters/04-concurrency-management.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">4. Room과 Session 직렬화</span></a>
   </div>
 </li>
           <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
+  <div class="sidebar-item-container">
   <a href="./chapters/05-producer-consumer-backpressure.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">5. SendQueue를 메모리 압력 측정 단위로</span></a>
   </div>
 </li>
           <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
+  <div class="sidebar-item-container">
   <a href="./chapters/06-summary.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">6. 선택 모듈로 확장한 결과</span></a>
   </div>
@@ -231,14 +231,8 @@ window.Quarto = {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">목차</h2>
-   
-  <ul>
-  <li><a href="#문서-구성" id="toc-문서-구성" class="nav-link active" data-scroll-target="#문서-구성"><span class="header-section-number">1</span> 문서 구성</a></li>
-  </ul>
-</nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -253,19 +247,16 @@ window.Quarto = {
 
 <div class="quarto-title-meta">
 
-    
-  
-    
+
+
+
   </div>
-  
+
 
 
 </header>
 
 
-<section id="문서-구성" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="문서-구성"><span class="header-section-number">1</span> 문서 구성</h2>
-<p>Obsidian Vault의 Markdown 원본을 GitHub Actions에서 Quarto 문서로 렌더링한 각 장입니다.</p>
 <div id="listing-document-listing" class="quarto-listing quarto-listing-container-table">
 <div class="listing-actions-group">
     <div class="input-group input-group-sm quarto-listing-filter">
@@ -289,7 +280,7 @@ window.Quarto = {
 </thead>
 <tbody class="list">
 
-<tr data-index="0" data-listing-file-modified-sort="1781436390840" data-listing-reading-time-sort="4" data-listing-word-count-sort="703" data-listing-title-sort="1. 전체 구조" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="0" data-listing-file-modified-sort="1781451072140" data-listing-reading-time-sort="4" data-listing-word-count-sort="703" data-listing-title-sort="1. 전체 구조" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/01-overview.html" class="title listing-title">1. 전체 구조</a>
@@ -300,7 +291,7 @@ window.Quarto = {
 
 </tr>
 
-<tr data-index="1" data-listing-file-modified-sort="1781436390840" data-listing-reading-time-sort="5" data-listing-word-count-sort="888" data-listing-title-sort="2. 제출된 I/O와 콜백 대상 생존" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="1" data-listing-file-modified-sort="1781451072140" data-listing-reading-time-sort="5" data-listing-word-count-sort="888" data-listing-title-sort="2. 제출된 I/O와 콜백 대상 생존" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/02-lifecycle-management.html" class="title listing-title">2. 제출된 I/O와 콜백 대상 생존</a>
@@ -311,7 +302,7 @@ window.Quarto = {
 
 </tr>
 
-<tr data-index="2" data-listing-file-modified-sort="1781436390840" data-listing-reading-time-sort="6" data-listing-word-count-sort="1198" data-listing-title-sort="3. 수신 버퍼" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="2" data-listing-file-modified-sort="1781451072140" data-listing-reading-time-sort="6" data-listing-word-count-sort="1198" data-listing-title-sort="3. 수신 버퍼" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/03-buffer-management.html" class="title listing-title">3. 수신 버퍼</a>
@@ -322,7 +313,7 @@ window.Quarto = {
 
 </tr>
 
-<tr data-index="3" data-listing-file-modified-sort="1781436390840" data-listing-reading-time-sort="6" data-listing-word-count-sort="1055" data-listing-title-sort="4. Room과 Session 직렬화" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="3" data-listing-file-modified-sort="1781451072140" data-listing-reading-time-sort="6" data-listing-word-count-sort="1055" data-listing-title-sort="4. Room과 Session 직렬화" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/04-concurrency-management.html" class="title listing-title">4. Room과 Session 직렬화</a>
@@ -333,7 +324,7 @@ window.Quarto = {
 
 </tr>
 
-<tr data-index="4" data-listing-file-modified-sort="1781436390840" data-listing-reading-time-sort="7" data-listing-word-count-sort="1248" data-listing-title-sort="5. SendQueue를 메모리 압력 측정 단위로" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="4" data-listing-file-modified-sort="1781451072140" data-listing-reading-time-sort="7" data-listing-word-count-sort="1248" data-listing-title-sort="5. SendQueue를 메모리 압력 측정 단위로" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/05-producer-consumer-backpressure.html" class="title listing-title">5. SendQueue를 메모리 압력 측정 단위로</a>
@@ -344,7 +335,7 @@ window.Quarto = {
 
 </tr>
 
-<tr data-index="5" data-listing-file-modified-sort="1781436390840" data-listing-reading-time-sort="4" data-listing-word-count-sort="703" data-listing-title-sort="6. 선택 모듈로 확장한 결과" onclick="href = this.querySelector('a').getAttribute('href');
+<tr data-index="5" data-listing-file-modified-sort="1781451072140" data-listing-reading-time-sort="4" data-listing-word-count-sort="703" data-listing-title-sort="6. 선택 모듈로 확장한 결과" onclick="href = this.querySelector('a').getAttribute('href');
  if (href) { window.location=href ; return false; }">
 <td>
 <a href="./chapters/06-summary.html" class="title listing-title">6. 선택 모듈로 확장한 결과</a>
@@ -386,7 +377,6 @@ window.Quarto = {
 
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -400,7 +390,7 @@ window.Quarto = {
     anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
-        if (clz.startsWith('code-annotation-')) {                     
+        if (clz.startsWith('code-annotation-')) {
           return true;
         }
       }
@@ -420,11 +410,11 @@ window.Quarto = {
         button.setAttribute("data-bs-toggle", "tooltip");
         button.setAttribute("data-bs-placement", "left");
         button.setAttribute("data-bs-title", "복사완료!");
-        tooltip = new bootstrap.Tooltip(button, 
-          { trigger: "manual", 
+        tooltip = new bootstrap.Tooltip(button,
+          { trigger: "manual",
             customClass: "code-copy-button-tooltip",
             offset: [0, -8]});
-        tooltip.show();    
+        tooltip.show();
       }
       setTimeout(function() {
         if (tooltip) {
@@ -506,7 +496,7 @@ window.Quarto = {
       if (onUntriggerFn) {
         config.onUntrigger = onUntriggerFn;
       }
-      window.tippy(el, config); 
+      window.tippy(el, config);
     }
     const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
     for (var i=0; i<noterefs.length; i++) {
@@ -581,7 +571,7 @@ window.Quarto = {
       tippyHover(xref, undefined, function(instance) {
         instance.disable();
         let url = xref.getAttribute('href');
-        let hash = undefined; 
+        let hash = undefined;
         if (url.startsWith('#')) {
           hash = url;
         } else {
@@ -609,7 +599,7 @@ window.Quarto = {
               if (note !== null) {
                 const html = processXRef(id, note);
                 instance.setContent(html);
-              } 
+              }
             }).finally(() => {
               instance.enable();
               instance.show();
@@ -633,7 +623,7 @@ window.Quarto = {
               }
               const html = processXRef(null, note);
               instance.setContent(html);
-            } 
+            }
           }).finally(() => {
             instance.enable();
             instance.show();
@@ -673,7 +663,7 @@ window.Quarto = {
               height = bottom - top;
             }
             if (top !== null && height !== null && parent !== null) {
-              // cook up a div (if necessary) and position it 
+              // cook up a div (if necessary) and position it
               let div = window.document.getElementById("code-annotation-line-highlight");
               if (div === null) {
                 div = window.document.createElement("div");
