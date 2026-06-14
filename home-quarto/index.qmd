@@ -30,28 +30,4 @@ GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영 관측성까지 �
 개발-운영 파이프라인을 정리합니다.
 :::
 :::
-
-::: {.section-heading}
-### 대표 장
-:::
-
-::: {.chapter-list}
-::: {.chapter-row}
-[io_uring 기반 C++ 서버 런타임 개발: Overview](/portfolio/servercore/chapters/01-overview.html)
-
-구조, 책임 경계, 구현 흐름을 가장 먼저 훑는 장입니다.
-:::
-
-::: {.chapter-row}
-[오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축: OKE Production GitOps](/portfolio/devops/chapters/01-oke-production-gitops.html)
-
-프로덕션 클러스터와 GitOps 배포 경계를 설명합니다.
-:::
-
-::: {.chapter-row}
-[오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축: Docs Site Deployment](/portfolio/devops/chapters/03-docs-site-deployment.html)
-
-이 문서 사이트가 어떻게 이미지 빌드와 배포로 연결되는지 정리합니다.
-:::
-:::
 :::
