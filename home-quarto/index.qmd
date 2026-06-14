@@ -4,94 +4,35 @@ subtitle: "포트폴리오와 운영 문서"
 ---
 
 ::: {.home}
-::: {.hero}
-::: {.hero-copy}
-::: {.eyebrow}
-Portfolio / Operations Notes
-:::
-
+::: {.intro}
 ## MintCocoa Docs
 
-서버 런타임을 직접 설계하고, 그 결과물을 실제 배포 파이프라인 위에서 운영한
-과정을 정리한 문서 사이트입니다.
-
-::: {.intro-links}
-[io_uring 기반 C++ 서버 런타임 개발](/portfolio/servercore/){.primary-link}
-[개발-운영 파이프라인 구축](/portfolio/devops/){.plain-link}
-:::
+서버 런타임 구현과 클라우드·홈랩 운영 과정을 정리한 문서 사이트입니다.
+필요한 문서로 바로 들어갈 수 있도록 대표 진입점만 남겨 둡니다.
 :::
 
-::: {.hero-panel}
-::: {.signal}
-**Focus**
-
-네트워크 I/O 실행 계층과 GitOps 운영 경계를 함께 다룹니다.
-:::
-
-::: {.metric-grid}
-::: {.metric}
-**C++**
-
-io_uring runtime
-:::
-
-::: {.metric}
-**GitOps**
-
-Actions / GHCR / Argo CD
-:::
-
-::: {.metric}
-**OKE**
-
-production cluster
-:::
-:::
-:::
-:::
-
-::: {.section-heading .compact}
-### 문서 컬렉션
-
-핵심 구현 경험과 운영 설계 기록을 두 축으로 묶었습니다.
+::: {.section-heading}
+### 문서
 :::
 
 ::: {.doc-list}
 ::: {.doc-row}
-::: {.doc-kicker}
-Server Runtime
-:::
-
 #### [io_uring 기반 C++ 서버 런타임 개발](/portfolio/servercore/)
 
 `io_uring` 기반 C++ 서버 런타임의 수명관리, 버퍼, 직렬화, backpressure를
-설계 선택과 구현 경계 중심으로 정리한 문서입니다.
-
-::: {.doc-tags}
-`C++` `io_uring` `backpressure`
-:::
+설계 선택과 구현 경계 중심으로 정리합니다.
 :::
 
 ::: {.doc-row}
-::: {.doc-kicker}
-Production GitOps
-:::
-
 #### [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/)
 
 GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영 관측성까지 이어지는
-개발-운영 파이프라인 문서입니다.
-
-::: {.doc-tags}
-`OKE` `Argo CD` `observability`
-:::
+개발-운영 파이프라인을 정리합니다.
 :::
 :::
 
 ::: {.section-heading}
 ### 대표 장
-
-처음 읽기 좋은 진입점을 골라 두었습니다.
 :::
 
 ::: {.chapter-list}
