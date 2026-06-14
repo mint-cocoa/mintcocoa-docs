@@ -17,17 +17,29 @@ subtitle: "포트폴리오와 운영 문서"
 
 ::: {.doc-list}
 ::: {.doc-row}
+::: {.doc-thumb}
+<img src="assets/servercore-doc-thumb.png" alt="">
+:::
+
+::: {.doc-body}
 #### [io_uring 기반 C++ 서버 런타임 개발](/portfolio/servercore/)
 
 `io_uring` 기반 C++ 서버 런타임의 수명관리, 버퍼, 직렬화, backpressure를
 설계 선택과 구현 경계 중심으로 정리합니다.
 :::
+:::
 
 ::: {.doc-row}
+::: {.doc-thumb}
+<img src="assets/devops-doc-thumb.png" alt="">
+:::
+
+::: {.doc-body}
 #### [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/)
 
 GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영 관측성까지 이어지는
 개발-운영 파이프라인을 정리합니다.
+:::
 :::
 :::
 :::

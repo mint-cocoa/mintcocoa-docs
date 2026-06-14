@@ -90,17 +90,48 @@ body {
 
 .doc-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 28px;
 }
 
 .doc-row {
-  min-height: 168px;
-  padding: 20px;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  min-height: 126px;
+  padding: 12px;
   border: 1px solid var(--mc-line);
   border-radius: 6px;
   background: #ffffff;
+}
+
+.doc-thumb {
+  display: block;
+  min-height: 102px;
+  border: 1px solid #e5eaf2;
+  border-radius: 4px;
+  background: var(--mc-soft);
+  overflow: hidden;
+}
+
+.doc-thumb p {
+  margin: 0;
+  height: 100%;
+}
+
+.doc-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.doc-body {
+  align-self: center;
+  min-width: 0;
+  padding: 2px 4px 2px 0;
 }
 
 .doc-row h4 {
@@ -154,12 +185,14 @@ body {
   }
 
   .doc-row {
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 12px;
     min-height: auto;
-    padding: 18px;
+    padding: 10px;
   }
 
-  .doc-list {
-    grid-template-columns: 1fr;
+  .doc-thumb {
+    min-height: 92px;
   }
 
   .home a,
