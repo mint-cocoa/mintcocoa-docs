@@ -1,0 +1,38 @@
+$ kubectl get applications.argoproj.io -n argocd
+NAME                            SYNC STATUS   HEALTH STATUS
+argo-rollouts                   Synced        Healthy
+cert-manager                    Synced        Healthy
+cluster-issuers                 Synced        Healthy
+grafana-datasources             Synced        Healthy
+ingress-nginx                   Synced        Healthy
+loki                            Synced        Healthy
+metrics-server                  Synced        Healthy
+observability-stack             Synced        Healthy
+oke-prod-root                   Synced        Healthy
+private-ingress-nginx           Synced        Healthy
+private-observability-ingress   Synced        Healthy
+prod-dropapp                    Synced        Healthy
+prod-mintcocoa-docs             Synced        Healthy
+prod-services-namespace         Synced        Healthy
+prod-whoami                     Synced        Healthy
+promtail                        Synced        Healthy
+tempo                           Synced        Healthy
+
+$ kubectl get pods -n prod-services
+NAME                              READY   STATUS    RESTARTS   AGE
+dropapp-6744c97f7c-dpxz6          1/1     Running   0          168m
+dropapp-6744c97f7c-rm625          1/1     Running   0          168m
+mintcocoa-docs-6577b89574-5z9rd   1/1     Running   0          22h
+mintcocoa-docs-6577b89574-k9jcx   1/1     Running   0          22h
+whoami-6d964d9658-d8r87           1/1     Running   0          39h
+whoami-6d964d9658-n926s           1/1     Running   0          39h
+
+$ curl -I https://docs.mintcocoa.dev
+HTTP/2 200 
+date: Fri, 12 Jun 2026 05:12:50 GMT
+content-type: text/html
+content-length: 23520
+last-modified: Thu, 11 Jun 2026 06:43:04 GMT
+etag: "6a2a58f8-5be0"
+accept-ranges: bytes
+strict-transport-security: max-age=31536000; includeSubDomains

@@ -1,0 +1,2 @@
+$ curl http://172.30.1.27:30082
+{"service":"pipeline-demo","version":"438361a8b81e4ca39f04c95d1457091dba36c4e2","env":"staging-services","hostname":"pipeline-demo-6d9875d6cc-x2ml9","time":"2026-06-12T17:13:28Z"}

@@ -1,0 +1,35 @@
+C4Container
+  title MintCocoa GitOps Repository Structure
+
+  Person(operator, "Operator", "Reviews PRs and approves production sync.")
+  System_Ext(appRepo, "Application repository", "Application source code and CI pipeline.")
+  System_Ext(ghcr, "GHCR", "Container image registry.")
+
+  System_Boundary(opsRepo, "mintcocoa-ops") {
+    Container(appBase, "apps/<app>/base", "Kustomize base", "Shared workload definition.")
+    Container(stagingOverlay, "apps/<app>/overlays/staging", "Kustomize overlay", "Validation exposure and staging policy.")
+    Container(prodOverlay, "apps/<app>/overlays/prod", "Kustomize overlay", "Production ingress, TLS, resources, and runtime policy.")
+
+    Container(managerRoot, "manager-root", "Argo CD root", "Management plane desired state.")
+    Container(stagingRoot, "staging-root", "Argo CD root", "home k3s staging desired state.")
+    Container(prodRoot, "prod-root", "Argo CD root", "OKE production desired state.")
+
+    Container(stagingApps, "staging child Applications", "Argo CD Applications", "Staging workloads and validation services.")
+    Container(prodPlatform, "prod platform Applications", "Argo CD Applications", "Ingress, cert-manager, observability, and platform services.")
+    Container(prodWorkloads, "prod workload Applications", "Argo CD Applications", "docs, dropapp, demo, and production workloads.")
+  }
+
+  Rel(appRepo, ghcr, "Builds and pushes image", "commit SHA tag")
+  Rel(appRepo, stagingOverlay, "Opens image update PR")
+  Rel(operator, prodOverlay, "Promotes reviewed staging tag")
+
+  Rel(appBase, stagingOverlay, "Specialized by")
+  Rel(appBase, prodOverlay, "Specialized by")
+
+  Rel(managerRoot, stagingRoot, "Runs Argo CD that reconciles")
+  Rel(managerRoot, prodRoot, "Runs Argo CD that reconciles")
+  Rel(stagingRoot, stagingApps, "Owns")
+  Rel(stagingApps, stagingOverlay, "Applies")
+  Rel(prodRoot, prodPlatform, "Owns")
+  Rel(prodRoot, prodWorkloads, "Owns")
+  Rel(prodWorkloads, prodOverlay, "Applies")

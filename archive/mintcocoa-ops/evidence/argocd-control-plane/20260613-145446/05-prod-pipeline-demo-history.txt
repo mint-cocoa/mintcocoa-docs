@@ -1,0 +1,31 @@
+# prod-pipeline-demo Argo CD operation history
+# Captured at: 2026-06-13T14:55:03+09:00
+
+$ argocd --core app history prod-pipeline-demo
+2026/06/13 14:55:04 (0x20b815b29b80) (0x20b816087720) Create stream
+2026/06/13 14:55:04 (0x20b815b29b80) (0x20b816087720) Stream added, broadcasting: 1
+2026/06/13 14:55:04 (0x20b815b29b80) Reply frame received for 1
+2026/06/13 14:55:04 (0x20b816087720) (1) Writing data frame
+2026/06/13 14:55:04 (0x20b815b29b80) (0x20b81783ad20) Create stream
+2026/06/13 14:55:04 (0x20b815b29b80) (0x20b81783ad20) Stream added, broadcasting: 3
+2026/06/13 14:55:04 (0x20b815b29b80) Reply frame received for 3
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Writing data frame
+2026/06/13 14:55:04 (0x20b815b29b80) Data frame received for 3
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Data frame handling
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Data frame sent
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Writing data frame
+2026/06/13 14:55:04 (0x20b815b29b80) Data frame received for 3
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Data frame handling
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Data frame sent
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Writing data frame
+2026/06/13 14:55:04 (0x20b815b29b80) Data frame received for 3
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Data frame handling
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Data frame sent
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Writing data frame
+2026/06/13 14:55:04 (0x20b815b29b80) Data frame received for 3
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Data frame handling
+2026/06/13 14:55:04 (0x20b81783ad20) (3) Data frame sent
+SOURCE  https://github.com/mint-cocoa/mintcocoa-ops.git
+ID      DATE                           REVISION
+0       2026-06-13 02:10:31 +0900 KST  main (7709bfa)
+1       2026-06-13 10:55:32 +0900 KST  main (5977e3d)

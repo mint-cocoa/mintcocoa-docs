@@ -1,0 +1,40 @@
+# Kubernetes production node status evidence
+# Captured: 2026-06-13T19:49:39+0900
+# Context: context-cvv2sfbic3q
+
+$ kubectl --context context-cvv2sfbic3q get nodes -o wide
+NAME         STATUS   ROLES   AGE     VERSION   INTERNAL-IP   EXTERNAL-IP       OS-IMAGE                   KERNEL-VERSION                      CONTAINER-RUNTIME
+10.30.2.31   Ready    node    4d14h   v1.33.1   10.30.2.31    168.110.113.242   Oracle Linux Server 8.10   5.15.0-317.197.5.1.el8uek.aarch64   cri-o://1.33.2-55.e5af0012b8f.el8
+10.30.2.63   Ready    node    4d14h   v1.33.1   10.30.2.63    168.107.53.220    Oracle Linux Server 8.10   5.15.0-317.197.5.1.el8uek.aarch64   cri-o://1.33.2-55.e5af0012b8f.el8
+10.30.2.90   Ready    node    4d15h   v1.33.1   10.30.2.90    140.245.65.250    Oracle Linux Server 8.10   5.15.0-317.197.5.1.el8uek.aarch64   cri-o://1.33.2-55.e5af0012b8f.el8
+
+$ kubectl --context context-cvv2sfbic3q get nodes -o json | jq ...
+[
+  {
+    "name": "10.30.2.31",
+    "ready": "True",
+    "version": "v1.33.1",
+    "os": "Oracle Linux Server 8.10",
+    "kernel": "5.15.0-317.197.5.1.el8uek.aarch64",
+    "runtime": "cri-o://1.33.2-55.e5af0012b8f.el8",
+    "internalIP": "10.30.2.31"
+  },
+  {
+    "name": "10.30.2.63",
+    "ready": "True",
+    "version": "v1.33.1",
+    "os": "Oracle Linux Server 8.10",
+    "kernel": "5.15.0-317.197.5.1.el8uek.aarch64",
+    "runtime": "cri-o://1.33.2-55.e5af0012b8f.el8",
+    "internalIP": "10.30.2.63"
+  },
+  {
+    "name": "10.30.2.90",
+    "ready": "True",
+    "version": "v1.33.1",
+    "os": "Oracle Linux Server 8.10",
+    "kernel": "5.15.0-317.197.5.1.el8uek.aarch64",
+    "runtime": "cri-o://1.33.2-55.e5af0012b8f.el8",
+    "internalIP": "10.30.2.90"
+  }
+]

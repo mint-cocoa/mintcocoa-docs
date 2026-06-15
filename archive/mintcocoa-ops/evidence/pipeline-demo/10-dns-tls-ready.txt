@@ -1,0 +1,15 @@
+$ Cloudflare public DNS
+A demo.mintcocoa.dev -> 158.180.88.13
+
+$ kubectl -n prod-services get certificate pipeline-demo-tls
+NAME                READY   SECRET              ISSUER             STATUS   AGE
+pipeline-demo-tls   True    pipeline-demo-tls   letsencrypt-prod   Ready    23m
+
+$ openssl s_client -connect 158.180.88.13:443 -servername demo.mintcocoa.dev | openssl x509 -noout -issuer -subject -dates
+issuer=C = US, O = Let's Encrypt, CN = YR2
+subject=CN = demo.mintcocoa.dev
+notBefore=Jun 12 16:34:21 2026 GMT
+notAfter=Sep 10 16:34:20 2026 GMT
+
+$ curl --resolve demo.mintcocoa.dev:443:158.180.88.13 https://demo.mintcocoa.dev
+{"service":"pipeline-demo","version":"438361a8b81e4ca39f04c95d1457091dba36c4e2","env":"prod-services"}

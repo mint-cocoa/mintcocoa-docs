@@ -1,0 +1,19 @@
+$ argocd app get prod-pipeline-demo
+Name:               argocd/prod-pipeline-demo
+Project:            prod
+Server:             mintcocoa-prod
+Namespace:          prod-services
+URL:                https://127.0.0.1:18080/applications/prod-pipeline-demo
+Source:
+- Repo:             https://github.com/mint-cocoa/mintcocoa-ops.git
+  Target:           main
+  Path:             apps/pipeline-demo/overlays/prod
+SyncWindow:         Sync Allowed
+Sync Policy:        Manual
+Sync Status:        Synced to main (7709bfa)
+Health Status:      Healthy
+
+GROUP              KIND        NAMESPACE      NAME           STATUS  HEALTH   HOOK  MESSAGE
+                   Service     prod-services  pipeline-demo  Synced  Healthy        service/pipeline-demo serverside-applied
+apps               Deployment  prod-services  pipeline-demo  Synced  Healthy        deployment.apps/pipeline-demo serverside-applied
+networking.k8s.io  Ingress     prod-services  pipeline-demo  Synced  Healthy        ingress.networking.k8s.io/pipeline-demo serverside-applied

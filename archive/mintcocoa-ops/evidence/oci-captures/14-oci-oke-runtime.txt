@@ -1,0 +1,31 @@
+$ oci ce cluster get --cluster-id "$CLUSTER_ID" --output json | jq ...
+{
+  "name": "home-oci-oke-cluster",
+  "state": "ACTIVE",
+  "kubernetesVersion": "v1.33.1",
+  "publicEndpoint": "168.110.124.39:6443",
+  "privateEndpoint": "10.30.1.45:6443",
+  "endpointPublicIpEnabled": true
+}
+
+$ oci ce node-pool get --node-pool-id "$NODE_POOL_ID" --output json | jq ...
+{
+  "name": "home-oci-oke-a1-pool",
+  "state": "ACTIVE",
+  "kubernetesVersion": "v1.33.1",
+  "nodeShape": "VM.Standard.A1.Flex",
+  "size": 3,
+  "nodeStates": [
+    "ACTIVE",
+    "ACTIVE",
+    "ACTIVE"
+  ]
+}
+
+$ oci compute instance get --instance-id "$MANAGER_ID" --output json | jq ...
+{
+  "name": "mintcocoa-gitops-manager",
+  "state": "RUNNING",
+  "shape": "VM.Standard.A1.Flex",
+  "availabilityDomain": "NvOU:AP-CHUNCHEON-1-AD-1"
+}

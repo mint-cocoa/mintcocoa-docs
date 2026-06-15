@@ -1,0 +1,6 @@
+# prod-pipeline-demo Git desired state vs live state diff
+# Captured at: 2026-06-13T14:55:02+09:00
+
+$ argocd --core app diff prod-pipeline-demo
+
+# No diff output: Git desired state and live production state currently match.

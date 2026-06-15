@@ -1,0 +1,47 @@
+# prod-root desired state and sync policy
+# Captured at: 2026-06-13T14:54:59+09:00
+
+$ argocd --core app get prod-root
+2026/06/13 14:54:59 (0x228baa4d44d0) (0x228ba9d53860) Create stream
+2026/06/13 14:54:59 (0x228baa4d44d0) (0x228ba9d53860) Stream added, broadcasting: 1
+2026/06/13 14:54:59 (0x228baa4d44d0) Reply frame received for 1
+2026/06/13 14:54:59 (0x228ba9d53860) (1) Writing data frame
+2026/06/13 14:54:59 (0x228baa4d44d0) (0x228bab9f0dc0) Create stream
+2026/06/13 14:54:59 (0x228baa4d44d0) (0x228bab9f0dc0) Stream added, broadcasting: 3
+2026/06/13 14:54:59 (0x228baa4d44d0) Reply frame received for 3
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Writing data frame
+2026/06/13 14:54:59 (0x228baa4d44d0) Data frame received for 3
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Data frame handling
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Data frame sent
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Writing data frame
+2026/06/13 14:54:59 (0x228baa4d44d0) Data frame received for 3
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Data frame handling
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Data frame sent
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Writing data frame
+2026/06/13 14:54:59 (0x228baa4d44d0) Data frame received for 3
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Data frame handling
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Data frame sent
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Writing data frame
+2026/06/13 14:54:59 (0x228baa4d44d0) Data frame received for 3
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Data frame handling
+2026/06/13 14:54:59 (0x228bab9f0dc0) (3) Data frame sent
+Name:               argocd/prod-root
+Project:            default
+Server:             https://kubernetes.default.svc
+Namespace:          argocd
+URL:                http://localhost:41113/applications/prod-root
+Source:
+- Repo:             https://github.com/mint-cocoa/mintcocoa-ops.git
+  Target:           main
+  Path:             clusters/prod
+SyncWindow:         Sync Allowed
+Sync Policy:        Automated (Prune)
+Sync Status:        Synced to main (5977e3d)
+Health Status:      Healthy
+
+GROUP        KIND         NAMESPACE  NAME                     STATUS  HEALTH  HOOK  MESSAGE
+argoproj.io  AppProject   argocd     prod                     Synced                appproject.argoproj.io/prod serverside-applied
+argoproj.io  Application  argocd     prod-platform-root       Synced                application.argoproj.io/prod-platform-root serverside-applied
+argoproj.io  Application  argocd     prod-ingress-root        Synced                application.argoproj.io/prod-ingress-root serverside-applied
+argoproj.io  Application  argocd     prod-observability-root  Synced                application.argoproj.io/prod-observability-root serverside-applied
+argoproj.io  Application  argocd     prod-workloads-root      Synced                application.argoproj.io/prod-workloads-root serverside-applied

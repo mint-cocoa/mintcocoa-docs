@@ -1,0 +1,294 @@
+# OCI network boundary and security group evidence
+# Captured: 2026-06-13T19:03:17+0900 KST
+# Region: ap-chuncheon-1
+
+$ export REGION=ap-chuncheon-1
+
+$ oci lb load-balancer list --compartment-id "$COMPARTMENT_ID" --region ap-chuncheon-1 --output json | jq '[.data[] | {name:."display-name", state:."lifecycle-state", ips:."ip-addresses", subnets:."subnet-ids", nsgs:."network-security-group-ids"}]'
+[
+  {
+    "name": "ab9c76e1-1bb3-4c4d-a64a-c90bc3c5e4ab",
+    "state": "ACTIVE",
+    "ips": [
+      {
+        "ip-address": "158.180.88.13",
+        "is-public": true,
+        "reserved-ip": null
+      }
+    ],
+    "subnets": [
+      "ocid1.subnet.oc1.ap-chuncheon-1.aaaaaaaa7ako5ebsaun4ucettg3qogxneoqrzpethf6vmhb24u32226dqlka"
+    ],
+    "nsgs": []
+  },
+  {
+    "name": "368c0ae8-b61d-4594-a1ae-309962f0ca8e",
+    "state": "ACTIVE",
+    "ips": [
+      {
+        "ip-address": "10.30.4.91",
+        "is-public": false,
+        "reserved-ip": null
+      }
+    ],
+    "subnets": [
+      "ocid1.subnet.oc1.ap-chuncheon-1.aaaaaaaa7ako5ebsaun4ucettg3qogxneoqrzpethf6vmhb24u32226dqlka"
+    ],
+    "nsgs": []
+  }
+]
+
+$ oci network subnet get --subnet-id "$LB_SUBNET_ID" --region ap-chuncheon-1 --output json | jq '.data | {name:."display-name", cidr:."cidr-block", prohibitPublicIp:."prohibit-public-ip-on-vnic", routeTable:."route-table-id"}'
+{
+  "name": "home-oci-oke-load-balancers-public-subnet",
+  "cidr": "10.30.4.0/24",
+  "prohibitPublicIp": false,
+  "routeTable": "ocid1.routetable.oc1.ap-chuncheon-1.aaaaaaaam763iec5ihqrzioampguuqcvs2rhzhf2gfcklavaqbejguhlqsha"
+}
+
+$ oci network security-list get --security-list-id "$PUBLIC_SL_ID" --region ap-chuncheon-1 --output json | jq '[.data."ingress-security-rules"[] | {source, protocol, port:."tcp-options"."destination-port-range"}]'
+[
+  {
+    "source": "0.0.0.0/0",
+    "protocol": "6",
+    "port": {
+      "max": 443,
+      "min": 443
+    }
+  },
+  {
+    "source": "10.30.4.0/24",
+    "protocol": "6",
+    "port": {
+      "max": 31813,
+      "min": 31813
+    }
+  },
+  {
+    "source": "10.30.4.0/24",
+    "protocol": "6",
+    "port": {
+      "max": 10256,
+      "min": 10256
+    }
+  },
+  {
+    "source": "0.0.0.0/0",
+    "protocol": "6",
+    "port": {
+      "max": 80,
+      "min": 80
+    }
+  },
+  {
+    "source": "10.30.4.0/24",
+    "protocol": "6",
+    "port": {
+      "max": 31186,
+      "min": 31186
+    }
+  },
+  {
+    "source": "10.30.0.0/16",
+    "protocol": "6",
+    "port": {
+      "max": 443,
+      "min": 443
+    }
+  },
+  {
+    "source": "10.30.4.0/24",
+    "protocol": "6",
+    "port": {
+      "max": 31176,
+      "min": 31176
+    }
+  },
+  {
+    "source": "10.30.0.0/16",
+    "protocol": "6",
+    "port": {
+      "max": 80,
+      "min": 80
+    }
+  },
+  {
+    "source": "10.30.4.0/24",
+    "protocol": "6",
+    "port": {
+      "max": 32261,
+      "min": 32261
+    }
+  }
+]
+
+$ oci network route-table get --rt-id "$PUBLIC_RT_ID" --region ap-chuncheon-1 --output json | jq '.data | {name:."display-name", rules:[."route-rules"[] | {destination, target:."network-entity-id"}]}'
+{
+  "name": "home-oci-oke-public-rt",
+  "rules": [
+    {
+      "destination": "0.0.0.0/0",
+      "target": "ocid1.internetgateway.oc1.ap-chuncheon-1.aaaaaaaak2qlurxhzfojzyefvooslvxt4j6e4s3ab7ebglnpgjur33eujakq"
+    },
+    {
+      "destination": "172.30.1.0/24",
+      "target": "ocid1.drg.oc1.ap-chuncheon-1.aaaaaaaaozkpzob6xztgmmoyqmocyfy6ghdu2c5ldumyqjrkvca7rxoj35yq"
+    }
+  ]
+}
+
+$ oci compute instance get --instance-id "$MGR_INSTANCE_ID" --region ap-chuncheon-1 --output json | jq '.data | {name:."display-name", state:."lifecycle-state", shape}'
+{
+  "name": "mintcocoa-gitops-manager",
+  "state": "RUNNING",
+  "shape": "VM.Standard.A1.Flex"
+}
+
+$ oci network vnic get --vnic-id "$MGR_VNIC_ID" --region ap-chuncheon-1 --output json | jq '.data | {name:."display-name", privateIp:."private-ip", publicIp:."public-ip", subnet:."subnet-id", nsgIds:."nsg-ids"}'
+{
+  "name": "mintcocoa-gitops-manager-vnic",
+  "privateIp": "10.30.6.10",
+  "publicIp": null,
+  "subnet": "ocid1.subnet.oc1.ap-chuncheon-1.aaaaaaaa72ygx3smlr4qkqczamim3kbd5ggwk6va5ha6dbynmqjedk26ysoa",
+  "nsgIds": [
+    "ocid1.networksecuritygroup.oc1.ap-chuncheon-1.aaaaaaaag544dumdcutruxrdl7er2qrjbg5lv2dvn5w6da7dnil467as6qva"
+  ]
+}
+
+$ oci network subnet get --subnet-id "$MGR_SUBNET_ID" --region ap-chuncheon-1 --output json | jq '.data | {name:."display-name", cidr:."cidr-block", routeTable:."route-table-id"}'
+{
+  "name": "mintcocoa-gitops-manager-management-subnet",
+  "cidr": "10.30.6.0/24",
+  "routeTable": "ocid1.routetable.oc1.ap-chuncheon-1.aaaaaaaaborfqae3md5rw3jehcebtxddtxxjld66gjdsal4lz5byymyaykzq"
+}
+
+$ oci network route-table get --rt-id "$PODS_NAT_RT_ID" --region ap-chuncheon-1 --output json | jq '.data | {name:."display-name", rules:[."route-rules"[] | {destination, target:."network-entity-id"}]}'
+{
+  "name": "home-oci-oke-pods-nat-rt",
+  "rules": [
+    {
+      "destination": "172.30.1.0/24",
+      "target": "ocid1.drg.oc1.ap-chuncheon-1.aaaaaaaaozkpzob6xztgmmoyqmocyfy6ghdu2c5ldumyqjrkvca7rxoj35yq"
+    },
+    {
+      "destination": "0.0.0.0/0",
+      "target": "ocid1.natgateway.oc1.ap-chuncheon-1.aaaaaaaanbdqo35dk6xvei5pj2zk2an5ysvarkfdaq35jkzduugh7vwtulcq"
+    }
+  ]
+}
+
+$ oci network nsg rules list --nsg-id "$MGR_NSG_ID" --region ap-chuncheon-1 --output json | jq '[.data[] | {direction, source, destination, port:."tcp-options"."destination-port-range", description}]'
+[
+  {
+    "direction": "EGRESS",
+    "source": null,
+    "destination": "10.30.0.0/16",
+    "port": null,
+    "description": "Allow GitOps manager access to the OKE VCN."
+  },
+  {
+    "direction": "EGRESS",
+    "source": null,
+    "destination": "0.0.0.0/0",
+    "port": null,
+    "description": "Allow GitOps manager package updates through the NAT gateway."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "172.30.1.0/24",
+    "destination": null,
+    "port": {
+      "max": 22,
+      "min": 22
+    },
+    "description": "Allow home LAN SSH to the GitOps manager over OCI Site-to-Site IPSec."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "172.30.1.0/24",
+    "destination": null,
+    "port": {
+      "max": 443,
+      "min": 443
+    },
+    "description": "Allow home LAN HTTPS access to manager private ingress over OCI Site-to-Site IPSec."
+  }
+]
+
+$ oci network nsg rules list --nsg-id "$CP_NSG_ID" --region ap-chuncheon-1 --output json | jq '[.data[] | {direction, source, destination, port:."tcp-options"."destination-port-range", description}]'
+[
+  {
+    "direction": "EGRESS",
+    "source": null,
+    "destination": "0.0.0.0/0",
+    "port": null,
+    "description": "Allow control plane egress."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "ocid1.networksecuritygroup.oc1.ap-chuncheon-1.aaaaaaaacd7vlnyjxparucrbmjbp76oqbhtsobri7bjhvf5qkbts2roggkhq",
+    "destination": null,
+    "port": {
+      "max": 6443,
+      "min": 6443
+    },
+    "description": "Allow worker nodes to reach the Kubernetes API."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "10.30.2.0/24",
+    "destination": null,
+    "port": {
+      "max": 12250,
+      "min": 12250
+    },
+    "description": "Allow worker node communication to the Kubernetes API endpoint on OKE port 12250."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "10.30.2.0/24",
+    "destination": null,
+    "port": null,
+    "description": "Allow path discovery from worker nodes to the Kubernetes API endpoint."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "10.30.3.0/24",
+    "destination": null,
+    "port": {
+      "max": 12250,
+      "min": 12250
+    },
+    "description": "Allow pod communication to the Kubernetes API endpoint on OKE port 12250."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "ocid1.networksecuritygroup.oc1.ap-chuncheon-1.aaaaaaaab6b5h2rf3t7ctxemsbvjpb375byvbzijmwj5c7gt6jajcalu4a3a",
+    "destination": null,
+    "port": {
+      "max": 6443,
+      "min": 6443
+    },
+    "description": "Allow Bastion VPN path to reach the private Kubernetes API."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "ocid1.networksecuritygroup.oc1.ap-chuncheon-1.aaaaaaaag544dumdcutruxrdl7er2qrjbg5lv2dvn5w6da7dnil467as6qva",
+    "destination": null,
+    "port": {
+      "max": 6443,
+      "min": 6443
+    },
+    "description": "Allow GitOps manager to reach the private Kubernetes API."
+  },
+  {
+    "direction": "INGRESS",
+    "source": "172.30.1.0/24",
+    "destination": null,
+    "port": {
+      "max": 6443,
+      "min": 6443
+    },
+    "description": "Allow operator-side LAN to reach the private Kubernetes API over OCI Site-to-Site IPSec."
+  }
+]

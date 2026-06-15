@@ -1,0 +1,13 @@
+$ kubectl --context OKE -n prod-services get deploy/pods/ingress pipeline-demo
+ghcr.io/mint-cocoa/mintcocoa-pipeline-demo:438361a8b81e4ca39f04c95d1457091dba36c4e2
+2/2
+NAME                            READY   STATUS    RESTARTS   AGE    IP            NODE         NOMINATED NODE   READINESS GATES
+pipeline-demo-c649f9549-5gcrv   1/1     Running   0          4m4s   10.30.3.241   10.30.2.31   <none>           <none>
+pipeline-demo-c649f9549-ctm4j   1/1     Running   0          4m4s   10.30.3.73    10.30.2.90   <none>           <none>
+NAME            CLASS   HOSTS                ADDRESS         PORTS     AGE
+pipeline-demo   nginx   demo.mintcocoa.dev   158.180.88.13   80, 443   3m1s
+
+$ curl --resolve demo.mintcocoa.dev:443:158.180.88.13 https://demo.mintcocoa.dev
+{"service":"pipeline-demo","version":"438361a8b81e4ca39f04c95d1457091dba36c4e2","env":"prod-services","hostname":"pipeline-demo-c649f9549-5gcrv","time":"2026-06-12T17:13:32Z"}
+
+$ curl https://demo.mintcocoa.dev

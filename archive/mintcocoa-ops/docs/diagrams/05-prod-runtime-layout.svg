@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc" font-family="Noto Sans CJK KR, Noto Sans KR, Segoe UI, Arial, sans-serif" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Production OKE runtime layout</title>
+  <desc id="desc">Production OKE runtime components grouped into ingress, platform, workloads, and observability responsibilities.</desc>
+  <defs>
+    <marker id="blueArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="purpleArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:1.5}.public{fill:#eff6ff;stroke:#2563eb;stroke-width:2}.private{fill:#f5f3ff;stroke:#7c3aed;stroke-width:2}.infra{fill:#fff7ed;stroke:#ea580c;stroke-width:2}.obs{fill:#f8fafc;stroke:#64748b;stroke-width:1.5}.ok{fill:#dcfce7;stroke:#16a34a;stroke-width:2}.chip{fill:#fff;stroke:#94a3b8;stroke-width:1.4}.h{fill:#0f172a;font-size:31px;font-weight:700}.t{fill:#0f172a;font-size:20px;font-weight:700}.s{fill:#475569;font-size:16px}.xs{fill:#64748b;font-size:13px}.mono{font-family:Consolas,Segoe UI Mono,monospace;fill:#0f172a;font-size:14px}.blueLine{stroke:#2563eb;stroke-width:2.6;fill:none;marker-end:url(#blueArrow)}.purpleLine{stroke:#7c3aed;stroke-width:2.6;fill:none;marker-end:url(#purpleArrow)}.dash{stroke:#94a3b8;stroke-width:1.6;stroke-dasharray:7 7;fill:none}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="620"/>
+  <text class="h" x="48" y="58">Prod runtime layout</text>
+  <text class="s" x="48" y="86">prod OKE 내부도 ingress, platform, workload, observability 책임 단위로 나뉜다.</text>
+
+  <rect class="panel" x="42" y="122" width="1116" height="432" rx="14"/>
+  <text class="t" x="84" y="162">OKE production cluster</text>
+  <text class="mono" x="304" y="162">mintcocoa-prod / prod-services / observability</text>
+
+  <rect class="public" x="84" y="202" width="236" height="244" rx="14"/>
+  <text class="t" x="120" y="240">Ingress group</text>
+  <rect class="chip" x="116" y="278" width="172" height="42" rx="8"/>
+  <text class="mono" x="158" y="305">nginx</text>
+  <rect class="chip" x="116" y="340" width="172" height="42" rx="8"/>
+  <text class="mono" x="139" y="367">private-nginx</text>
+
+  <rect class="infra" x="372" y="202" width="236" height="244" rx="14"/>
+  <text class="t" x="414" y="240">Platform group</text>
+  <rect class="chip" x="404" y="278" width="172" height="42" rx="8"/>
+  <text class="mono" x="438" y="305">cert-manager</text>
+  <rect class="chip" x="404" y="340" width="172" height="42" rx="8"/>
+  <text class="mono" x="438" y="367">argo-rollouts</text>
+
+  <rect class="ok" x="660" y="202" width="236" height="244" rx="14"/>
+  <text class="t" x="702" y="240">Workloads</text>
+  <rect class="chip" x="692" y="278" width="172" height="42" rx="8"/>
+  <text class="mono" x="714" y="305">pipeline-demo</text>
+  <rect class="chip" x="692" y="340" width="172" height="42" rx="8"/>
+  <text class="mono" x="735" y="367">dropapp</text>
+  <rect class="chip" x="692" y="402" width="172" height="32" rx="8"/>
+  <text class="mono" x="721" y="424">mintcocoa-docs</text>
+
+  <rect class="obs" x="948" y="202" width="164" height="244" rx="14"/>
+  <text class="t" x="984" y="240">Observability</text>
+  <text class="mono" x="986" y="290">Prometheus</text>
+  <text class="mono" x="986" y="324">Grafana</text>
+  <text class="mono" x="986" y="358">Loki</text>
+  <text class="mono" x="986" y="392">Tempo</text>
+
+  <path class="blueLine" d="M 320 298 L 660 298"/>
+  <path class="purpleLine" d="M 320 361 C 552 492 844 492 948 362"/>
+  <path class="dash" d="M 608 300 L 660 300"/>
+  <path class="dash" d="M 896 324 L 948 324"/>
+
+  <text class="xs" x="84" y="496">public nginx는 사용자-facing workload를 노출하고, private-nginx는 운영 UI 경계에만 사용한다.</text>
+  <text class="xs" x="48" y="590">source: clusters/prod/ingress, clusters/prod/platform, clusters/prod/workloads, clusters/prod/observability</text>
+</svg>

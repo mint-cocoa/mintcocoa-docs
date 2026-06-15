@@ -1,0 +1,38 @@
+# Argo CD control plane capture
+# Captured at: 2026-06-13T14:54:58+09:00
+
+$ kubectl config current-context
+mintcocoa-manager-local
+
+$ kubectl --context mintcocoa-manager-local -n argocd get applications.argoproj.io
+NAME                             SYNC STATUS   HEALTH STATUS
+argo-rollouts                    Synced        Healthy
+cert-manager                     Synced        Healthy
+cluster-issuers                  Synced        Healthy
+grafana-datasources              Synced        Healthy
+ingress-nginx                    Synced        Healthy
+loki                             Synced        Healthy
+manager-argocd-private-ingress   Synced        Healthy
+manager-ingress-nginx            Synced        Healthy
+manager-root                     Synced        Healthy
+metrics-server                   Synced        Healthy
+observability-stack              OutOfSync     Healthy
+private-ingress-nginx            Synced        Healthy
+private-observability-ingress    Synced        Healthy
+prod-dropapp                     Synced        Healthy
+prod-ingress-root                Synced        Healthy
+prod-mintcocoa-docs              Synced        Healthy
+prod-observability-root          Synced        Healthy
+prod-pipeline-demo               Synced        Healthy
+prod-platform-root               Synced        Healthy
+prod-root                        Synced        Healthy
+prod-services-namespace          Synced        Healthy
+prod-whoami                      Synced        Healthy
+prod-workloads-root              Synced        Healthy
+promtail                         Synced        Healthy
+staging-dropapp                  Synced        Degraded
+staging-pipeline-demo            Synced        Healthy
+staging-root                     Synced        Healthy
+staging-services-namespace       Synced        Healthy
+staging-whoami                   Synced        Healthy
+tempo                            Synced        Healthy

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc" font-family="Noto Sans CJK KR, Noto Sans KR, Segoe UI, Arial, sans-serif" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Staging-first GitOps promotion flow</title>
+  <desc id="desc">Application CI updates staging first, then the current staging image tag is promoted to production through a separate PR and manual Argo CD sync.</desc>
+  <defs>
+    <marker id="blueArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="tealArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="orangeArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.panel{fill:#fff;stroke:#d7dee8;stroke-width:1.5}.submitBand{fill:#eff6ff;stroke:#bfdbfe;stroke-width:1.5}.prodBand{fill:#fff7ed;stroke:#fed7aa;stroke-width:1.5}.gitops{fill:#f0fdfa;stroke:#0f766e;stroke-width:2}.public{fill:#eff6ff;stroke:#2563eb;stroke-width:2}.infra{fill:#fff7ed;stroke:#ea580c;stroke-width:2}.ok{fill:#dcfce7;stroke:#16a34a;stroke-width:2}.chip{fill:#fff;stroke:#94a3b8;stroke-width:1.4}.h{fill:#0f172a;font-size:31px;font-weight:700}.tag{fill:#1e40af;font-size:14px;font-weight:700}.tagOrange{fill:#9a3412;font-size:14px;font-weight:700}.t{fill:#0f172a;font-size:18px;font-weight:700}.s{fill:#475569;font-size:15px}.xs{fill:#64748b;font-size:13px}.mono{font-family:Consolas,Segoe UI Mono,monospace;fill:#0f172a;font-size:14px}.blueLine{stroke:#2563eb;stroke-width:2.8;fill:none;marker-end:url(#blueArrow)}.tealLine{stroke:#0f766e;stroke-width:2.8;fill:none;marker-end:url(#tealArrow)}.orangeLine{stroke:#ea580c;stroke-width:2.8;fill:none;marker-end:url(#orangeArrow)}.dash{stroke:#64748b;stroke-width:1.6;stroke-dasharray:7 7;fill:none}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="620"/>
+  <text class="h" x="48" y="58">Staging-first promotion</text>
+  <text class="s" x="48" y="86">cluster credentials는 CI에 두지 않고, GitOps PR과 Argo CD sync가 배포 기록을 남긴다.</text>
+
+  <rect class="panel" x="40" y="116" width="1200" height="442" rx="14"/>
+  <rect class="submitBand" x="72" y="150" width="1136" height="164" rx="12"/>
+  <text class="tag" x="96" y="180">staging lane</text>
+  <rect class="public" x="96" y="214" width="142" height="54" rx="9"/>
+  <text class="t" x="126" y="247">App CI</text>
+  <rect class="chip" x="292" y="214" width="142" height="54" rx="9"/>
+  <text class="mono" x="338" y="247">GHCR</text>
+  <rect class="gitops" x="488" y="204" width="176" height="74" rx="9"/>
+  <text class="t" x="524" y="232">staging PR</text>
+  <text class="mono" x="512" y="257">overlays/staging</text>
+  <rect class="ok" x="718" y="204" width="176" height="74" rx="9"/>
+  <text class="t" x="754" y="232">auto-sync</text>
+  <text class="mono" x="742" y="257">mintcocoa-staging</text>
+  <rect class="chip" x="948" y="214" width="176" height="54" rx="9"/>
+  <text class="t" x="990" y="247">runtime 검증</text>
+
+  <rect class="prodBand" x="72" y="354" width="1136" height="164" rx="12"/>
+  <text class="tagOrange" x="96" y="384">production lane</text>
+  <rect class="gitops" x="292" y="408" width="178" height="58" rx="9"/>
+  <text class="t" x="318" y="442">tag copy workflow</text>
+  <rect class="infra" x="524" y="398" width="178" height="78" rx="9"/>
+  <text class="t" x="560" y="426">prod PR</text>
+  <text class="mono" x="548" y="451">overlays/prod</text>
+  <rect class="infra" x="756" y="398" width="178" height="78" rx="9"/>
+  <text class="t" x="790" y="426">OutOfSync</text>
+  <text class="s" x="800" y="451">diff 확인</text>
+  <rect class="infra" x="988" y="398" width="178" height="78" rx="9"/>
+  <text class="t" x="1022" y="426">manual sync</text>
+  <text class="mono" x="1022" y="451">mintcocoa-prod</text>
+
+  <path class="blueLine" d="M 238 241 L 292 241"/>
+  <path class="blueLine" d="M 434 241 L 488 241"/>
+  <path class="tealLine" d="M 664 241 L 718 241"/>
+  <path class="tealLine" d="M 894 241 L 948 241"/>
+  <path class="dash" d="M 1036 268 C 1036 336 364 332 364 408"/>
+  <path class="orangeLine" d="M 470 437 L 524 437"/>
+  <path class="orangeLine" d="M 702 437 L 756 437"/>
+  <path class="orangeLine" d="M 934 437 L 988 437"/>
+
+  <text class="xs" x="96" y="548">prod image tag는 임의 입력이 아니라 staging overlay의 현재 newName/newTag에서 복사한다.</text>
+  <text class="xs" x="48" y="590">source: docs/pipeline.md, .github/workflows/promote-staging-to-prod.yml, apps/*/overlays/*</text>
+</svg>

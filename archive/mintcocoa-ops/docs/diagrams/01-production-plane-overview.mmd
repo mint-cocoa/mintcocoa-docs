@@ -1,0 +1,43 @@
+C4Context
+  title MintCocoa Production System Context
+
+  Person_Ext(externalUser, "External User", "Uses public MintCocoa services through DNS and public ingress.")
+  Person(operator, "Operator", "Maintains production through the private operator path.")
+
+  Enterprise_Boundary(mintcocoa, "MintCocoa Production Boundary") {
+    System(publicDns, "Public DNS", "Routes public domains to the production ingress.")
+    System(publicIngress, "Public nginx ingress", "Receives external HTTP/TLS traffic.")
+    System(publicServices, "Public services", "docs.mintcocoa.dev, drop.mintcocoa.dev, demo.mintcocoa.dev")
+
+    System_Boundary(gitopsPlane, "GitOps Control Plane") {
+      System(opsRepo, "mintcocoa-ops", "Declarative desired state for staging and production.")
+      System(gitopsManager, "GitOps manager", "Management k3s and Argo CD control plane.")
+      System(staging, "home k3s staging", "Fast validation target before production promotion.")
+      System(oke, "OKE production", "Production Kubernetes runtime.")
+    }
+
+    System_Boundary(privatePlane, "Private Operator Plane") {
+      System(homeLan, "Home LAN", "Trusted operator-side network.")
+      System(ipsecCpe, "Raspberry Pi IPSec CPE", "Site-to-Site IPSec entry point into OCI private network.")
+      System(privateApi, "Private Kubernetes API", "OKE API reachable through the private operator path.")
+      System(privateOpsUi, "Private operations UI", "Grafana and Argo CD surfaces kept off the public internet.")
+    }
+  }
+
+  System_Ext(appCi, "Application repository CI", "Builds images and opens GitOps update PRs.")
+
+  Rel(externalUser, publicDns, "Resolves service domains")
+  Rel(publicDns, publicIngress, "Routes public traffic")
+  Rel(publicIngress, publicServices, "Forwards HTTP/TLS requests")
+  Rel(publicServices, oke, "Runs on")
+
+  Rel(appCi, opsRepo, "Updates desired state by PR")
+  Rel(opsRepo, gitopsManager, "Watched by Argo CD")
+  Rel(gitopsManager, staging, "Reconciles")
+  Rel(gitopsManager, oke, "Reconciles")
+
+  Rel(operator, homeLan, "Connects from")
+  Rel(homeLan, ipsecCpe, "Routes OCI private CIDR")
+  Rel(ipsecCpe, gitopsManager, "Private management access")
+  Rel(ipsecCpe, privateApi, "Kubernetes administration")
+  Rel(ipsecCpe, privateOpsUi, "Observability and GitOps UI access")

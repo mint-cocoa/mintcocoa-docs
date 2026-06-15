@@ -1,0 +1,5 @@
+$ kubectl --context mintcocoa-manager-local -n argocd get app prod-root prod-pipeline-demo
+prod-root            Synced      Healthy   7709bfa3934270082c4949a534d4f69eca7bc519
+prod-pipeline-demo   OutOfSync   Missing   7709bfa3934270082c4949a534d4f69eca7bc519
+
+Prod policy check: promotion PR was merged, Argo CD detected drift, and production did not auto-sync.
