@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1200"
+   height="682"
+   viewBox="0 93 1200 682"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg30"
+   sodipodi:docname="fig-servercore-send-byte-count-cursor.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview30"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.3020528"
+     inkscape:cx="588.6858"
+     inkscape:cy="407.43355"
+     inkscape:window-width="2560"
+     inkscape:window-height="1351"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg30" />
+  <title
+     id="title">Send byte count cursor</title>
+  <desc
+     id="desc">A send request asks the kernel to process a full payload range, but the completion result may report only a prefix. The session advances the send cursor by the completed byte count and resubmits the remaining suffix before starting the next payload.</desc>
+  <defs
+     id="defs3">
+    <marker markerUnits="userSpaceOnUse"
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#334155"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path1" />
+    </marker>
+    <marker markerUnits="userSpaceOnUse"
+       id="tealArrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#0f766e"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path2" />
+    </marker>
+    <marker markerUnits="userSpaceOnUse"
+       id="amberArrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto">
+      <path
+         d="M 2 1 L 8 5 L 2 9"
+         fill="none"
+         stroke="#ca8a04"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path3" />
+    </marker>
+    <style
+       id="style3">
+      .bg{fill:#f8fafc}.panel{fill:#ffffff;stroke:#cbd5e1;stroke-width:1.5}.request{fill:#f8fafc;stroke:#64748b;stroke-width:1.5}.active{fill:#ecfdf5;stroke:#0f766e;stroke-width:2}.done{fill:#dcfce7;stroke:#16a34a;stroke-width:1.5}.left{fill:#fef3c7;stroke:#ca8a04;stroke-width:1.5}.payloadA{fill:#dbeafe;stroke:#2563eb;stroke-width:1.5}.payloadB{fill:#ccfbf1;stroke:#0f766e;stroke-width:1.5}.next{fill:#f1f5f9;stroke:#94a3b8;stroke-width:1.5}.kernel{fill:#e0f2fe;stroke:#0284c7;stroke-width:1.5}.warn{fill:#fff7ed;stroke:#ea580c;stroke-width:1.5}.h{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:700}.t{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:20px;font-weight:700}.s{font-family:Segoe UI,Arial,sans-serif;fill:#475569;font-size:16px}.xs{font-family:Segoe UI,Arial,sans-serif;fill:#64748b;font-size:14px}.mini{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:13px;font-weight:700}.line{stroke:#334155;stroke-width:3;fill:none;marker-end:url(#arrow)}.tealLine{stroke:#0f766e;stroke-width:3;fill:none;marker-end:url(#tealArrow)}.amberLine{stroke:#ca8a04;stroke-width:3;fill:none;marker-end:url(#amberArrow)}.dash{stroke:#94a3b8;stroke-width:1.5;stroke-dasharray:7 7;fill:none}.cursor{stroke:#ea580c;stroke-width:3;fill:none}.thin{stroke:#334155;stroke-width:1.5;fill:none}
+    </style>
+  </defs>
+  <rect
+     class="bg"
+     width="1200"
+     height="800"
+     id="rect3" />
+  <rect
+     class="panel"
+     x="60"
+     y="126"
+     width="1080"
+     height="164"
+     rx="12"
+     id="rect4" />
+  <text
+     class="t"
+     x="88"
+     y="162"
+     id="text4">1. user-space에서 요청한 범위</text>
+  <text
+     class="s"
+     x="88"
+     y="190"
+     id="text5"><tspan
+       sodipodi:role="line"
+       id="tspan30"
+       x="88"
+       y="190">SendOp은 payload 참조와 iovec 범위를 붙잡고, 커널에는 현재 FIFO 앞쪽 byte range만 제출</tspan><tspan
+       sodipodi:role="line"
+       id="tspan31"
+       x="88"
+       y="210">.</tspan></text>
+  <rect
+     class="request"
+     x="112"
+     y="222"
+     width="210"
+     height="44"
+     rx="8"
+     id="rect5" />
+  <text
+     class="s"
+     x="144"
+     y="250"
+     id="text6">SendOp request</text>
+  <path
+     class="line"
+     d="M 322 244 L 390 244"
+     id="path6" />
+  <rect
+     class="active"
+     x="390"
+     y="206"
+     width="430"
+     height="76"
+     rx="8"
+     id="rect6" />
+  <text
+     class="xs"
+     x="412"
+     y="230"
+     id="text7">requested = 200B</text>
+  <rect
+     class="payloadA"
+     x="414"
+     y="244"
+     width="180"
+     height="22"
+     rx="4"
+     id="rect7" />
+  <text
+     class="mini"
+     x="478"
+     y="260"
+     id="text8">A 100B</text>
+  <rect
+     class="payloadB"
+     x="600"
+     y="244"
+     width="180"
+     height="22"
+     rx="4"
+     id="rect8" />
+  <text
+     class="mini"
+     x="664"
+     y="260"
+     id="text9">B 100B</text>
+  <path
+     class="line"
+     d="M 820 244 L 888 244"
+     id="path9" />
+  <rect
+     class="kernel"
+     x="888"
+     y="212"
+     width="200"
+     height="64"
+     rx="8"
+     id="rect9" />
+  <text
+     class="s"
+     x="963.12048"
+     y="238.384"
+     id="text10">kernel</text>
+  <text
+     class="xs"
+     x="945.20044"
+     y="261.15204"
+     id="text11">in-flight send</text>
+  <rect
+     class="panel"
+     x="60"
+     y="326"
+     width="1080"
+     height="236"
+     rx="12"
+     id="rect11" />
+  <text
+     class="t"
+     x="88"
+     y="362"
+     id="text12">2. completion은 처리된 prefix만 알려줌 </text>
+  <text
+     class="s"
+     x="88"
+     y="390"
+     id="text13">성공 CQE라도 결과 값은 requested byte 수가 아니라 실제로 socket send buffer에 들어간 byte 수</text>
+  <text
+     class="s"
+     x="104"
+     y="454"
+     id="text14">active byte stream</text>
+  <rect
+     class="request"
+     x="270"
+     y="424"
+     width="760"
+     height="58"
+     rx="8"
+     id="rect14" />
+  <rect
+     class="payloadA"
+     x="290"
+     y="442"
+     width="330"
+     height="24"
+     rx="4"
+     id="rect15" />
+  <text
+     class="mini"
+     x="426"
+     y="459"
+     id="text15">A 0-100</text>
+  <rect
+     class="payloadB"
+     x="628"
+     y="442"
+     width="330"
+     height="24"
+     rx="4"
+     id="rect16" />
+  <text
+     class="mini"
+     x="764"
+     y="459"
+     id="text16">B 100-200</text>
+  <path
+     class="thin"
+     d="M 290 412 L 958 412"
+     id="path16" />
+  <path
+     class="thin"
+     d="M 290 406 L 290 418"
+     id="path17" />
+  <path
+     class="thin"
+     d="M 958 406 L 958 418"
+     id="path18" />
+  <text
+     class="xs"
+     x="880.80743"
+     y="399.69592"
+     id="text18">requested range = 200B</text>
+  <rect
+     class="done"
+     x="286.15991"
+     y="504"
+     width="430"
+     height="34"
+     rx="6"
+     id="rect18" />
+  <text
+     class="mini"
+     x="412"
+     y="526"
+     id="text19">processed prefix: A 전체 + B 앞부분</text>
+  <rect
+     class="left"
+     x="723.07208"
+     y="504"
+     width="238"
+     height="34"
+     rx="6"
+     id="rect19" />
+  <text
+     class="mini"
+     x="792"
+     y="526"
+     id="text20">remaining suffix</text>
+  <path
+     class="cursor"
+     d="M 720 414 L 720 552"
+     id="path20" />
+  <rect
+     class="warn"
+     x="655"
+     y="335"
+     width="130"
+     height="34"
+     rx="7"
+     id="rect20" />
+  <text
+     class="mini"
+     x="693.05634"
+     y="349.11148"
+     id="text21">CQE res</text>
+  <text
+     class="mini"
+     x="693.20044"
+     y="363.42343"
+     id="text22">= 130B</text>
+  <path
+     class="amberLine"
+     d="M 720 369 L 720 414"
+     id="path22" />
+  <text
+     class="xs"
+     x="727.10358"
+     y="554.91217"
+     id="text23">cursor = begin + res</text>
+  <rect
+     class="panel"
+     x="60"
+     y="598"
+     width="1080"
+     height="144"
+     rx="12"
+     id="rect23" />
+  <text
+     class="t"
+     x="88"
+     y="636"
+     id="text24">3. suffix를 먼저 재제출한다</text>
+  <text
+     class="s"
+     x="88"
+     y="664"
+     id="text25">남은 범위가 있으면 같은 SendOp의 cursor만 전진시켜 먼저 다시 제출</text>
+  <text
+     class="s"
+     x="88"
+     y="686"
+     id="text26">다음 payload는 현재 SendOp이 완전히 끝난 뒤에만 시작</text>
+  <rect
+     class="left"
+     x="690"
+     y="668"
+     width="158"
+     height="42"
+     rx="8"
+     id="rect26" />
+  <text
+     class="mini"
+     x="728"
+     y="694"
+     id="text27">B suffix</text>
+  <path
+     class="tealLine"
+     d="M 848 689 L 918 689"
+     id="path27" />
+  <rect
+     class="kernel"
+     x="918"
+     y="668"
+     width="120"
+     height="42"
+     rx="8"
+     id="rect27" />
+  <text
+     class="mini"
+     x="946"
+     y="694"
+     id="text28">resubmit</text>
+  <rect
+     class="next"
+     x="1056"
+     y="668"
+     width="56"
+     height="42"
+     rx="8"
+     id="rect28" />
+  <text
+     class="mini"
+     x="1079"
+     y="694"
+     id="text29">C</text>
+  <path
+     class="dash"
+     d="M 1038 689 L 1056 689"
+     id="path29" />
+  <text
+     class="xs"
+     x="906"
+     y="730"
+     id="text30">C는 B suffix 이후</text>
+  <text
+     xml:space="preserve"
+     style="writing-mode:lr-tb;direction:ltr;fill:#000000;stroke:#ed3a3a"
+     x="688.14417"
+     y="509.26575"
+     id="text1"><tspan
+       sodipodi:role="line"
+       id="tspan1"
+       x="688.14417"
+       y="509.26575" /></text>
+</svg>

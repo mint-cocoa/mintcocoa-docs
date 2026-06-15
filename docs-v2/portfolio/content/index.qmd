@@ -1,0 +1,47 @@
+---
+title: "포트폴리오 문서"
+subtitle: "서버 런타임, 클라이언트, Azure AKS production 운영 문서"
+author: "배진후"
+format:
+  html:
+    toc: false
+    page-layout: full
+    css: portfolio.css
+---
+
+## 문서 경로
+
+이 사이트의 canonical 경로는 `https://docs.mintcocoa.dev/portfolio/`입니다. GitHub Pages는 최신 배포 대상으로 사용하지 않고, `_site` 산출물을 컨테이너 이미지로 빌드해 Azure AKS production에서 서빙합니다.
+
+| 문서 | 공개 경로 | 내용 |
+| --- | --- | --- |
+| [ServerCore](servercore/) | `/portfolio/servercore/` | `io_uring` 기반 Core 런타임 장별 문서 |
+| [RuntimeWeb](runtime-web/) | `/portfolio/runtime-web/` | HTTP parser, Router, streaming response, backpressure |
+| [RuntimeProxy](runtime-proxy/) | `/portfolio/runtime-proxy/` | TCP reverse proxy, SNI route, TLS, stream backpressure |
+| [RuntimeGame](runtime-game/) | `/portfolio/runtime-game/` | packet session, Room, JobQueue, game server runtime |
+| [Client](client/) | `/portfolio/client/` | DirectX 11 클라이언트와 RuntimeGame 서버 연동 |
+| [DevOps](devops/) | `/portfolio/devops/` | `mintcocoa-ops` 기준 Azure AKS production GitOps 운영 문서 |
+
+## 문서 구성의 기준
+
+서버 구현 문서는 Core와 선택 모듈을 분리합니다. Core는 TCP 연결, 세션 수명주기, 비동기 I/O, 버퍼, 송신 큐, timeout/backpressure를 담당하고, Web/Proxy/Game은 Core 위에서 프로토콜별 의미를 추가합니다.
+
+DevOps 문서는 `mintcocoa-ops` 원격 `origin/main`에서 확인한 구조를 기준으로 작성합니다. Azure AKS production은 public workload 실행면을 담당하고, manager k3s는 Argo CD 제어면과 내부 운영 UI 프록시 역할로 분리합니다. 공개 문서에는 도메인, 저장소명, 앱 이름, 커밋 해시는 남기지만 API IP, private IP, token, Secret 값은 그대로 노출하지 않습니다.
+
+## 현재 공개되는 장
+
+| 영역 | 첫 문서 |
+| --- | --- |
+| ServerCore | [전체 구조](servercore/chapters/01-overview.html) |
+| DevOps | [Azure AKS production GitOps 구조](devops/) |
+| 문서 배포 | [docs.mintcocoa.dev 배포 경로](devops/) |
+| 관측성 | [관측성과 운영 접근 경계](devops/chapters/04-observability-access.html) |
+
+## 관련 저장소
+
+| 저장소 | 역할 |
+| --- | --- |
+| [mintcocoa-docs](https://github.com/mint-cocoa/mintcocoa-docs) | 문서 허브, Quarto 렌더, AKS 배포용 정적 사이트 이미지 |
+| [iouring-runtime](https://github.com/mint-cocoa/iouring-runtime) | `RuntimeWeb`, `RuntimeProxy`, `RuntimeGame` 구현과 예제 앱 |
+| [mintcocoa-ops](https://github.com/mint-cocoa/mintcocoa-ops) | Azure AKS production과 manager k3s GitOps desired state |
+| [game-client](https://github.com/mint-cocoa/game-client) | DirectX 11 클라이언트 구현 |
