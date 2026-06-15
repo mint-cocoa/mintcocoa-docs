@@ -7,8 +7,7 @@ subtitle: "포트폴리오와 운영 문서"
 ::: {.intro}
 ## MintCocoa Docs
 
-서버 런타임 구현과 클라우드·홈랩 운영 과정을 정리한 문서 사이트입니다.
-필요한 문서로 바로 들어갈 수 있도록 대표 진입점만 남겨 둡니다.
+서버 런타임 구현과 클라우드·홈랩 운영 과정을 정리한 문서.
 :::
 
 ::: {.section-heading}
@@ -24,8 +23,7 @@ subtitle: "포트폴리오와 운영 문서"
 ::: {.doc-body}
 #### [io_uring 기반 C++ 서버 런타임 개발](/portfolio/servercore/)
 
-`io_uring` 기반 C++ 서버 런타임의 수명관리, 버퍼, 직렬화, backpressure를
-설계 선택과 구현 경계 중심으로 정리합니다.
+`io_uring` 기반 C++ 서버 런타임의 수명관리, 버퍼, 직렬화, backpressure설계와 문제 해결 과정을 정리.
 :::
 :::
 
@@ -37,8 +35,7 @@ subtitle: "포트폴리오와 운영 문서"
 ::: {.doc-body}
 #### [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/)
 
-GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영 관측성까지 이어지는
-개발-운영 파이프라인을 정리합니다.
+GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영, observability, AI 알림 시스템 구축 과정과 각 구간 설계 의도를 정리.
 :::
 :::
 :::
