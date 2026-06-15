@@ -2,11 +2,11 @@
 
 Azure AKS 기반 k8s 환경으로 프로덕션 클러스터와 운영 접근 경계를 구축한 과정을 설명한 문서입니다. 홈랩에 의존하는 단일 서버 실험을 넘어 실제 운영시 발생할 문제사항을 고려하여 개발과 프로덕션 환경 분리, 관측성, 접근 권한 문제를 가정하며 설계했습니다.
 
-## 1. 기존 실험 환경과 설계 기준
+## 1. 설계 기준
 
-초기에는 집에서 작은 서버 한 대로 하면서 빠르게 세팅할 수 있고 네트워크와 시스템 설정을 직접 다루면서 배울 수 있다는 장점이 있었지만, 네트워크 대역 제한, 집 네트워크에 의존하는 트래픽 경로와 같이 실전적인 환경이 아니라는 한계가 있었습니다.
+프로덕션 환경은 단일 서버 실험처럼 빠르게 구성하는 것보다, 트래픽 경로와 운영 권한, 배포 승인 과정을 처음부터 분리해 두는 것이 중요하다고 보았습니다. 그래서 클러스터 실행면, GitOps 제어면, 운영자 접근 경계를 별도 책임으로 나누었습니다.
 
-그래서 Azure AKS 클러스터를 운영 기준 환경으로 두고 public 서비스 경로, private 운영자 경로, GitOps 제어면을 분리하면 home lab의 제약에서 벗어나 실제 프로덕션 환경과 더 유사한 조건에서 운영을 검증할 수 있을 것이라고 판단했습니다.
+Azure AKS는 public workload 실행면으로 사용하고, home LAN의 manager k3s는 Argo CD와 내부 운영 UI 프록시를 담당하도록 구성했습니다. 이 구조에서 public 서비스 경로, private 운영자 경로, GitOps 제어면을 독립적으로 검증할 수 있습니다.
 
 
 ## 2. Cluster와 GitOps Repo 구조
@@ -21,7 +21,7 @@ Azure AKS 기반 k8s 환경으로 프로덕션 클러스터와 운영 접근 경
 
 ## 2. Azure VNet과 Kubernetes Cluster 구성
 
-프로덕션 환경은 단순히 Kubernetes 클러스터를 하나 띄우는 것이 아니라, 네트워크 주소 공간과 워커 노드, Pod IP 할당 방식, 외부 노출 경로를 함께 설계해야 했습니다. 그래서 Azure VNet을 기준으로 클러스터의 기본 네트워크 경계를 먼저 만들고, 그 안에서 AKS가 worker node와 pod network를 관리하도록 구성했습니다.
+프로덕션 환경은 단순히 Kubernetes 클러스터를 하나 띄우는 것이 아니라, 네트워크 주소 공간과 워커 노드, Pod IP 할당 방식, 외부 노출 경로를 함께 설계해야 했습니다. 이를 위해 Azure VNet을 기준으로 클러스터의 기본 네트워크 경계를 먼저 만들고, 그 안에서 AKS가 worker node와 pod network를 관리하도록 구성했습니다.
 
 AKS는 managed control plane을 제공하므로 직접 control plane VM을 운영하지 않아도 Kubernetes API와 node pool을 분리해서 다룰 수 있습니다. Azure VNet `10.40.0.0/16` 안에 AKS node subnet과 GatewaySubnet을 두고, public ingress는 Azure LoadBalancer의 public IP로, private observability ingress는 internal LoadBalancer IP로 분리했습니다.
 

@@ -123,7 +123,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="문서-구성의-기준" class="level2">
 <h2 class="anchored" data-anchor-id="문서-구성의-기준">문서 구성의 기준</h2>
 <p>서버 구현 문서는 Core와 선택 모듈을 분리합니다. Core는 TCP 연결, 세션 수명주기, 비동기 I/O, 버퍼, 송신 큐, timeout/backpressure를 담당하고, Web/Proxy/Game은 Core 위에서 프로토콜별 의미를 추가합니다.</p>
-<p>DevOps 문서는 <code>mintcocoa-ops</code> 원격 <code>origin/main</code>에서 확인한 구조를 기준으로 작성합니다. Azure AKS production을 운영 기준 환경으로 두고, manager k3s는 Argo CD 제어면과 내부 운영 UI 프록시 역할로 분리합니다. 공개 문서에는 도메인, 저장소명, 앱 이름, 커밋 해시는 남기지만 API IP, private IP, token, Secret 값은 그대로 노출하지 않습니다.</p>
+<p>DevOps 문서는 <code>mintcocoa-ops</code> 원격 <code>origin/main</code>에서 확인한 구조를 기준으로 작성합니다. Azure AKS production은 public workload 실행면을 담당하고, manager k3s는 Argo CD 제어면과 내부 운영 UI 프록시 역할로 분리합니다. 공개 문서에는 도메인, 저장소명, 앱 이름, 커밋 해시는 남기지만 API IP, private IP, token, Secret 값은 그대로 노출하지 않습니다.</p>
 </section>
 <section id="현재-공개되는-장" class="level2">
 <h2 class="anchored" data-anchor-id="현재-공개되는-장">현재 공개되는 장</h2>
