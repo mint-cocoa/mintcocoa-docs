@@ -1,6 +1,7 @@
 _site/
 .quarto/
 node_modules/
+build/
 **/node_modules/
 **/.venv/
 hub/_site/
