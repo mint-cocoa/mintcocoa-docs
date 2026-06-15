@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "서버 런타임 구현 포트폴리오",
     "section": "",
-    "text": "문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. 전체 구조\n\n\n1. io_uring 기반으로 구현한 Core 런타임의 전체 구조와 실행 모델을 설명\n\n\n\n\n\n\n2. 제출된 I/O와 콜백 대상 생존\n\n\n2. SessionManager, IoEvent, pending_io_, SessionState가 각각 어느 생존 범위를 판단하는지 분리\n\n\n\n\n\n\n3. 수신 버퍼\n\n\n3. 수신 fast/slow path와 송신 순서 보장, 부분 송신 복구를 설명\n\n\n\n\n\n\n4. Room과 Session 직렬화\n\n\n4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명\n\n\n\n\n\n\n5. SendQueue를 메모리 압력 측정 단위로\n\n\n5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결\n\n\n\n\n\n\n6. 선택 모듈로 확장한 결과\n\n\n6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리\n\n\n\n\n\n\n일치 없음\n\n\n\n\n\n항목\n링크\n\n\n\n\n구현 저장소\niouring-runtime\n\n\n문서 URL\ndocs.mintcocoa.dev/portfolio/servercore/\n\n\nPDF\nServerCore-Portfolio-jinhoo.pdf"
+    "text": "문서\n\n\n\n내용\n\n\n\n\n\n\n\n\n1. 전체 구조\n\n\n1. io_uring 기반으로 구현한 Core 런타임의 전체 구조와 실행 모델을 설명\n\n\n\n\n\n\n2. 제출된 I/O와 콜백 대상 생존\n\n\n2. SessionManager, IoEvent, pending_io_, SessionState가 각각 어느 생존 범위를 판단하는지 분리\n\n\n\n\n\n\n3. 수신 버퍼\n\n\n3. 수신 fast/slow path와 송신 순서 보장, 부분 송신 복구를 설명\n\n\n\n\n\n\n4. Room과 Session 직렬화\n\n\n4. Room 상태 순서, WorkerOutbox, Session owner ring이 해결하는 동시성 문제를 설명\n\n\n\n\n\n\n5. SendQueue를 메모리 압력 측정 단위로\n\n\n5. 생산자-소비자 모델에서 발생하는 backpressure문제와 해결\n\n\n\n\n\n\n6. 선택 모듈로 확장한 결과\n\n\n6. 런타임 위의 모듈 구성 설명 및 전체 문서 정리\n\n\n\n\n\n\n일치 없음\n\n\n\n\n\n항목\n링크\n\n\n\n\n구현 저장소\niouring-runtime\n\n\n문서 URL\ndocs.mintcocoa.cc/portfolio/servercore/\n\n\nPDF\nServerCore-Portfolio-jinhoo.pdf"
   },
   {
     "objectID": "chapters/03-buffer-management.html",

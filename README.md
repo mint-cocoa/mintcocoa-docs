@@ -2,7 +2,7 @@
 
 Unified Quarto source for the MintCocoa docs hub and the `/portfolio/` technical documents.
 
-Production URL: `https://docs.mintcocoa.dev`
+Production URL: `https://docs.mintcocoa.cc`
 
 ## Layout
 
@@ -13,7 +13,7 @@ scripts/      Unified build scripts
 ```
 
 The generated static site artifact is `_site/`. GitHub Pages is kept as a public
-mirror, and the OCI OKE deployment serves the same artifact from a container.
+mirror, and the Azure AKS deployment serves the same artifact from a container.
 
 ## Build
 

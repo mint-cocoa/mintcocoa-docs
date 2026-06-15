@@ -1,12 +1,12 @@
 # MintCocoa Production Infrastructure Architecture
 
-오라클 클라우드 기반 k8s 환경을 클러스터와 인프라를 구축한 과정을 설명한 문서입니다. 홈랩에 의존하는 단일 서버 실험을 넘어 실제 운영시 발생할 문제사항을 고려하여 개발과 프로덕션 환경 분리, 관측성, 접근 권한 문제를 가정하며 설계했습니다.
+Azure AKS 기반 k8s 환경으로 프로덕션 클러스터와 운영 접근 경계를 구축한 과정을 설명한 문서입니다. 홈랩에 의존하는 단일 서버 실험을 넘어 실제 운영시 발생할 문제사항을 고려하여 개발과 프로덕션 환경 분리, 관측성, 접근 권한 문제를 가정하며 설계했습니다.
 
 ## 1. 기존 실험 환경과 설계 기준
 
 초기에는 집에서 작은 서버 한 대로 하면서 빠르게 세팅할 수 있고 네트워크와 시스템 설정을 직접 다루면서 배울 수 있다는 장점이 있었지만, 네트워크 대역 제한, 집 네트워크에 의존하는 트래픽 경로와 같이 실전적인 환경이 아니라는 한계가 있었습니다.
 
-그래서 오라클 클라우드의 프리 티어 OKE 클러스터를 이용해 프로덕션과 개발 환경을 분리한다면 home lab의 제약에서 벗어나 실제 프로덕션 환경과 더 유사한 조건에서 운영을 검증할 수 있을 것이라고 판단했습니다.
+그래서 Azure AKS 클러스터를 운영 기준 환경으로 두고 public 서비스 경로, private 운영자 경로, GitOps 제어면을 분리하면 home lab의 제약에서 벗어나 실제 프로덕션 환경과 더 유사한 조건에서 운영을 검증할 수 있을 것이라고 판단했습니다.
 
 
 ## 2. Cluster와 GitOps Repo 구조
@@ -15,65 +15,63 @@
 
 | Plane | 책임 | 대표 구성 |
 | --- | --- | --- |
-| Public service plane | 외부 사용자가 접근하는 서비스 노출 | `docs.mintcocoa.dev`, `drop.mintcocoa.dev`, `demo.mintcocoa.dev`, public `nginx` ingress |
+| Public service plane | 외부 사용자가 접근하는 서비스 노출 | `docs.mintcocoa.cc`, `demo.mintcocoa.cc`, public `nginx` ingress |
 | GitOps control plane | staging/prod desired state 선언과 수렴 | `mintcocoa-ops`, GitOps manager Argo CD, Kustomize overlays |
-| Private operator plane | 운영자 접근과 관측성 UI | private Kubernetes API, OCI IPSec/GitOps manager, private Grafana ingress |
+| Private operator plane | 운영자 접근과 관측성 UI | Azure VPN Gateway, manager k3s, private Grafana/Argo CD 접근 경로 |
 
-## 2. OCI VCN과 Kubernetes Cluster 구성
+## 2. Azure VNet과 Kubernetes Cluster 구성
 
-프로덕션 환경은 단순히 Kubernetes 클러스터를 하나 띄우는 것이 아니라, 네트워크 주소 공간과 워커 노드, Pod IP 할당 방식, 외부 노출 경로를 함께 설계해야 했습니다. 그래서 OCI VCN을 기준으로 클러스터의 기본 네트워크 경계를 먼저 만들고, 그 안에서 OKE가 worker node와 pod network를 관리하도록 구성했습니다.
+프로덕션 환경은 단순히 Kubernetes 클러스터를 하나 띄우는 것이 아니라, 네트워크 주소 공간과 워커 노드, Pod IP 할당 방식, 외부 노출 경로를 함께 설계해야 했습니다. 그래서 Azure VNet을 기준으로 클러스터의 기본 네트워크 경계를 먼저 만들고, 그 안에서 AKS가 worker node와 pod network를 관리하도록 구성했습니다.
 
-OKE는 managed control plane을 제공하므로 직접 control plane VM을 운영하지 않아도 Kubernetes API와 node pool을 분리해서 다룰 수 있습니다. worker node는 프리 티어에서 사용할 수 있는 ARM 기반 `VM.Standard.A1.Flex`로 구성했고, pod network는 OCI VCN native CNI를 사용해 Kubernetes 내부 주소 체계가 VCN subnet 설계와 자연스럽게 연결되도록 했습니다.
+AKS는 managed control plane을 제공하므로 직접 control plane VM을 운영하지 않아도 Kubernetes API와 node pool을 분리해서 다룰 수 있습니다. Azure VNet `10.40.0.0/16` 안에 AKS node subnet과 GatewaySubnet을 두고, public ingress는 Azure LoadBalancer의 public IP로, private observability ingress는 internal LoadBalancer IP로 분리했습니다.
 
 이 구성의 목적은 작은 비용으로도 production과 유사한 운영 조건을 만드는 것입니다. worker node 3대가 모두 `Ready` 상태인지 확인하고, 이후 Network Boundary와 Security Group 섹션에서 public ingress, private API, pod outbound traffic이 어떤 경로로 분리되는지 검증합니다.
 
 | 영역 | 구성 |
 | --- | --- |
-| Cloud provider | Oracle Cloud Infrastructure |
-| Region | `ap-chuncheon-1` |
-| VCN | `10.30.0.0/16` |
-| Kubernetes | OKE basic cluster, Kubernetes `v1.33.1` |
-| Node pool | `VM.Standard.A1.Flex`, 3 worker nodes |
-| CNI | OCI VCN native pod networking |
-| Node OS | Oracle Linux 8 managed node image |
-
-![Kubernetes production node status](assets/production-infrastructure/oci/kubectl-oke-node-status.png)
+| Cloud provider | Microsoft Azure |
+| Region | `southeastasia` |
+| VNet | `10.40.0.0/16` |
+| Kubernetes | Azure AKS cluster |
+| Node pool | `Standard_B2s_v2`, 3 worker nodes |
+| CNI | Azure CNI |
+| Public ingress IP | `57.155.52.74` |
+| Private ingress IP | `10.40.0.91` |
 
 ## 3. Network Boundary와 Security Group
 
 public ingress와 private ingress는 외부 노출 경로와 내부 경로를 분리하기 위해 public host는 외부 사용자 트래픽을 받고, operator-only host는 private access path 안에서만 사용합니다.
 
-public-facing 리소스는 Internet Gateway 경로를 사용하고, pod outbound traffic은 NAT Gateway 경로를 사용하도록 해 public ingress와 private API, pod outbound traffic의 경로를 분리했습니다.
+public-facing 리소스는 Azure public LoadBalancer 경로를 사용하고, 운영자 UI와 관측성 UI는 Azure VPN Gateway와 manager k3s 프록시를 거치는 private 경로로 분리했습니다.
 
-![OCI routing Terraform capture](assets/production-infrastructure/architecture/oci-routing-boundary.png)
-
-VCN은 역할별 subnet으로 나누어집니다. endpoint subnet은 Kubernetes API endpoint를 위한 공간이고, pods subnet은 OCI VCN native CNI가 자동으로 pod address를 할당하는 영역이므로 별도 CNI를 둘 필요가 없었습니다. management subnet은 집 내부망에서 IPSec 경로로 접근하는 management k3s/Argo CD GitOps manager VM 영역입니다.
+Azure VNet은 역할별 subnet으로 나누어집니다. AKS subnet은 worker node와 pod traffic을 수용하고, GatewaySubnet은 Azure VPN Gateway가 home LAN과 Site-to-Site IPsec을 맺는 영역입니다. GitOps manager는 home LAN의 `172.30.1.135` 호스트에서 k3s와 Argo CD를 운영하며, Azure private ingress로 접근할 때는 VPN 경로를 사용합니다.
 
 ```{mermaid}
 flowchart LR
   publicUsers["External users"] --> publicDns["Public DNS"]
-  publicDns --> igw["Internet Gateway"]
+  publicDns --> edge["Azure public edge"]
 
-  operator["Operator<br/>Home LAN"] --> cpe["Raspberry Pi<br/>IPSec CPE"]
-  cpe --> ipsec["OCI Site-to-Site<br/>IPSec"]
+  operator["Operator<br/>Home LAN"] --> managerHost["manager<br/>172.30.1.135"]
+  managerHost --> ipsec["strongSwan to<br/>Azure VPN Gateway"]
 
-  subgraph vcn["OCI VCN 10.30.0.0/16"]
+  subgraph vnet["Azure VNet 10.40.0.0/16"]
     subgraph publicPath["Public exposure path"]
-      igw --> publicLb["Public Load Balancer"]
+      edge --> publicLb["Azure Public Load Balancer<br/>57.155.52.74"]
       publicLb --> publicIngress["public nginx ingress"]
       publicIngress --> services["prod-services workloads"]
     end
 
     subgraph privatePath["Private operator path"]
-      ipsec --> manager["GitOps manager<br/>management subnet"]
-      manager --> privateApi["OKE private API<br/>endpoint subnet"]
-      manager --> privateLb["Private Load Balancer"]
+      ipsec --> gateway["Azure VPN Gateway"]
+      gateway --> manager["GitOps manager<br/>manager k3s"]
+      manager --> privateApi["AKS API<br/>operator controlled context"]
+      manager --> privateLb["Azure Internal Load Balancer<br/>10.40.0.91"]
       privateLb --> privateIngress["private nginx ingress<br/>operator-only hosts"]
     end
 
     subgraph outboundPath["Pod outbound path"]
-      services --> pods["VCN-native pod addresses<br/>pods subnet"]
-      pods --> nat["NAT Gateway"]
+      services --> pods["AKS pod traffic<br/>node subnet"]
+      pods --> nat["Azure outbound path"]
     end
   end
 
@@ -82,24 +80,20 @@ flowchart LR
   classDef public fill:#e8f2ff,stroke:#2563eb,color:#111827
   classDef private fill:#ecfdf3,stroke:#16a34a,color:#111827
   classDef outbound fill:#fff7ed,stroke:#ea580c,color:#111827
-  class publicUsers,publicDns,igw,publicLb,publicIngress,services public
-  class operator,cpe,ipsec,manager,privateApi,privateLb,privateIngress private
+  class publicUsers,publicDns,edge,publicLb,publicIngress,services public
+  class operator,managerHost,ipsec,gateway,manager,privateApi,privateLb,privateIngress private
   class pods,nat,internetOut outbound
 ```
 
 보안 그룹(NSG)은 Kubernetes API 접근, node/pod traffic, public/private ingress traffic, GitOps manager 접근 기준으로 나누어 설정했습니다.
 
-![OCI security boundary Terraform capture](assets/production-infrastructure/architecture/oci-security-boundary.png)
-
-
 | Component | Role |
 | --- | --- |
-| Internet Gateway | public ingress와 OKE public endpoint |
-| NAT Gateway | pod subnet의 outbound traffic |
-| Control plane NSG | Kubernetes API 접근 제한 |
-| Workers NSG | node와 pod traffic 경계 |
-| Load balancer NSG | public/private ingress load balancer traffic 경계 |
-| Manager NSG | home LAN SSH/HTTPS, GitOps management 진입점 |
+| Azure public LoadBalancer | `docs.mintcocoa.cc`, `demo.mintcocoa.cc` 같은 public workload ingress |
+| Azure internal LoadBalancer | Grafana 같은 private observability ingress |
+| Azure VPN Gateway | home LAN `172.30.1.0/24`와 Azure VNet `10.40.0.0/16` 사이 Site-to-Site IPsec |
+| AKS node subnet | worker node, service, pod traffic 경계 |
+| GitOps manager k3s | Argo CD 제어면과 private UI 프록시 진입점 |
 
 
 운영면에서의 접근은 public user traffic과 분리했습니다. 외부 사용자는 public DNS와 public ingress를 통해 서비스에 접근하지만, 운영자는 home LAN에서 Raspberry Pi IPSec CPE와 GitOps manager를 거쳐 private 운영 경로에 들어옵니다.
@@ -113,7 +107,7 @@ public internet에 직접 노출되는 면적을 줄이고,어디서 접속할 �
 
 Production desired state는 prod 클러스터가 최종적으로 어떤 상태여야 하는지를 의미하고, 모든 상태를 mintcocoa-ops 저장소 안에 선언적으로 표현, Argo CD가 이를 실제 prod 클러스터 상태와 비교해 일치하도록 관리합니다.
 
-OCI 위에는 GitOps manager VM이 있고, 그 안의 management k3s 클러스터에서 Argo CD가 동작합니다. 이 Argo CD가 mintcocoa-ops 저장소를 바라보면서 “Git에 적힌 상태”와 “실제 Kubernetes 클러스터 상태”를 비교합니다.
+GitOps manager는 home LAN의 manager k3s에서 동작하고, Argo CD가 `mintcocoa-ops` 저장소를 바라보면서 “Git에 적힌 상태”와 “실제 Azure AKS 클러스터 상태”를 비교합니다.
 
 GitOps repo는 역할별 root application으로 나누어집니다.
 

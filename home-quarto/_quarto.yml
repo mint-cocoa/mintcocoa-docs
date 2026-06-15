@@ -8,14 +8,14 @@ project:
 
 website:
   title: "배진후 포트폴리오"
-  site-url: "https://docs.mintcocoa.dev"
+  site-url: "https://docs.mintcocoa.cc"
   page-navigation: true
   navbar:
     title: "MintCocoa Docs"
     left:
       - text: "io_uring 기반 C++ 서버 런타임 개발"
         href: /portfolio/servercore/chapters/01-overview.html
-      - text: "오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축"
+      - text: "Azure AKS·홈랩 기반 개발-운영 파이프라인 구축"
         href: /portfolio/devops/
     right:
       - text: "GitHub"
@@ -32,4 +32,4 @@ format:
     css: styles.css
     include-in-header:
       text: |
-        <meta name="description" content="io_uring 기반 C++ 서버 런타임 개발과 오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축 문서">
+        <meta name="description" content="io_uring 기반 C++ 서버 런타임 개발과 Azure AKS·홈랩 기반 개발-운영 파이프라인 구축 문서">

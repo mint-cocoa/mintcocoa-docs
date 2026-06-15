@@ -141,7 +141,7 @@ listing:
 | 항목 | 링크 |
 | --- | --- |
 | 구현 저장소 | [iouring-runtime](https://github.com/mint-cocoa/iouring-runtime) |
-| 문서 URL | [docs.mintcocoa.dev/portfolio/servercore/](https://docs.mintcocoa.dev/portfolio/servercore/) |
+| 문서 URL | [docs.mintcocoa.cc/portfolio/servercore/](https://docs.mintcocoa.cc/portfolio/servercore/) |
 |  PDF | [ServerCore-Portfolio-jinhoo.pdf](downloads/ServerCore-Portfolio-jinhoo.pdf) |
 :::
 `;

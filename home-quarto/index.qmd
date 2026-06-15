@@ -33,9 +33,9 @@ subtitle: "포트폴리오와 운영 문서"
 :::
 
 ::: {.doc-body}
-#### [오라클 클라우드·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/)
+#### [Azure AKS·홈랩 기반 개발-운영 파이프라인 구축](/portfolio/devops/)
 
-GitHub Actions, GHCR, Argo CD, OKE production 배포와 운영, observability, AI 알림 시스템 구축 과정과 각 구간 설계 의도를 정리.
+GitHub Actions, GHCR, Argo CD, Azure AKS production 배포와 운영, observability, AI 알림 시스템 구축 과정과 각 구간 설계 의도를 정리.
 :::
 :::
 :::
