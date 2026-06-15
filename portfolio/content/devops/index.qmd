@@ -118,7 +118,7 @@ production으로 보낼 때는 `mintcocoa-ops`의 promotion workflow가 staging 
 
 1. Prometheus가 기본 Kubernetes/Node/Prometheus 룰을 평가하고, 룰이 firing 상태가 되면 Alertmanager가 alert label과 annotation을 포함한 webhook payload를 생성합니다.
 2. Alertmanager는 내부 Kubernetes service인 `alert-ai-webhook`으로 webhook을 전달합니다.
-3. `alert-ai-webhook`은 `대상, 증상, 시간 정보만 추출해 AI에게 전달하는 1차 프롬프트`로 AI에게 알림 사실을 전달합니다. 
+3. `alert-ai-webhook`는 대상, 증상, 시간 정보만 추출해 AI에게 전달하는 1차 프롬프트로 AI에게 알림 사실을 전달합니다.
 4. 1차 프롬프트는 AI에게 Alertmanager 사실만 보고 필요한 조회를 tool로 요청하라고 지시합니다.
 5. AI는 필요한 Prometheus, Loki, Kubernetes 조회를 읽기 전용 tool call로 요청하고, 이 요청은 `ai_trace ai_requested_tools`로 남습니다.
 6. 실행 결과는 `ai_trace tool_results`로 남기고, Alertmanager 사실과 tool 결과를 다시 OpenAI Responses API에 전달합니다.
