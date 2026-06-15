@@ -1,5 +1,0 @@
-$ gh repo view mint-cocoa/mintcocoa-pipeline-demo --json nameWithOwner,visibility,url,defaultBranchRef
-{"defaultBranchRef":{"name":"main"},"nameWithOwner":"mint-cocoa/mintcocoa-pipeline-demo","url":"https://github.com/mint-cocoa/mintcocoa-pipeline-demo","visibility":"PUBLIC"}
-
-$ git -C /home/cocoa/mintcocoa-pipeline-demo log --oneline -1
-438361a Initial pipeline demo app

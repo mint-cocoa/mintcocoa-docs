@@ -1,8 +1,0 @@
-$ gh pr view 9 --repo mint-cocoa/mintcocoa-ops --json number,title,state,mergeCommit,url
-{"mergeCommit":{"oid":"aa509f5f6c8aba27425f3bf3cd9a5b97c9e8d040"},"number":9,"state":"MERGED","title":"Update pipeline-demo staging image to 438361a8b81e4ca39f04c95d1457091dba36c4e2","url":"https://github.com/mint-cocoa/mintcocoa-ops/pull/9"}
-
-$ gh pr diff 9 --repo mint-cocoa/mintcocoa-ops --name-only
-apps/pipeline-demo/overlays/staging/kustomization.yaml
-
-$ gh pr checks 9 --repo mint-cocoa/mintcocoa-ops
-render	pass	8s	https://github.com/mint-cocoa/mintcocoa-ops/actions/runs/27430606278/job/81079658668	

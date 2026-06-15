@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">Azure AKS detailed network architecture</title>
+  <desc id="desc">Detailed Azure AKS network architecture for MintCocoa, including public ingress, private operator access through VPN, GitOps manager, AKS API, node subnet, namespaces, services, and outbound path.</desc>
+  <defs>
+    <marker id="arrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="blueArrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="greenArrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="orangeArrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="purpleArrow" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 2 1 L 8 5 L 2 9" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      .bg{fill:#f8fafc}
+      .outer{fill:#ffffff;stroke:#64748b;stroke-width:2;stroke-dasharray:8 8}
+      .zone{fill:#ffffff;stroke:#cbd5e1;stroke-width:1.6}
+      .public{fill:#eff6ff;stroke:#2563eb;stroke-width:2}
+      .private{fill:#ecfdf5;stroke:#16a34a;stroke-width:2}
+      .gitops{fill:#faf5ff;stroke:#7c3aed;stroke-width:2}
+      .outbound{fill:#fff7ed;stroke:#ea580c;stroke-width:2}
+      .neutral{fill:#ffffff;stroke:#94a3b8;stroke-width:1.5}
+      .muted{fill:#f1f5f9;stroke:#cbd5e1;stroke-width:1.5}
+      .h{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:700}
+      .sub{font-family:Segoe UI,Arial,sans-serif;fill:#475569;font-size:15px}
+      .t{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:18px;font-weight:700}
+      .s{font-family:Segoe UI,Arial,sans-serif;fill:#334155;font-size:14px}
+      .xs{font-family:Segoe UI,Arial,sans-serif;fill:#64748b;font-size:12px}
+      .mono{font-family:Consolas,Menlo,monospace;fill:#334155;font-size:12px}
+      .line{stroke:#334155;stroke-width:2.2;fill:none;marker-end:url(#arrow)}
+      .publicLine{stroke:#2563eb;stroke-width:2.8;fill:none;marker-end:url(#blueArrow)}
+      .privateLine{stroke:#16a34a;stroke-width:2.8;fill:none;marker-end:url(#greenArrow)}
+      .vpnLine{stroke:#ea580c;stroke-width:2.8;stroke-dasharray:9 7;fill:none;marker-end:url(#orangeArrow)}
+      .gitopsLine{stroke:#7c3aed;stroke-width:2.6;stroke-dasharray:6 5;fill:none;marker-end:url(#purpleArrow)}
+      .outLine{stroke:#ea580c;stroke-width:2.5;fill:none;marker-end:url(#orangeArrow)}
+      .label{font-family:Segoe UI,Arial,sans-serif;fill:#334155;font-size:12px;font-weight:700}
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1050"/>
+  <text class="h" x="54" y="58">Azure AKS Detailed Network Architecture</text>
+  <text class="sub" x="54" y="86">rg-cocoa-dev · aks-cocoa-dev · southeastasia · VNet 10.40.0.0/16 · home LAN 172.30.1.0/24</text>
+
+  <rect class="public" x="55" y="135" width="245" height="145" rx="14"/>
+  <text class="t" x="80" y="172">Public users</text>
+  <text class="s" x="80" y="198">Internet clients</text>
+  <text class="mono" x="80" y="222">docs.mintcocoa.dev</text>
+  <text class="mono" x="80" y="244">demo.mintcocoa.dev</text>
+
+  <rect class="public" x="365" y="135" width="245" height="145" rx="14"/>
+  <text class="t" x="390" y="172">Public DNS</text>
+  <text class="s" x="390" y="198">Cloudflare / public zone</text>
+  <text class="mono" x="390" y="222">*.mintcocoa.dev</text>
+  <text class="mono" x="390" y="244">A 57.155.52.74</text>
+
+  <rect class="private" x="55" y="620" width="260" height="175" rx="14"/>
+  <text class="t" x="80" y="657">Home operator network</text>
+  <text class="mono" x="80" y="684">172.30.1.0/24</text>
+  <text class="s" x="80" y="710">Operator browser / kubectl</text>
+  <text class="s" x="80" y="734">Internal hosts override</text>
+  <text class="mono" x="80" y="758">argocd.mintcocoa.dev</text>
+
+  <rect class="gitops" x="375" y="610" width="285" height="205" rx="14"/>
+  <text class="t" x="400" y="647">GitOps manager host</text>
+  <text class="mono" x="400" y="674">172.30.1.135</text>
+  <text class="s" x="400" y="700">k3s + Argo CD</text>
+  <text class="s" x="400" y="724">strongSwan S2S endpoint</text>
+  <text class="s" x="400" y="748">private UI proxy entry</text>
+  <text class="mono" x="400" y="774">Argo CD: manager k3s</text>
+
+  <rect class="outer" x="705" y="120" width="835" height="795" rx="24"/>
+  <text class="t" x="735" y="158">Azure VNet: vnet-cocoa-dev</text>
+  <text class="mono" x="735" y="183">CIDR 10.40.0.0/16</text>
+
+  <rect class="private" x="735" y="205" width="250" height="145" rx="14"/>
+  <text class="t" x="760" y="240">GatewaySubnet</text>
+  <text class="mono" x="760" y="266">10.40.255.0/27</text>
+  <text class="s" x="760" y="291">Azure VPN Gateway</text>
+  <text class="mono" x="760" y="315">vpng-cocoa-dev</text>
+
+  <rect class="neutral" x="1010" y="205" width="225" height="145" rx="14"/>
+  <text class="t" x="1035" y="240">Local Network Gateway</text>
+  <text class="mono" x="1035" y="266">118.59.121.222</text>
+  <text class="mono" x="1035" y="290">172.30.1.0/24</text>
+  <text class="s" x="1035" y="315">IPsec peer definition</text>
+
+  <rect class="zone" x="735" y="390" width="765" height="415" rx="18"/>
+  <text class="t" x="760" y="428">AKS subnet: snet-cocoa-dev-aks</text>
+  <text class="mono" x="760" y="453">10.40.0.0/22 · Azure CNI · 3 nodes · outboundType=loadBalancer</text>
+
+  <rect class="public" x="765" y="480" width="245" height="120" rx="12"/>
+  <text class="t" x="790" y="515">Azure public Load Balancer</text>
+  <text class="mono" x="790" y="541">57.155.52.74</text>
+  <text class="s" x="790" y="566">Service: ingress-nginx</text>
+
+  <rect class="public" x="1045" y="480" width="190" height="120" rx="12"/>
+  <text class="t" x="1070" y="515">public ingress</text>
+  <text class="mono" x="1070" y="541">ingress-nginx</text>
+  <text class="s" x="1070" y="566">80 / 443</text>
+
+  <rect class="neutral" x="1270" y="455" width="200" height="170" rx="12"/>
+  <text class="t" x="1295" y="490">prod-services</text>
+  <text class="s" x="1295" y="516">mintcocoa-docs 2/2</text>
+  <text class="s" x="1295" y="540">pipeline-demo 2/2</text>
+  <text class="s" x="1295" y="564">whoami 2/2</text>
+  <text class="s" x="1295" y="588">alert-trigger-lab 1/1</text>
+
+  <rect class="private" x="765" y="655" width="245" height="120" rx="12"/>
+  <text class="t" x="790" y="690">Azure internal Load Balancer</text>
+  <text class="mono" x="790" y="716">10.40.0.91</text>
+  <text class="s" x="790" y="741">Service: private ingress</text>
+
+  <rect class="private" x="1045" y="655" width="190" height="120" rx="12"/>
+  <text class="t" x="1070" y="690">private ingress</text>
+  <text class="mono" x="1070" y="716">private-nginx</text>
+  <text class="s" x="1070" y="741">operator-only hosts</text>
+
+  <rect class="neutral" x="1270" y="650" width="200" height="155" rx="12"/>
+  <text class="t" x="1295" y="684">observability</text>
+  <text class="s" x="1295" y="710">grafana.mintcocoa.dev</text>
+  <text class="s" x="1295" y="734">Prometheus / Alertmanager</text>
+  <text class="s" x="1295" y="758">Loki / Tempo / webhook</text>
+
+  <rect class="gitops" x="735" y="840" width="335" height="75" rx="12"/>
+  <text class="t" x="760" y="872">AKS API server</text>
+  <text class="mono" x="760" y="896">public endpoint, TLS + kubeconfig/RBAC</text>
+
+  <rect class="outbound" x="1185" y="840" width="315" height="75" rx="12"/>
+  <text class="t" x="1210" y="872">AKS managed outbound</text>
+  <text class="s" x="1210" y="896">Standard Load Balancer outbound path</text>
+
+  <rect class="outbound" x="1345" y="135" width="155" height="95" rx="12"/>
+  <text class="t" x="1380" y="171">Internet</text>
+  <text class="mono" x="1380" y="196">0.0.0.0/0</text>
+
+  <path class="publicLine" d="M300 205 L365 205"/>
+  <text class="label" x="318" y="190">HTTPS</text>
+  <path class="publicLine" d="M610 205 C675 205, 710 500, 765 535"/>
+  <text class="label" x="650" y="285">57.155.52.74</text>
+  <path class="publicLine" d="M1010 540 L1045 540"/>
+  <path class="publicLine" d="M1235 540 L1270 540"/>
+
+  <path class="privateLine" d="M315 700 L375 700"/>
+  <text class="label" x="328" y="685">SSH / browser</text>
+  <path class="vpnLine" d="M660 690 C705 610, 720 315, 735 278"/>
+  <text class="label" x="648" y="585">S2S IPsec</text>
+  <path class="privateLine" d="M985 278 L1010 278"/>
+  <path class="privateLine" d="M735 278 C695 360, 700 680, 765 715"/>
+  <text class="label" x="675" y="470">private route</text>
+  <path class="privateLine" d="M1010 715 L1045 715"/>
+  <path class="privateLine" d="M1235 715 L1270 715"/>
+
+  <path class="gitopsLine" d="M520 610 C580 525, 650 850, 735 878"/>
+  <text class="label" x="555" y="548">Argo CD cluster registration</text>
+  <path class="gitopsLine" d="M520 610 C650 485, 950 420, 1120 480"/>
+  <text class="label" x="700" y="470">sync desired state</text>
+
+  <path class="outLine" d="M1010 540 C1090 620, 1130 835, 1185 878"/>
+  <text class="label" x="1050" y="818">pod egress</text>
+  <path class="outLine" d="M1500 878 C1550 780, 1535 245, 1500 185"/>
+
+  <rect class="muted" x="55" y="915" width="890" height="82" rx="12"/>
+  <text class="t" x="80" y="948">Boundary notes</text>
+  <text class="s" x="80" y="972">Public services use the public Load Balancer. Operator UI access uses the VPN path and internal Load Balancer.</text>
+  <text class="s" x="80" y="992">AKS API is not a private cluster endpoint in the current deployment; access is controlled by kubeconfig/RBAC.</text>
+
+  <rect class="muted" x="990" y="915" width="510" height="82" rx="12"/>
+  <rect class="public" x="1015" y="940" width="18" height="18" rx="4"/>
+  <text class="xs" x="1042" y="954">public user path</text>
+  <rect class="private" x="1160" y="940" width="18" height="18" rx="4"/>
+  <text class="xs" x="1187" y="954">private operator path</text>
+  <rect class="gitops" x="1330" y="940" width="18" height="18" rx="4"/>
+  <text class="xs" x="1357" y="954">GitOps/API path</text>
+  <rect class="outbound" x="1015" y="968" width="18" height="18" rx="4"/>
+  <text class="xs" x="1042" y="982">AKS outbound</text>
+</svg>

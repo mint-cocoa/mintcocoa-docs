@@ -2,18 +2,28 @@
 
 Unified Quarto source for the MintCocoa docs hub and the `/portfolio/` technical documents.
 
-Production URL: `https://docs.mintcocoa.cc`
+Production URL: `https://docs.mintcocoa.dev`
 
 ## Layout
 
 ```text
-home-quarto/  Quarto landing hub served at /
-portfolio/    Quarto documents and DevOps documentation served at /portfolio/
-scripts/      Unified build scripts
+home-quarto/        Quarto landing hub source served at /
+portfolio/content/  Portfolio and DevOps documentation source served at /portfolio/
+portfolio/scripts/  Portfolio render helpers
+scripts/            Unified build scripts
 ```
 
-The generated static site artifact is `_site/`. GitHub Pages is kept as a public
-mirror, and the Azure AKS deployment serves the same artifact from a container.
+Generated artifacts are intentionally not tracked:
+
+```text
+_site/                       Final static site artifact
+portfolio/_site/             Intermediate portfolio site artifact
+portfolio/docs/              Intermediate Quarto render output
+portfolio/generated-quarto/  Generated Quarto source from upstream docs
+```
+
+GitHub Pages is kept as a public mirror, and the Azure AKS deployment serves the
+same `_site/` artifact from a container.
 
 ## Build
 
@@ -26,9 +36,12 @@ Expected output:
 ```text
 _site/index.html
 _site/portfolio/index.html
+_site/portfolio/servercore/index.html
+_site/portfolio/runtime-web/index.html
+_site/portfolio/runtime-proxy/index.html
+_site/portfolio/runtime-game/index.html
+_site/portfolio/client/index.html
 _site/portfolio/devops/index.html
-_site/portfolio/devops/OpsDashboard.html
-_site/portfolio/devops/OciOkeGitOpsPortfolio.html
 ```
 
 ## Source Repositories

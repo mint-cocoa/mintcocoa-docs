@@ -11,7 +11,7 @@ format:
 
 ## 문서 경로
 
-이 사이트의 canonical 경로는 `https://docs.mintcocoa.cc/portfolio/`입니다. GitHub Pages는 최신 배포 대상으로 사용하지 않고, `_site` 산출물을 컨테이너 이미지로 빌드해 Azure AKS production에서 서빙합니다.
+이 사이트의 canonical 경로는 `https://docs.mintcocoa.dev/portfolio/`입니다. GitHub Pages는 최신 배포 대상으로 사용하지 않고, `_site` 산출물을 컨테이너 이미지로 빌드해 Azure AKS production에서 서빙합니다.
 
 | 문서 | 공개 경로 | 내용 |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ DevOps 문서는 `mintcocoa-ops` 원격 `origin/main`에서 확인한 구조를 
 | --- | --- |
 | ServerCore | [전체 구조](servercore/chapters/01-overview.html) |
 | DevOps | [Azure AKS production GitOps 구조](devops/) |
-| 문서 배포 | [docs.mintcocoa.cc 배포 경로](devops/) |
+| 문서 배포 | [docs.mintcocoa.dev 배포 경로](devops/) |
 | 관측성 | [관측성과 운영 접근 경계](devops/chapters/04-observability-access.html) |
 
 ## 관련 저장소

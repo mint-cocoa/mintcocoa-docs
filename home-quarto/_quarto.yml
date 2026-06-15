@@ -8,7 +8,7 @@ project:
 
 website:
   title: "배진후 포트폴리오"
-  site-url: "https://docs.mintcocoa.cc"
+  site-url: "https://docs.mintcocoa.dev"
   page-navigation: true
   navbar:
     title: "MintCocoa Docs"

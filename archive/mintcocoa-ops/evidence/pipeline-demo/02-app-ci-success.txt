@@ -1,9 +1,0 @@
-$ gh run view 27430556190 --repo mint-cocoa/mintcocoa-pipeline-demo --json status,conclusion,headSha,url,name
-{"conclusion":"success","headSha":"438361a8b81e4ca39f04c95d1457091dba36c4e2","name":"Build image and open staging GitOps PR","status":"completed","url":"https://github.com/mint-cocoa/mintcocoa-pipeline-demo/actions/runs/27430556190"}
-
-$ image built by GitHub Actions
-image=ghcr.io/mint-cocoa/mintcocoa-pipeline-demo:438361a8b81e4ca39f04c95d1457091dba36c4e2
-platforms=linux/amd64,linux/arm64
-
-$ staging GitOps PR opened by app CI
-https://github.com/mint-cocoa/mintcocoa-ops/pull/9

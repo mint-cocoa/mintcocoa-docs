@@ -8,9 +8,9 @@ hub/node_modules/
 portfolio/_site/
 portfolio/generated-quarto/
 portfolio/.quarto/
+portfolio/docs/
 portfolio/.gitignore
 portfolio/dashboard/node_modules/
 portfolio/dashboard/dist/
-portfolio/docs/**/*.quarto_ipynb
 .DS_Store
 .env

@@ -1,6 +1,0 @@
-$ kubectl --context mintcocoa-manager-local -n argocd get app staging-pipeline-demo
-staging-pipeline-demo   Synced   Healthy   7709bfa3934270082c4949a534d4f69eca7bc519
-
-$ kubectl --context mintcocoa-staging-local -n staging-services get deploy pipeline-demo
-ghcr.io/mint-cocoa/mintcocoa-pipeline-demo:438361a8b81e4ca39f04c95d1457091dba36c4e2
-1/1

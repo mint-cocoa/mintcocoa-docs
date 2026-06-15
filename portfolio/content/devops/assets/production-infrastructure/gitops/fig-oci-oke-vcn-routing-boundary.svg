@@ -32,9 +32,9 @@
      inkscape:window-maximized="1"
      inkscape:current-layer="svg57" />
   <title
-     id="title">OCI OKE VCN routing boundary</title>
+     id="title">Azure AKS VNet routing boundary</title>
   <desc
-     id="desc">OCI OKE VCN routing diagram showing public route table subnets, pods NAT route table subnets, internet gateway, NAT gateway, DRG IPSec path, and external internet and home network destinations.</desc>
+     id="desc">Azure AKS VNet routing diagram showing public ingress, AKS subnet, Azure VPN Gateway, internal Load Balancer, outbound path, and home LAN destinations.</desc>
   <defs
      id="defs4">
     <rect
@@ -157,12 +157,12 @@
      class="h"
      x="60"
      y="64"
-     id="text4">OCI OKE VCN Routing Boundary</text>
+     id="text4">Azure AKS VNet Routing Boundary</text>
   <text
      class="s"
      x="60"
      y="94"
-     id="text5">Region: ap-chuncheon-1 · VCN: home-oci-oke-vcn · CIDR: 10.30.0.0/16</text>
+     id="text5">Region: southeastasia · VNet: vnet-cocoa-dev · CIDR: 10.40.0.0/16</text>
   <rect
      class="internet"
      x="1150"
@@ -208,7 +208,7 @@
      x="1240"
      y="700"
      text-anchor="middle"
-     id="text10">via IPSec</text>
+     id="text10">manager 172.30.1.135</text>
   <rect
      class="vcn"
      x="50"
@@ -221,12 +221,12 @@
      class="t"
      x="80"
      y="162"
-     id="text11">VCN: home-oci-oke-vcn</text>
+     id="text11">VNet: vnet-cocoa-dev</text>
   <text
      class="xs"
      x="80"
      y="188"
-     id="text12">CIDR: 10.30.0.0/16 · State: AVAILABLE</text>
+     id="text12">CIDR: 10.40.0.0/16 · AKS subnet + GatewaySubnet</text>
   <rect
      class="publicGroup"
      x="80"
@@ -239,12 +239,12 @@
      class="t"
      x="105"
      y="256"
-     id="text13">Public Route Table Subnets</text>
+     id="text13">Public Ingress Path</text>
   <text
      class="s"
      x="105"
      y="282"
-     id="text14">Route Table: home-oci-oke-public-rt</text>
+     id="text14">Azure public Load Balancer and AKS ingress</text>
   <rect
      class="subnet"
      x="110"
@@ -257,17 +257,17 @@
      class="mini"
      x="156.92567"
      y="329.91891"
-     id="text15">Endpoint Public</text>
+     id="text15">Public Ingress</text>
   <text
      class="s"
      x="156.92567"
      y="351.91891"
-     id="text16">10.30.1.0/24</text>
+     id="text16">57.155.52.74</text>
   <text
      class="xs"
      x="156.92567"
      y="367.91891"
-     id="text17">Public IP allowed: true</text>
+     id="text17">docs/demo hosts</text>
   <rect
      class="subnet"
      x="110"
@@ -280,17 +280,17 @@
      class="mini"
      x="155.91216"
      y="409.91891"
-     id="text18">Workers Public</text>
+     id="text18">AKS Node Subnet</text>
   <text
      class="s"
      x="155.91216"
      y="431.91891"
-     id="text19">10.30.2.0/24</text>
+     id="text19">10.40.0.0/22</text>
   <text
      class="xs"
      x="155.91216"
      y="447.91891"
-     id="text20">Public IP allowed: true</text>
+     id="text20">Azure CNI traffic</text>
   <rect
      class="routeTable"
      x="650"
@@ -304,19 +304,19 @@
      x="717"
      y="361"
      text-anchor="middle"
-     id="text24">Public RT</text>
+     id="text24">Public LB</text>
   <text
      class="xs"
      x="717"
      y="386"
      text-anchor="middle"
-     id="text25">0.0.0.0/0 → IGW</text>
+     id="text25">80/443 → ingress</text>
   <text
      class="xs"
      x="717"
      y="408"
      text-anchor="middle"
-     id="text26">172.30.1.0/24 → DRG</text>
+     id="text26">public user path</text>
   <rect
      class="natGroup"
      x="80"
@@ -329,12 +329,12 @@
      class="t"
      x="105"
      y="556"
-     id="text27">Pods NAT Route Table Subnets</text>
+     id="text27">Private Operator Path</text>
   <text
      class="s"
      x="105"
      y="582"
-     id="text28">Route Table: home-oci-oke-pods-nat-rt</text>
+     id="text28">Home LAN to Azure VPN Gateway and internal Load Balancer</text>
   <rect
      class="subnet"
      x="140.27287"
@@ -347,17 +347,17 @@
      class="mini"
      x="158.9527"
      y="638.9054"
-     id="text29">Pods Public</text>
+     id="text29">Private Ingress</text>
   <text
      class="s"
      x="158.9527"
      y="660.9054"
-     id="text30">10.30.3.0/24</text>
+     id="text30">10.40.0.91</text>
   <text
      class="xs"
      x="158.9527"
      y="676.9054"
-     id="text31">Public IP allowed: true</text>
+     id="text31">operator-only hosts</text>
   <rect
      class="routeTable"
      x="650"
@@ -371,19 +371,19 @@
      x="717"
      y="631"
      text-anchor="middle"
-     id="text35">Pods NAT RT</text>
+     id="text35">Private LB</text>
   <text
      class="xs"
      x="717"
      y="656"
      text-anchor="middle"
-     id="text36">0.0.0.0/0 → NAT</text>
+     id="text36">10.40.0.91</text>
   <text
      class="xs"
      x="717"
      y="678"
      text-anchor="middle"
-     id="text37">172.30.1.0/24 → DRG</text>
+     id="text37">from home VPN</text>
   <rect
      class="gateway"
      x="900"
@@ -397,13 +397,13 @@
      x="975"
      y="239"
      text-anchor="middle"
-     id="text38">Internet</text>
+     id="text38">Public Load</text>
   <text
      class="t"
      x="975"
      y="262"
      text-anchor="middle"
-     id="text39">Gateway</text>
+     id="text39">Balancer</text>
   <rect
      class="gateway"
      x="900"
@@ -417,13 +417,13 @@
      x="975"
      y="394"
      text-anchor="middle"
-     id="text40">NAT</text>
+     id="text40">AKS</text>
   <text
      class="t"
      x="975"
      y="417"
      text-anchor="middle"
-     id="text41">Gateway</text>
+     id="text41">Outbound</text>
   <rect
      class="gateway"
      x="900"
@@ -437,13 +437,13 @@
      x="975"
      y="626"
      text-anchor="middle"
-     id="text42">DRG</text>
+     id="text42">VPN Gateway</text>
   <text
      class="s"
      x="975"
      y="652"
      text-anchor="middle"
-     id="text43">home IPSec</text>
+     id="text43">Site-to-Site IPsec</text>
   <path
      class="line"
      d="M340 342 C455 326, 565 318, 650 360"
@@ -470,26 +470,17 @@
      y="318.72296"
      id="text48">0.0.0.0/0</text>
   <path
-     class="ipsecLine"
-     d="M785 415 C845 500, 865 595, 900 635"
-     id="path49" />
-  <text
-     class="routeLabel"
-     x="715.16895"
-     y="456.85809"
-     id="text49">172.30.1.0/24</text>
-  <path
      class="natLine"
-     d="M785 625 C850 565, 865 445, 900 400"
+     d="M340 422 C500 470, 760 450, 900 400"
      id="path50" />
   <text
      class="routeLabel"
-     x="753.47968"
-     y="585.17572"
-     id="text50">0.0.0.0/0</text>
+     x="670"
+     y="500"
+     id="text50">node outbound</text>
   <path
      class="ipsecLine"
-     d="M785 675 C830 675, 860 655, 900 640"
+     d="M900 640 C860 655, 830 675, 785 675"
      id="path51" />
   <text
      class="routeLabel"
@@ -498,13 +489,13 @@
      id="text51">172.30.1.0/24</text>
   <path
      class="publicLine"
-     d="M1050 245 C1090 245, 1110 225, 1150 225"
+     d="M1150 225 C1110 225, 1090 245, 1050 245"
      id="path52" />
   <text
      class="routeLabel"
      x="1003.4797"
      y="194.78378"
-     id="text52">Internet egress</text>
+     id="text52">Public ingress</text>
   <path
      class="natLine"
      d="M1050 400 C1110 365, 1110 260, 1150 235"
@@ -513,16 +504,16 @@
      class="routeLabel"
      x="1016.1486"
      y="351.02704"
-     id="text53">NAT egress</text>
+     id="text53">AKS outbound</text>
   <path
      class="ipsecLine"
-     d="M1050 635 C1090 650, 1110 665, 1150 665"
+     d="M1150 665 C1110 665, 1090 650, 1050 635"
      id="path54" />
   <text
      class="routeLabel"
      x="1080"
      y="636"
-     id="text54">IPSec route</text>
+     id="text54">VPN route</text>
   <rect
      class="external"
      x="60"
@@ -543,7 +534,7 @@
      class="xs"
      x="104"
      y="862"
-     id="text55">Public RT path</text>
+     id="text55">Public ingress path</text>
   <rect
      class="legendSwatchNat"
      x="224"
@@ -556,7 +547,7 @@
      class="xs"
      x="250"
      y="862"
-     id="text56">NAT RT path</text>
+     id="text56">Private ingress path</text>
   <line
      class="ipsecLine"
      x1="370"
@@ -569,7 +560,7 @@
      class="xs"
      x="432"
      y="862"
-     id="text57">DRG / IPSec route</text>
+     id="text57">Azure VPN route</text>
   <text
      xml:space="preserve"
      id="text58"
