@@ -73,11 +73,11 @@ OCI 클러스터 위에는 GitOps manager VM이 있고, 그 안의 management k3
 
 애플리케이션 저장소에서 새 이미지가 만들어지면 먼저 staging overlay를 바꾸는 PR이 열립니다. 예를 들어 `pipeline-demo`는 새 commit SHA로 build된 이미지를 `apps/pipeline-demo/overlays/staging/kustomization.yaml`에 반영하고, 이 PR이 merge되면 staging Argo CD가 자동으로 적용합니다.
 
-![pipeline-demo staging image update PR](assets/production-infrastructure/gitops/gitops-pipeline-demo-staging-pr.png)
+![pipeline-demo 스테이징 이미지 업데이트 PR](assets/production-infrastructure/gitops/gitops-pipeline-demo-staging-pr.png)
 
 production으로 보낼 때는 `mintcocoa-ops`의 promotion workflow가 staging overlay의 현재 `newName`/`newTag`를 읽어 `apps/<app>/overlays/prod/kustomization.yaml`로 복사하는 PR을 만듭니다. 이때 prod image tag를 직접 입력하지 않고, staging에 먼저 배포되어 검증된 tag만 production으로 승격되도록 했습니다.
 
-![GitHub Actions promotion workflow runs](assets/production-infrastructure/gitops/gitops-promotion-workflow-runs.png)
+![GitHub Actions 프로모션 워크플로우 실행](assets/production-infrastructure/gitops/gitops-promotion-workflow-runs.png)
 
 수동 실행 화면에서는 앱 이름만 입력합니다. workflow는 입력받은 앱의 staging/prod overlay 경로를 계산하고, staging에 기록된 image tag를 prod overlay로 복사합니다.
 
@@ -85,11 +85,11 @@ production으로 보낼 때는 `mintcocoa-ops`의 promotion workflow가 staging 
 
 ![pipeline-demo 프로덕션 승격 PR](assets/production-infrastructure/gitops/gitops-pipeline-demo-prod-promotion-pr.png)
 
-![GitHub Actions render validation for GitOps manifests](assets/production-infrastructure/gitops/ops-render-validation.png)
+![GitHub Actions 렌더 검증](assets/production-infrastructure/gitops/ops-render-validation.png)
 
 이 PR이 merge되면 prod-root가 변경을 감지해 `OutOfSync`로 표시되고, 운영자가 diff와 staging 응답, GitHub Actions validation을 확인한 뒤 수동 Sync합니다. 이렇게 하면 production 배포 의도가 GitHub PR과 Argo CD operation 양쪽에 남게 되어 문제 발생 시 어느 단계에서 의도와 실제 상태가 달라졌는지 추적할수 있습니다.
 
-![Argo CD prod-pipeline-demo OutOfSync before manual sync](assets/production-infrastructure/gitops/gitops-pipeline-demo-argocd-outofsync.png)
+![manual sync 전 Argo CD prod-pipeline-demo OutOfSync 예시](assets/production-infrastructure/gitops/gitops-pipeline-demo-argocd-outofsync.png)
 
 ## 5. Observability와 알림
 
@@ -118,7 +118,7 @@ production으로 보낼 때는 `mintcocoa-ops`의 promotion workflow가 staging 
 
 1. Prometheus가 기본 Kubernetes/Node/Prometheus 룰을 평가하고, 룰이 firing 상태가 되면 Alertmanager가 alert label과 annotation을 포함한 webhook payload를 생성합니다.
 2. Alertmanager는 내부 Kubernetes service인 `alert-ai-webhook`으로 webhook을 전달합니다.
-3. `alert-ai-webhook`는 대상, 증상, 시간 정보만 추출해 AI에게 전달하는 1차 프롬프트로 AI에게 알림 사실을 전달합니다.
+3. `alert-ai-webhook`는 대상, 증상, 시간 정보만 추출해 AI에게 전달하는 1차 프롬프트로 AI에게 알림 사실을 전달합니다. 
 4. 1차 프롬프트는 AI에게 Alertmanager 사실만 보고 필요한 조회를 tool로 요청하라고 지시합니다.
 5. AI는 필요한 Prometheus, Loki, Kubernetes 조회를 읽기 전용 tool call로 요청하고, 이 요청은 `ai_trace ai_requested_tools`로 남습니다.
 6. 실행 결과는 `ai_trace tool_results`로 남기고, Alertmanager 사실과 tool 결과를 다시 OpenAI Responses API에 전달합니다.
