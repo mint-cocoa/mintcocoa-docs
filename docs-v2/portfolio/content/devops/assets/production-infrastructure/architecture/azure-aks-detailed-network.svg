@@ -6,15 +6,15 @@
    role="img"
    aria-labelledby="title desc"
    version="1.1"
-   id="svg83"
-   sodipodi:docname="azure-aks-detailed-network.svg"
+   id="svg89"
+   sodipodi:docname="azure-aks-network-boundary-clear-ko.svg"
    inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
-     id="namedview83"
+     id="namedview89"
      pagecolor="#ffffff"
      bordercolor="#000000"
      borderopacity="0.25"
@@ -23,22 +23,22 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1.6914286"
-     inkscape:cx="799.91554"
-     inkscape:cy="619.59459"
+     inkscape:cx="876.18242"
+     inkscape:cy="726.0135"
      inkscape:window-width="3840"
      inkscape:window-height="2036"
      inkscape:window-x="3572"
      inkscape:window-y="-12"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg83" />
+     inkscape:current-layer="svg89" />
   <title
-     id="title">Azure AKS detailed network architecture</title>
+     id="title">Home과 Azure 경계가 명확한 Azure AKS 네트워크 아키텍처</title>
   <desc
-     id="desc">Detailed Azure AKS network architecture for MintCocoa, including public ingress, private operator access through VPN, GitOps manager, AKS API, node subnet, namespaces, services, and outbound path.</desc>
+     id="desc">공용 인터넷, Home LAN, 사이트 간 IPsec VPN, Azure 리소스 그룹, Azure VNet, AKS 서브넷 사이의 네트워크 경계를 명확히 표시한 Azure AKS 네트워크 아키텍처.</desc>
   <defs
-     id="defs5">
+     id="defs4">
     <marker
-       id="arrow"
+       id="arrowBlue"
        markerUnits="userSpaceOnUse"
        viewBox="0 0 10 10"
        refX="9"
@@ -47,16 +47,16 @@
        markerHeight="8"
        orient="auto-start-reverse">
       <path
-         d="M 2 1 L 8 5 L 2 9"
+         d="M2 1 L8 5 L2 9"
          fill="none"
-         stroke="#334155"
+         stroke="#2563eb"
          stroke-width="2"
          stroke-linecap="round"
          stroke-linejoin="round"
          id="path1" />
     </marker>
     <marker
-       id="blueArrow"
+       id="arrowGreen"
        markerUnits="userSpaceOnUse"
        viewBox="0 0 10 10"
        refX="9"
@@ -65,16 +65,16 @@
        markerHeight="8"
        orient="auto-start-reverse">
       <path
-         d="M 2 1 L 8 5 L 2 9"
+         d="M2 1 L8 5 L2 9"
          fill="none"
-         stroke="#2563eb"
+         stroke="#16a34a"
          stroke-width="2"
          stroke-linecap="round"
          stroke-linejoin="round"
          id="path2" />
     </marker>
     <marker
-       id="greenArrow"
+       id="arrowOrange"
        markerUnits="userSpaceOnUse"
        viewBox="0 0 10 10"
        refX="9"
@@ -83,16 +83,16 @@
        markerHeight="8"
        orient="auto-start-reverse">
       <path
-         d="M 2 1 L 8 5 L 2 9"
+         d="M2 1 L8 5 L2 9"
          fill="none"
-         stroke="#16a34a"
+         stroke="#ea580c"
          stroke-width="2"
          stroke-linecap="round"
          stroke-linejoin="round"
          id="path3" />
     </marker>
     <marker
-       id="orangeArrow"
+       id="arrowPurple"
        markerUnits="userSpaceOnUse"
        viewBox="0 0 10 10"
        refX="9"
@@ -101,682 +101,741 @@
        markerHeight="8"
        orient="auto-start-reverse">
       <path
-         d="M 2 1 L 8 5 L 2 9"
-         fill="none"
-         stroke="#ea580c"
-         stroke-width="2"
-         stroke-linecap="round"
-         stroke-linejoin="round"
-         id="path4" />
-    </marker>
-    <marker
-       id="purpleArrow"
-       markerUnits="userSpaceOnUse"
-       viewBox="0 0 10 10"
-       refX="9"
-       refY="5"
-       markerWidth="8"
-       markerHeight="8"
-       orient="auto-start-reverse">
-      <path
-         d="M 2 1 L 8 5 L 2 9"
+         d="M2 1 L8 5 L2 9"
          fill="none"
          stroke="#7c3aed"
          stroke-width="2"
          stroke-linecap="round"
          stroke-linejoin="round"
-         id="path5" />
+         id="path4" />
     </marker>
     <style
-       id="style5">
+       id="style4">
       .bg{fill:#f8fafc}
-      .outer{fill:#ffffff;stroke:#64748b;stroke-width:2;stroke-dasharray:8 8}
-      .zone{fill:#ffffff;stroke:#cbd5e1;stroke-width:1.6}
+      .h{font-family:Noto Sans CJK KR,Noto Sans KR,Apple SD Gothic Neo,Malgun Gothic,Segoe UI,Arial,sans-serif;font-size:31px;font-weight:800;fill:#0f172a}
+      .sub{font-family:Noto Sans CJK KR,Noto Sans KR,Apple SD Gothic Neo,Malgun Gothic,Segoe UI,Arial,sans-serif;font-size:14px;fill:#475569}
+      .zoneTitle{font-family:Noto Sans CJK KR,Noto Sans KR,Apple SD Gothic Neo,Malgun Gothic,Segoe UI,Arial,sans-serif;font-size:18px;font-weight:800;fill:#0f172a}
+      .zoneSub{font-family:Consolas,ui-monospace,monospace;font-size:13px;fill:#475569}
+      .t{font-family:Noto Sans CJK KR,Noto Sans KR,Apple SD Gothic Neo,Malgun Gothic,Segoe UI,Arial,sans-serif;font-size:17px;font-weight:800;fill:#0f172a}
+      .s{font-family:Noto Sans CJK KR,Noto Sans KR,Apple SD Gothic Neo,Malgun Gothic,Segoe UI,Arial,sans-serif;font-size:13px;fill:#334155}
+      .xs{font-family:Noto Sans CJK KR,Noto Sans KR,Apple SD Gothic Neo,Malgun Gothic,Segoe UI,Arial,sans-serif;font-size:12px;fill:#64748b}
+      .mono{font-family:Consolas,ui-monospace,monospace;font-size:12.5px;fill:#334155}
       .public{fill:#eff6ff;stroke:#2563eb;stroke-width:2}
       .private{fill:#ecfdf5;stroke:#16a34a;stroke-width:2}
       .gitops{fill:#faf5ff;stroke:#7c3aed;stroke-width:2}
+      .neutral{fill:#ffffff;stroke:#94a3b8;stroke-width:1.7}
       .outbound{fill:#fff7ed;stroke:#ea580c;stroke-width:2}
-      .neutral{fill:#ffffff;stroke:#94a3b8;stroke-width:1.5}
       .muted{fill:#f1f5f9;stroke:#cbd5e1;stroke-width:1.5}
-      .h{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:700}
-      .sub{font-family:Segoe UI,Arial,sans-serif;fill:#475569;font-size:15px}
-      .t{font-family:Segoe UI,Arial,sans-serif;fill:#0f172a;font-size:18px;font-weight:700}
-      .s{font-family:Segoe UI,Arial,sans-serif;fill:#334155;font-size:14px}
-      .xs{font-family:Segoe UI,Arial,sans-serif;fill:#64748b;font-size:12px}
-      .mono{font-family:Consolas,Menlo,monospace;fill:#334155;font-size:12px}
-      .line{stroke:#334155;stroke-width:2.2;fill:none;marker-end:url(#arrow)}
-      .publicLine{stroke:#2563eb;stroke-width:2.8;fill:none;marker-end:url(#blueArrow)}
-      .privateLine{stroke:#16a34a;stroke-width:2.8;fill:none;marker-end:url(#greenArrow)}
-      .vpnLine{stroke:#ea580c;stroke-width:2.8;stroke-dasharray:9 7;fill:none;marker-end:url(#orangeArrow)}
-      .gitopsLine{stroke:#7c3aed;stroke-width:2.6;stroke-dasharray:6 5;fill:none;marker-end:url(#purpleArrow)}
-      .outLine{stroke:#ea580c;stroke-width:2.5;fill:none;marker-end:url(#orangeArrow)}
-      .label{font-family:Segoe UI,Arial,sans-serif;fill:#334155;font-size:12px;font-weight:700}
+      .homeBoundary{fill:#f0fdf4;fill-opacity:.55;stroke:#16a34a;stroke-width:3;stroke-dasharray:12 8}
+      .internetBoundary{fill:#eff6ff;fill-opacity:.5;stroke:#2563eb;stroke-width:2.5;stroke-dasharray:10 7}
+      .azureBoundary{fill:#ffffff;fill-opacity:.62;stroke:#334155;stroke-width:2.8;stroke-dasharray:12 9}
+      .vnetBoundary{fill:#f8fafc;fill-opacity:.75;stroke:#1d4ed8;stroke-width:2.4;stroke-dasharray:10 7}
+      .subnetBoundary{fill:#ffffff;fill-opacity:.78;stroke:#cbd5e1;stroke-width:1.8}
+      .tunnel{fill:#fff7ed;fill-opacity:.7;stroke:#ea580c;stroke-width:2.5;stroke-dasharray:9 7}
+      .publicLine{stroke:#2563eb;stroke-width:2.8;fill:none;marker-end:url(#arrowBlue)}
+      .privateLine{stroke:#16a34a;stroke-width:2.7;fill:none;marker-end:url(#arrowGreen)}
+      .vpnLine{stroke:#ea580c;stroke-width:3;stroke-dasharray:9 7;fill:none;marker-end:url(#arrowOrange)}
+      .gitopsLine{stroke:#7c3aed;stroke-width:2.6;stroke-dasharray:7 6;fill:none;marker-end:url(#arrowPurple)}
+      .outLine{stroke:#ea580c;stroke-width:2.6;fill:none;marker-end:url(#arrowOrange)}
+      .label{font-family:Noto Sans CJK KR,Noto Sans KR,Apple SD Gothic Neo,Malgun Gothic,Segoe UI,Arial,sans-serif;fill:#334155;font-size:12px;font-weight:800}
+      .pill{fill:#ffffff;stroke:#cbd5e1;stroke-width:1}
     </style>
   </defs>
   <rect
      class="bg"
+     x="0"
+     y="0"
      width="1600"
      height="1050"
-     id="rect5"
-     x="1.1824324"
-     y="0" />
+     id="rect4" />
   <text
      class="h"
      x="54"
      y="58"
-     id="text5">Azure AKS Detailed Network Architecture</text>
+     id="text4">Azure AKS 상세 네트워크 아키텍처</text>
   <text
      class="sub"
      x="54"
      y="86"
-     id="text6">rg-cocoa-dev · aks-cocoa-dev · southeastasia · VNet 10.40.0.0/16 · home LAN 172.30.1.0/24</text>
+     id="text5">rg-cocoa-dev · aks-cocoa-dev · southeastasia · Azure VNet 10.40.0.0/16 · 홈 LAN 172.30.1.0/24</text>
+  <!-- Public Internet boundary -->
+  <rect
+     class="internetBoundary"
+     x="45"
+     y="125"
+     width="590"
+     height="255"
+     rx="22"
+     id="rect5" />
+  <text
+     class="zoneTitle"
+     x="75"
+     y="160"
+     id="text6">공용 인터넷 / DNS 경계</text>
+  <text
+     class="zoneSub"
+     x="75"
+     y="184"
+     id="text7">Home LAN 및 Azure VNet 외부 영역</text>
   <rect
      class="public"
-     x="55"
-     y="135"
-     width="245"
-     height="145"
+     x="75"
+     y="215"
+     width="225"
+     height="125"
      rx="14"
-     id="rect6" />
+     id="rect7" />
   <text
      class="t"
-     x="80"
-     y="172"
-     id="text7">Public users</text>
+     x="100"
+     y="250"
+     id="text8">공용 사용자</text>
   <text
      class="s"
-     x="80"
-     y="198"
-     id="text8">Internet clients</text>
+     x="100"
+     y="276"
+     id="text9">인터넷 클라이언트</text>
   <text
      class="mono"
-     x="80"
-     y="222"
-     id="text9">docs.mintcocoa.dev</text>
+     x="100"
+     y="300"
+     id="text10">docs.mintcocoa.dev</text>
   <text
      class="mono"
-     x="80"
-     y="244"
-     id="text10">demo.mintcocoa.dev</text>
+     x="100"
+     y="322"
+     id="text11">demo.mintcocoa.dev</text>
   <rect
      class="public"
      x="365"
-     y="135"
-     width="245"
-     height="145"
+     y="215"
+     width="225"
+     height="125"
      rx="14"
-     id="rect10" />
+     id="rect11" />
   <text
      class="t"
      x="390"
-     y="172"
-     id="text11">Public DNS</text>
+     y="250"
+     id="text12">공용 DNS</text>
   <text
      class="s"
      x="390"
-     y="198"
-     id="text12">Cloudflare / public zone</text>
+     y="276"
+     id="text13">Cloudflare / 공용 DNS 존</text>
   <text
      class="mono"
      x="390"
-     y="222"
-     id="text13">*.mintcocoa.dev</text>
+     y="300"
+     id="text14">*.mintcocoa.dev</text>
   <text
      class="mono"
      x="390"
-     y="244"
-     id="text14">A 57.155.52.74</text>
+     y="322"
+     id="text15">A 57.155.52.74</text>
+  <!-- Home LAN 경계 -->
+  <rect
+     class="homeBoundary"
+     x="44.884373"
+     y="478.75177"
+     width="590.23126"
+     height="310.8399"
+     rx="24.009407"
+     id="rect15" />
+  <text
+     class="zoneTitle"
+     x="75"
+     y="507"
+     id="text16">Home LAN 경계</text>
+  <text
+     class="zoneSub"
+     x="75"
+     y="532"
+     id="text17">172.30.1.0/24 · 내부 운영자 네트워크</text>
   <rect
      class="private"
-     x="55"
-     y="620"
-     width="260"
-     height="175"
+     x="75"
+     y="580"
+     width="235"
+     height="145"
      rx="14"
-     id="rect14" />
+     id="rect17" />
   <text
      class="t"
-     x="80"
-     y="657"
-     id="text15">Home operator network</text>
+     x="100"
+     y="617"
+     id="text18">운영자 클라이언트</text>
   <text
      class="mono"
-     x="80"
-     y="684"
-     id="text16">172.30.1.0/24</text>
+     x="100"
+     y="644"
+     id="text19">172.30.1.x</text>
   <text
      class="s"
-     x="80"
-     y="710"
-     id="text17">Operator browser / kubectl</text>
+     x="100"
+     y="671"
+     id="text20">브라우저 / kubectl</text>
   <text
      class="s"
-     x="80"
-     y="734"
-     id="text18">Internal hosts override</text>
-  <text
-     class="mono"
-     x="80"
-     y="758"
-     id="text19">argocd.mintcocoa.dev</text>
+     x="100"
+     y="695"
+     id="text21">사설 호스트 오버라이드</text>
   <rect
      class="gitops"
-     x="375"
-     y="610"
-     width="285"
-     height="205"
+     x="370"
+     y="560"
+     width="225"
+     height="185"
      rx="14"
-     id="rect19" />
+     id="rect21" />
   <text
      class="t"
-     x="400"
-     y="647"
-     id="text20">GitOps manager host</text>
+     x="395"
+     y="595"
+     id="text22">GitOps 관리자</text>
   <text
      class="mono"
-     x="400"
-     y="674"
-     id="text21">172.30.1.135</text>
+     x="395"
+     y="622"
+     id="text23">172.30.1.135</text>
   <text
      class="s"
-     x="400"
-     y="700"
-     id="text22">k3s + Argo CD</text>
+     x="395"
+     y="648"
+     id="text24">k3s + Argo CD</text>
   <text
      class="s"
-     x="400"
+     x="395"
+     y="672"
+     id="text25">strongSwan S2S 종단점</text>
+  <text
+     class="s"
+     x="395"
+     y="696"
+     id="text26">사설 UI 프록시 진입점</text>
+  <text
+     class="mono"
+     x="395"
      y="724"
-     id="text23">strongSwan S2S endpoint</text>
-  <text
-     class="s"
-     x="400"
-     y="748"
-     id="text24">private UI proxy entry</text>
-  <text
-     class="mono"
-     x="400"
-     y="774"
-     id="text25">Argo CD: manager k3s</text>
+     id="text27">Argo CD: manager k3s</text>
+  <!-- VPN tunnel / boundary crossing -->
   <rect
-     class="outer"
-     x="705"
-     y="120"
-     width="835"
-     height="795"
-     rx="24"
-     id="rect25" />
+     class="tunnel"
+     x="657.24066"
+     y="565.75494"
+     width="85.788956"
+     height="178.86337"
+     rx="20.185638"
+     id="rect28" />
   <text
-     class="t"
-     x="735"
-     y="158"
-     id="text26">Azure VNet: vnet-cocoa-dev</text>
-  <text
-     class="mono"
-     x="735"
-     y="183"
-     id="text27">CIDR 10.40.0.0/16</text>
+     class="label"
+     transform="rotate(0.13925491,28861.849,574553.24)"
+     id="text30"
+     x="-713.85132"
+     y="705.63513"
+     style="white-space:pre;inline-size:46.536"
+     xml:space="preserve"><tspan
+       x="-713.85132"
+       y="705.63513"
+       id="tspan6">사이트 </tspan><tspan
+       x="-713.85132"
+       y="720.63513"
+       id="tspan7">간 IPsec </tspan><tspan
+       x="-713.85132"
+       y="735.63513"
+       id="tspan8">VPN 터</tspan><tspan
+       x="-713.85132"
+       y="750.63513"
+       id="tspan9">널</tspan></text>
+  <!-- Azure 경계 -->
   <rect
-     class="private"
-     x="735"
-     y="205"
-     width="250"
-     height="145"
-     rx="14"
-     id="rect27" />
+     class="azureBoundary"
+     x="770.07025"
+     y="120.06995"
+     width="779.85956"
+     height="898.81281"
+     rx="24.995499"
+     id="rect30" />
   <text
-     class="t"
-     x="760"
-     y="240"
-     id="text28">GatewaySubnet</text>
+     class="zoneTitle"
+     x="800"
+     y="156"
+     id="text31">Azure 경계</text>
   <text
-     class="mono"
-     x="760"
-     y="266"
-     id="text29">10.40.255.0/27</text>
-  <text
-     class="s"
-     x="760"
-     y="291"
-     id="text30">Azure VPN Gateway</text>
-  <text
-     class="mono"
-     x="760"
-     y="315"
-     id="text31">vpng-cocoa-dev</text>
+     class="zoneSub"
+     x="800"
+     y="181"
+     id="text32">리소스 그룹 / southeastasia</text>
+  <!-- Azure objects outside VNet -->
   <rect
      class="neutral"
-     x="1010.0334"
-     y="205.03345"
-     width="245.62569"
-     height="144.93312"
-     rx="15.283376"
-     id="rect31" />
+     x="1210"
+     y="145"
+     width="295"
+     height="110"
+     rx="14"
+     id="rect32" />
   <text
      class="t"
-     x="1035"
-     y="240"
-     id="text32">Local Network Gateway</text>
+     x="1235"
+     y="180"
+     id="text33">Local Network Gateway</text>
   <text
      class="mono"
-     x="1035"
-     y="266"
-     id="text33">118.59.121.222</text>
+     x="1235"
+     y="207"
+     id="text34">118.59.121.xxx(집 공인 IP)</text>
   <text
      class="mono"
-     x="1035"
-     y="290"
-     id="text34">172.30.1.0/24</text>
+     x="1235"
+     y="229"
+     id="text35">172.30.1.0/24</text>
   <text
-     class="s"
-     x="1035"
-     y="315"
-     id="text35">IPsec peer definition</text>
+     class="xs"
+     x="1235"
+     y="247"
+     id="text36">원격 Home LAN을 나타내는 Azure 메타데이터</text>
   <rect
-     class="zone"
-     x="735"
-     y="390"
-     width="765"
-     height="415"
-     rx="18"
-     id="rect35" />
-  <text
-     class="t"
-     x="760"
-     y="428"
-     id="text36">AKS subnet: snet-cocoa-dev-aks</text>
-  <text
-     class="mono"
-     x="760"
-     y="453"
-     id="text37">10.40.0.0/22 · Azure CNI · 3 nodes · outboundType=loadBalancer</text>
-  <rect
-     class="public"
-     x="765"
-     y="480"
-     width="245"
-     height="120"
+     class="gitops"
+     x="810.10132"
+     y="921.85809"
+     width="300"
+     height="62"
      rx="12"
-     id="rect37" />
+     id="rect36" />
   <text
      class="t"
-     x="772.26349"
-     y="506.72296"
-     id="text38">Azure public Load Balancer</text>
+     x="902.41553"
+     y="944.31079"
+     id="text37">AKS API 서버</text>
   <text
      class="mono"
-     x="833.15881"
-     y="542.18243"
-     id="text39">57.155.52.74</text>
-  <text
-     class="s"
-     x="816.01349"
-     y="564.81757"
-     id="text40">Service: ingress-nginx</text>
+     x="834.41553"
+     y="967.31079"
+     id="text38">공용 엔드포인트 · TLS + kubeconfig/RBAC</text>
+  <!-- VNet boundary -->
   <rect
-     class="public"
-     x="1045"
-     y="480"
-     width="190"
-     height="120"
-     rx="12"
+     class="vnetBoundary"
+     x="800.07257"
+     y="275.07214"
+     width="719.8548"
+     height="612.84442"
+     rx="21.995564"
+     id="rect38" />
+  <text
+     class="zoneTitle"
+     x="830"
+     y="312"
+     id="text39">Azure VNet: vnet-cocoa-dev</text>
+  <text
+     class="zoneSub"
+     x="830"
+     y="336"
+     id="text40">CIDR 10.40.0.0/16</text>
+  <rect
+     class="private"
+     x="830"
+     y="365"
+     width="250"
+     height="128"
+     rx="14"
      id="rect40" />
   <text
      class="t"
-     x="1070"
-     y="515"
-     id="text41">public ingress</text>
+     x="855"
+     y="401"
+     id="text41">GatewaySubnet</text>
   <text
      class="mono"
-     x="1070"
-     y="541"
-     id="text42">ingress-nginx</text>
+     x="855"
+     y="427"
+     id="text42">10.40.255.0/27</text>
   <text
      class="s"
-     x="1070"
-     y="566"
-     id="text43">80 / 443</text>
+     x="855"
+     y="454"
+     id="text43">Azure VPN Gateway</text>
+  <text
+     class="mono"
+     x="855"
+     y="476"
+     id="text44">vpng-cocoa-dev</text>
+  <rect
+     class="subnetBoundary"
+     x="830.09448"
+     y="530.09448"
+     width="659.81104"
+     height="348.0712"
+     rx="17.994846"
+     id="rect44" />
+  <text
+     class="zoneTitle"
+     x="856.18243"
+     y="562.63513"
+     id="text45">AKS 서브넷: snet-cocoa-dev-aks</text>
+  <text
+     class="zoneSub"
+     x="855"
+     y="589"
+     id="text46">10.40.0.0/22 · Azure CNI · 노드 3개 · outboundType=loadBalancer</text>
+  <rect
+     class="public"
+     x="855"
+     y="625"
+     width="215"
+     height="105"
+     rx="12"
+     id="rect46" />
+  <text
+     class="t"
+     x="882"
+     y="657"
+     id="text47">공용 Load Balancer</text>
+  <text
+     class="mono"
+     x="913"
+     y="684"
+     id="text48">57.155.52.74</text>
+  <text
+     class="s"
+     x="893"
+     y="707"
+     id="text49">Service: ingress-nginx</text>
+  <rect
+     class="public"
+     x="1110"
+     y="625"
+     width="165"
+     height="105"
+     rx="12"
+     id="rect49" />
+  <text
+     class="t"
+     x="1135"
+     y="657"
+     id="text50">공용 Ingress</text>
+  <text
+     class="mono"
+     x="1135"
+     y="684"
+     id="text51">ingress-nginx</text>
+  <text
+     class="s"
+     x="1135"
+     y="707"
+     id="text52">80 / 443</text>
   <rect
      class="neutral"
-     x="1270"
-     y="455"
-     width="200"
-     height="170"
-     rx="12"
-     id="rect43" />
-  <text
-     class="t"
-     x="1295"
-     y="490"
-     id="text44">prod-services</text>
-  <text
-     class="s"
-     x="1295"
-     y="516"
-     id="text45">mintcocoa-docs 2/2</text>
-  <text
-     class="s"
-     x="1295"
-     y="540"
-     id="text46">pipeline-demo 2/2</text>
-  <text
-     class="s"
-     x="1295"
-     y="564"
-     id="text47">whoami 2/2</text>
-  <text
-     class="s"
-     x="1295"
-     y="588"
-     id="text48">alert-trigger-lab 1/1</text>
-  <rect
-     class="private"
-     x="754.97058"
-     y="655.02124"
-     width="255.59944"
-     height="119.95756"
-     rx="12.519156"
-     id="rect48" />
-  <text
-     class="t"
-     x="762.21289"
-     y="679.94934"
-     id="text49">Azure internal Load Balancer</text>
-  <text
-     class="mono"
-     x="839.07092"
-     y="721.91217"
-     id="text50">10.40.0.91</text>
-  <text
-     class="s"
-     x="807.14526"
-     y="739.81757"
-     id="text51">Service: private ingress</text>
-  <rect
-     class="private"
-     x="1045"
-     y="655"
-     width="190"
-     height="120"
-     rx="12"
-     id="rect51" />
-  <text
-     class="t"
-     x="1070"
-     y="690"
-     id="text52">private ingress</text>
-  <text
-     class="mono"
-     x="1070"
-     y="716"
-     id="text53">private-nginx</text>
-  <text
-     class="s"
-     x="1070"
-     y="741"
-     id="text54">operator-only hosts</text>
-  <rect
-     class="neutral"
-     x="1270"
-     y="650"
-     width="200"
-     height="155"
-     rx="12"
-     id="rect54" />
-  <text
-     class="t"
-     x="1292.0439"
-     y="695.82434"
-     id="text55">observability</text>
-  <text
-     class="s"
-     x="1292.0439"
-     y="721.82434"
-     id="text56">grafana.mintcocoa.dev</text>
-  <text
-     class="s"
-     x="1292.0439"
-     y="745.82434"
-     id="text57">Prometheus / Alertmanager</text>
-  <text
-     class="s"
-     x="1292.0439"
-     y="769.82434"
-     id="text58">Loki / Tempo / webhook</text>
-  <rect
-     class="gitops"
-     x="734.40881"
-     y="834.08789"
-     width="335"
-     height="75"
-     rx="12"
-     id="rect58" />
-  <text
-     class="t"
-     x="836.26691"
-     y="866.67908"
-     id="text59">AKS API server</text>
-  <text
-     class="mono"
-     x="772.41553"
-     y="895.40881"
-     id="text60">public endpoint, TLS + kubeconfig/RBAC</text>
-  <rect
-     class="outbound"
-     x="1183.2263"
-     y="832.31421"
-     width="315"
-     height="75"
-     rx="12"
-     id="rect60" />
-  <text
-     class="t"
-     x="1210"
-     y="872"
-     id="text61">AKS managed outbound</text>
-  <text
-     class="s"
-     x="1210"
-     y="896"
-     id="text62">Standard Load Balancer outbound path</text>
-  <rect
-     class="outbound"
-     x="1345"
-     y="135"
+     x="1305"
+     y="600"
      width="155"
-     height="95"
+     height="145"
+     rx="12"
+     id="rect52" />
+  <text
+     class="t"
+     x="1330"
+     y="635"
+     id="text53">prod-services</text>
+  <text
+     class="s"
+     x="1330"
+     y="662"
+     id="text54">mintcocoa-docs</text>
+  <text
+     class="s"
+     x="1330"
+     y="686"
+     id="text55">pipeline-demo</text>
+  <text
+     class="s"
+     x="1330"
+     y="710"
+     id="text56">whoami</text>
+  <rect
+     class="private"
+     x="855"
+     y="765"
+     width="215"
+     height="105"
+     rx="12"
+     id="rect56" />
+  <text
+     class="t"
+     x="870"
+     y="797"
+     id="text57">내부 Load Balancer</text>
+  <text
+     class="mono"
+     x="913"
+     y="824"
+     id="text58">10.40.0.91</text>
+  <text
+     class="s"
+     x="897"
+     y="847"
+     id="text59">Service: 사설 Ingress</text>
+  <rect
+     class="private"
+     x="1110"
+     y="765"
+     width="165"
+     height="105"
+     rx="12"
+     id="rect59" />
+  <text
+     class="t"
+     x="1135"
+     y="797"
+     id="text60">사설 Ingress</text>
+  <text
+     class="mono"
+     x="1135"
+     y="824"
+     id="text61">private-nginx</text>
+  <text
+     class="s"
+     x="1135"
+     y="847"
+     id="text62">운영자 전용</text>
+  <rect
+     class="neutral"
+     x="1305"
+     y="765"
+     width="155"
+     height="105"
      rx="12"
      id="rect62" />
   <text
      class="t"
+     x="1328"
+     y="797"
+     id="text63">관측 시스템</text>
+  <text
+     class="s"
+     x="1328"
+     y="824"
+     id="text64">Grafana</text>
+  <text
+     class="s"
+     x="1326.2263"
+     y="846.81757"
+     id="text65">Prometheus / Loki</text>
+  <rect
+     class="outbound"
+     x="1163.8175"
+     y="921.85809"
+     width="325"
+     height="62"
+     rx="12"
+     id="rect65" />
+  <text
+     class="t"
+     x="1208.1013"
+     y="948.85809"
+     id="text66">AKS 관리형 아웃바운드</text>
+  <text
+     class="s"
+     x="1207.6858"
+     y="970.26691"
+     id="text67">Standard Load Balancer 아웃바운드 경로</text>
+  <rect
+     class="outbound"
+     x="1360"
+     y="25"
+     width="145"
+     height="85"
+     rx="12"
+     id="rect67" />
+  <text
+     class="t"
      x="1380"
-     y="171"
-     id="text63">Internet</text>
+     y="60"
+     id="text68">외부 인터넷</text>
   <text
      class="mono"
-     x="1380"
-     y="196"
-     id="text64">0.0.0.0/0</text>
+     x="1392"
+     y="88"
+     id="text69">0.0.0.0/0</text>
+  <!-- Lines -->
   <path
      class="publicLine"
-     d="M300 205 L365 205"
-     id="path64" />
+     d="M300 278 L365 278"
+     id="path69" />
   <text
      class="label"
-     x="312.08783"
-     y="190"
-     id="text65">HTTPS</text>
+     x="315"
+     y="263"
+     id="text70">HTTPS</text>
   <path
      class="publicLine"
-     d="M610 205 C675 205, 710 500, 765 535"
-     id="path65" />
-  <text
-     class="label"
-     x="650"
-     y="285"
-     id="text66">57.155.52.74</text>
-  <path
-     class="publicLine"
-     d="M1010 540 L1045 540"
-     id="path66" />
-  <path
-     class="publicLine"
-     d="M1235 540 L1270 540"
-     id="path67" />
-  <path
-     class="privateLine"
-     d="M315 700 L375 700"
-     id="path68" />
-  <text
-     class="label"
-     x="305.53378"
-     y="687.95612"
-     id="text68">SSH / browser</text>
-  <path
-     class="vpnLine"
-     d="M 660,690 C 678.66692,656.81437 657.88101,545.24728 668.36479,471.83202 683.15407,368.26644 726.22231,299.65165 735,278"
-     id="path69"
-     sodipodi:nodetypes="csc" />
-  <text
-     class="label"
-     x="603.06757"
-     y="694.375"
-     id="text69">S2S IPsec</text>
-  <path
-     class="privateLine"
-     d="M985 278 L1010 278"
+     d="M590 278 C700 278, 740 640, 855 678"
      id="path70" />
-  <path
-     class="privateLine"
-     d="M735 278 C695 360, 700 680, 765 715"
-     id="path71" />
   <text
      class="label"
-     x="675"
-     y="470"
-     id="text71">private route</text>
+     x="595.76013"
+     y="273.78378"
+     id="text71"><tspan
+       sodipodi:role="line"
+       id="tspan89"
+       x="595.76013"
+       y="273.78378">공용 IP 57.155.xxx.xxx</tspan><tspan
+       sodipodi:role="line"
+       id="tspan90"
+       x="595.76013"
+       y="288.78378" /></text>
   <path
-     class="privateLine"
-     d="M1010 715 L1045 715"
+     class="publicLine"
+     d="M1070 678 L1110 678"
+     id="path71" />
+  <path
+     class="publicLine"
+     d="M1275 678 L1305 678"
      id="path72" />
   <path
      class="privateLine"
-     d="M1235 715 L1270 715"
+     d="M310 653 L370 653"
      id="path73" />
-  <path
-     class="gitopsLine"
-     d="M 522.36487,814.56081 C 529.74662,872.63514 650,850 735,878"
-     id="path74"
-     sodipodi:nodetypes="cc" />
   <text
      class="label"
-     x="555"
-     y="548"
-     id="text74">Argo CD cluster registration</text>
+     x="325.875"
+     y="671.92566"
+     id="text73"><tspan
+       sodipodi:role="line"
+       id="tspan93"
+       x="325.875"
+       y="671.92566">SSH</tspan><tspan
+       sodipodi:role="line"
+       id="tspan94"
+       x="325.875"
+       y="686.92566" /></text>
   <path
-     class="gitopsLine"
-     d="M520 610 C650 485, 950 420, 1120 480"
+     class="vpnLine"
+     d="M595 670 C630 650, 650 650, 660 650"
+     id="path74" />
+  <path
+     class="vpnLine"
+     d="M745 650 C785 600, 795 460, 830 430"
      id="path75" />
+  <path
+     class="privateLine"
+     d="M1080 430 C1115 400, 1170 260, 1210 205"
+     id="path76" />
   <text
      class="label"
-     x="700"
-     y="470"
-     id="text75">sync desired state</text>
-  <path
-     class="outLine"
-     d="m 1010,540 c 80,80 120,295 175,338"
-     id="path76"
-     inkscape:transform-center-x="-21.340774"
-     inkscape:transform-center-y="-11.874762" />
+     x="1135.473"
+     y="360.43918"
+     id="text76">원격 피어 메타데이터</text>
   <text
      class="label"
-     x="1050"
-     y="818"
-     id="text76">pod egress</text>
+     x="902"
+     y="525"
+     id="text77">사설 경로</text>
+  <path
+     class="privateLine"
+     d="M1070 817 L1110 817"
+     id="path78" />
+  <path
+     class="privateLine"
+     d="M1275 817 L1305 817"
+     id="path79" />
+  <path
+     class="gitopsLine"
+     d="m 595.27318,725.11719 c 84.16901,154.52165 142.03521,225.16012 205.16196,225.16012"
+     id="path81" />
+  <text
+     class="label"
+     x="684.93243"
+     y="958.51349"
+     id="text81">AKS API 접근</text>
   <path
      class="outLine"
-     d="M1500 878 C1550 780, 1535 245, 1500 185"
-     id="path77" />
+     d="m 1070.1304,678.06833 c 52.0462,101.50198 62.4555,206.71745 98.8879,245.09016"
+     id="path82" />
+  <text
+     class="label"
+     x="1080"
+     y="760"
+     id="text82">Pod 외부 통신</text>
+  <path
+     class="outLine"
+     d="m 1481.2857,921.45613 c 81.3788,-196.44689 75.566,-745.65325 17.4383,-853.382195"
+     id="path83" />
+  <!-- Notes -->
   <rect
      class="muted"
-     x="49.679054"
-     y="926.82434"
-     width="890"
-     height="82"
+     x="37.483101"
+     y="928.54724"
+     width="560"
+     height="85"
      rx="12"
-     id="rect77" />
-  <text
-     class="t"
-     x="80"
-     y="948"
-     id="text77">Boundary notes</text>
-  <text
-     class="s"
-     x="80"
-     y="972"
-     id="text78">Public services use the public Load Balancer. Operator UI access uses the VPN path and internal Load Balancer.</text>
-  <text
-     class="s"
-     x="80"
-     y="992"
-     id="text79">AKS API is not a private cluster endpoint in the current deployment; access is controlled by kubeconfig/RBAC.</text>
-  <rect
-     class="muted"
-     x="995.91217"
-     y="924.45947"
-     width="510"
-     height="82"
-     rx="12"
-     id="rect79" />
+     id="rect85" />
   <rect
      class="public"
-     x="1015"
-     y="940"
+     x="62.483101"
+     y="947.54724"
      width="18"
      height="18"
      rx="4"
-     id="rect80" />
+     id="rect86" />
   <text
      class="xs"
-     x="1042"
-     y="954"
-     id="text80">public user path</text>
+     x="90.483162"
+     y="961.54724"
+     id="text86">공용 사용자 경로</text>
   <rect
      class="private"
-     x="1160"
-     y="940"
+     x="222.48315"
+     y="947.54724"
      width="18"
      height="18"
      rx="4"
-     id="rect81" />
+     id="rect87" />
   <text
      class="xs"
-     x="1187"
-     y="954"
-     id="text81">private operator path</text>
+     x="250.48315"
+     y="961.54724"
+     id="text87">사설 운영자 경로</text>
   <rect
      class="gitops"
-     x="1330"
-     y="940"
+     x="407.48315"
+     y="947.54724"
      width="18"
      height="18"
      rx="4"
-     id="rect82" />
+     id="rect88" />
   <text
      class="xs"
-     x="1357"
-     y="954"
-     id="text82">GitOps/API path</text>
+     x="435.48315"
+     y="961.54724"
+     id="text88">GitOps / API 경로</text>
   <rect
      class="outbound"
-     x="1015"
-     y="968"
+     x="62.483101"
+     y="978.54724"
      width="18"
      height="18"
      rx="4"
-     id="rect83" />
+     id="rect89" />
   <text
      class="xs"
-     x="1042"
-     y="982"
-     id="text83">AKS outbound</text>
+     x="90.483162"
+     y="992.54724"
+     id="text89">AKS 아웃바운드</text>
+  <text
+     xml:space="preserve"
+     style="writing-mode:lr-tb;direction:ltr;fill:#f8fafc;stroke:#33554e"
+     x="703.5473"
+     y="563.42908"
+     id="text92"><tspan
+       sodipodi:role="line"
+       id="tspan92" /></text>
+  <text
+     xml:space="preserve"
+     style="writing-mode:lr-tb;direction:ltr;fill:#f8fafc;stroke:#33554e"
+     x="1334.9662"
+     y="205.74324"
+     id="text28"><tspan
+       sodipodi:role="line"
+       id="tspan5"></tspan></text>
 </svg>
