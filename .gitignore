@@ -10,8 +10,14 @@ portfolio/_site/
 portfolio/generated-quarto/
 portfolio/.quarto/
 portfolio/docs/
+portfolio/build/
+portfolio/content/*/downloads/
 portfolio/.gitignore
 portfolio/dashboard/node_modules/
 portfolio/dashboard/dist/
+docs-v2/portfolio/_pdf-build/
+docs-v2/portfolio/pdf/
+docs-v2/portfolio/content/**/*.html
+docs-v2/portfolio/content/**/*_files/
 .DS_Store
 .env
