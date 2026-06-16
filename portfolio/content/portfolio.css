@@ -588,3 +588,172 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 20mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #172033;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  body.nav-fixed {
+    padding-top: 0 !important;
+  }
+
+  #quarto-header,
+  #quarto-sidebar,
+  #quarto-sidebar-glass,
+  #quarto-margin-sidebar,
+  .quarto-secondary-nav,
+  .quarto-page-breadcrumbs,
+  .quarto-title-breadcrumbs,
+  .page-navigation,
+  .code-copy-button,
+  .anchorjs-link {
+    display: none !important;
+  }
+
+  #quarto-content,
+  .quarto-container,
+  .page-columns,
+  .page-rows-contents,
+  main.content,
+  body.floating .page-columns,
+  body.docked .page-columns {
+    display: block !important;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    grid-template-columns: none !important;
+  }
+
+  main.content {
+    min-height: auto !important;
+    width: 170mm !important;
+    max-width: 170mm !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .quarto-title-block {
+    margin: 0 0 8mm !important;
+    padding: 0 0 5mm !important;
+    border-bottom: 1px solid var(--portfolio-line);
+  }
+
+  h1.title {
+    margin: 0 0 4mm !important;
+    font-size: 21pt;
+    line-height: 1.25;
+  }
+
+  h2 {
+    margin-top: 8mm;
+    font-size: 16pt;
+    line-height: 1.3;
+    break-after: avoid;
+  }
+
+  h3 {
+    margin-top: 6mm;
+    font-size: 13pt;
+    line-height: 1.35;
+    break-after: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  table {
+    width: 100% !important;
+    table-layout: fixed;
+    font-size: 9.2pt;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  th,
+  td {
+    padding: 4.5pt 5pt;
+    overflow-wrap: anywhere;
+    word-break: keep-all;
+  }
+
+  pre,
+  code {
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  pre {
+    max-width: 100%;
+    padding: 7pt;
+    border: 1px solid var(--portfolio-line);
+    background: #f8fafc !important;
+    color: #172033 !important;
+    font-size: 8.7pt;
+    line-height: 1.35;
+    break-inside: avoid;
+  }
+
+  img,
+  svg,
+  figure,
+  .quarto-figure,
+  .cell-output-display {
+    max-width: 100% !important;
+    height: auto !important;
+    break-inside: avoid;
+  }
+
+  section,
+  .callout,
+  .card,
+  .doc-card,
+  .summary-card,
+  .phase-card,
+  .flow-node,
+  .lifecycle-phase {
+    break-inside: avoid-page;
+  }
+
+  .hero-meta,
+  .summary-grid,
+  .signal-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6pt;
+  }
+
+  .chapter-map,
+  .doc-grid,
+  .phase-card-body {
+    grid-template-columns: 1fr !important;
+  }
+
+  .portfolio-hero,
+  .summary-card,
+  .doc-card,
+  .evidence-block,
+  .repo-links,
+  .next-docs,
+  .phase-card {
+    box-shadow: none !important;
+  }
+}

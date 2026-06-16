@@ -35,14 +35,23 @@ copy_html_doc \
   "$repo_root/docs/server/RuntimeWebPortfolio.html" \
   "$repo_root/docs/server/RuntimeWebPortfolio_files" \
   "$site_dir/runtime-web"
+if [[ -f "$repo_root/docs/server/RuntimeWebPortfolio.pdf" ]]; then
+  cp "$repo_root/docs/server/RuntimeWebPortfolio.pdf" "$site_dir/runtime-web/RuntimeWebPortfolio.pdf"
+fi
 copy_html_doc \
   "$repo_root/docs/server/RuntimeProxyPortfolio.html" \
   "$repo_root/docs/server/RuntimeProxyPortfolio_files" \
   "$site_dir/runtime-proxy"
+if [[ -f "$repo_root/docs/server/RuntimeProxyPortfolio.pdf" ]]; then
+  cp "$repo_root/docs/server/RuntimeProxyPortfolio.pdf" "$site_dir/runtime-proxy/RuntimeProxyPortfolio.pdf"
+fi
 copy_html_doc \
   "$repo_root/docs/server/RuntimeGamePortfolio.html" \
   "$repo_root/docs/server/RuntimeGamePortfolio_files" \
   "$site_dir/runtime-game"
+if [[ -f "$repo_root/docs/server/RuntimeGamePortfolio.pdf" ]]; then
+  cp "$repo_root/docs/server/RuntimeGamePortfolio.pdf" "$site_dir/runtime-game/RuntimeGamePortfolio.pdf"
+fi
 copy_html_doc \
   "$repo_root/docs/client/ClientPortfolio.html" \
   "$repo_root/docs/client/ClientPortfolio_files" \

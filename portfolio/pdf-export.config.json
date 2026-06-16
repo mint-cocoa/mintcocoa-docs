@@ -1,0 +1,96 @@
+{
+  "chromePdfOptions": {
+    "printBackground": true,
+    "preferCSSPageSize": true,
+    "paperWidth": 8.27,
+    "paperHeight": 11.69,
+    "marginTop": 0,
+    "marginRight": 0,
+    "marginBottom": 0,
+    "marginLeft": 0,
+    "displayHeaderFooter": false
+  },
+  "svgRasterization": {
+    "enabled": true,
+    "scale": 2,
+    "outputExtension": ".png"
+  },
+  "styles": [
+    "content/portfolio.css",
+    "content/pdf-print.css"
+  ],
+  "servercore": {
+    "name": "ServerCorePortfolio",
+    "title": "ServerCore Portfolio",
+    "subtitle": "io_uring based asynchronous server runtime",
+    "author": "Jinho Bae",
+    "intro": "Linux `io_uring` 기반 비동기 서버 런타임 `ServerCore` 구현 포트폴리오",
+    "sourceDir": "../docs-v2/portfolio/content/servercore/chapters",
+    "diagramsDir": "../docs-v2/portfolio/content/servercore/diagrams",
+    "output": "content/servercore/downloads/ServerCore-Portfolio-jinhoo.pdf",
+    "copies": [
+      "../docs-v2/portfolio/content/servercore/downloads/ServerCore-Portfolio-jinhoo.pdf",
+      "generated-quarto/downloads/ServerCore-Portfolio-jinhoo.pdf",
+      "docs/servercore/downloads/ServerCore-Portfolio-jinhoo.pdf",
+      "_site/servercore/downloads/ServerCore-Portfolio-jinhoo.pdf"
+    ],
+    "exclude": [
+      "backend-platform-self-introduction.md"
+    ]
+  },
+  "pages": [
+    {
+      "name": "ClientPortfolio",
+      "source": "../docs-v2/portfolio/content/client/ClientPortfolio.qmd",
+      "output": "content/client/downloads/ClientPortfolio.pdf",
+      "copies": [
+        "../docs-v2/portfolio/content/client/downloads/ClientPortfolio.pdf",
+        "docs/client/ClientPortfolio.pdf",
+        "_site/client/ClientPortfolio.pdf"
+      ]
+    },
+    {
+      "name": "RuntimeWebPortfolio",
+      "source": "../docs-v2/portfolio/content/runtime/RuntimeWebPortfolio.qmd",
+      "output": "content/runtime/downloads/RuntimeWebPortfolio.pdf",
+      "copies": [
+        "../docs-v2/portfolio/content/runtime/downloads/RuntimeWebPortfolio.pdf",
+        "docs/server/RuntimeWebPortfolio.pdf",
+        "_site/runtime-web/RuntimeWebPortfolio.pdf"
+      ]
+    },
+    {
+      "name": "RuntimeProxyPortfolio",
+      "source": "../docs-v2/portfolio/content/runtime/RuntimeProxyPortfolio.qmd",
+      "output": "content/runtime/downloads/RuntimeProxyPortfolio.pdf",
+      "copies": [
+        "../docs-v2/portfolio/content/runtime/downloads/RuntimeProxyPortfolio.pdf",
+        "docs/server/RuntimeProxyPortfolio.pdf",
+        "_site/runtime-proxy/RuntimeProxyPortfolio.pdf"
+      ]
+    },
+    {
+      "name": "RuntimeGamePortfolio",
+      "source": "../docs-v2/portfolio/content/runtime/RuntimeGamePortfolio.qmd",
+      "output": "content/runtime/downloads/RuntimeGamePortfolio.pdf",
+      "copies": [
+        "../docs-v2/portfolio/content/runtime/downloads/RuntimeGamePortfolio.pdf",
+        "docs/server/RuntimeGamePortfolio.pdf",
+        "_site/runtime-game/RuntimeGamePortfolio.pdf"
+      ]
+    },
+    {
+      "name": "DevOpsPortfolio",
+      "source": "../docs-v2/portfolio/content/devops/azure-aks-production-architecture.qmd",
+      "output": "content/devops/downloads/DevOpsPortfolio.pdf",
+      "copies": [
+        "../docs-v2/portfolio/content/devops/downloads/DevOpsPortfolio.pdf",
+        "docs/devops/DevOpsPortfolio.pdf",
+        "_site/devops/DevOpsPortfolio.pdf"
+      ],
+      "resources": [
+        "../docs-v2/portfolio/content/devops/assets"
+      ]
+    }
+  ]
+}

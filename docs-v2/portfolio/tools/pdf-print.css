@@ -1,0 +1,214 @@
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url("fonts/NotoSansKR-VF.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans CJK KR";
+  src: url("fonts/NotoSansKR-VF.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@page {
+  size: A4;
+  margin: 18mm 20mm;
+}
+
+:root {
+  --pdf-ink: #30343a;
+  --pdf-muted: #6c737d;
+  --pdf-line: #d8dce1;
+  --pdf-soft: #f5f7f9;
+  --pdf-code: #7b13d4;
+}
+
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body {
+  color: var(--pdf-ink);
+  font-family: "Noto Sans KR", "Noto Sans CJK KR", "Malgun Gothic", system-ui, sans-serif;
+  font-size: 12.9px;
+  font-weight: 400;
+  line-height: 1.62;
+}
+
+#quarto-content,
+.page-columns,
+.page-rows-contents,
+body.fullcontent #quarto-content {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+main.content,
+body.fullcontent main.content,
+#quarto-document-content {
+  width: 170mm !important;
+  max-width: 170mm !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 0 !important;
+}
+
+#quarto-header,
+#quarto-sidebar,
+#quarto-sidebar-glass,
+#quarto-margin-sidebar,
+.quarto-secondary-nav,
+.quarto-page-breadcrumbs,
+.quarto-title-breadcrumbs,
+.page-navigation,
+.anchorjs-link,
+.quarto-navigation-tool,
+.code-copy-button {
+  display: none !important;
+}
+
+.quarto-title-block {
+  margin-bottom: 22px;
+}
+
+h1,
+h2,
+h3 {
+  color: #3b3f45;
+  font-weight: 700;
+  line-height: 1.28;
+  break-after: avoid;
+}
+
+h1 {
+  margin: 0 0 15px;
+  padding: 0 0 6px;
+  border-bottom: 1px solid var(--pdf-line);
+  font-size: 1.58rem;
+}
+
+h2 {
+  margin: 22px 0 9px;
+  font-size: 1.2rem;
+}
+
+h3 {
+  margin: 18px 0 8px;
+  color: #6a7078;
+  font-size: 1.04rem;
+}
+
+p {
+  margin: 0 0 11px;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: #9aa3ad;
+}
+
+a[href]::after {
+  content: "";
+}
+
+code {
+  color: var(--pdf-code);
+  background: #f4eff8;
+  border-radius: 3px;
+  padding: 0.05rem 0.23rem;
+  font-family: "DejaVu Sans Mono", Consolas, "Cascadia Mono", monospace;
+  font-size: 0.88em;
+}
+
+pre {
+  margin: 10px 0 14px;
+  padding: 9px 11px;
+  border: 1px solid #e1e4e8;
+  background: #f1f3f5;
+  font-size: 0.78rem;
+  line-height: 1.42;
+  white-space: pre-wrap;
+  break-inside: avoid;
+}
+
+pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+table {
+  width: 100%;
+  margin: 12px auto 18px;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  break-inside: avoid;
+}
+
+th,
+td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--pdf-line);
+  vertical-align: top;
+}
+
+thead th {
+  border-top: 1px solid var(--pdf-line);
+  border-bottom: 1px solid #aeb4bb;
+  font-weight: 700;
+}
+
+figure,
+.quarto-figure,
+.cell-output-display {
+  margin: 13px 0 19px;
+  text-align: center;
+  break-inside: avoid;
+}
+
+figure img,
+p > img,
+.mermaid-js svg {
+  display: block;
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 0 auto;
+}
+
+figcaption,
+.figure-caption {
+  margin-top: 7px;
+  color: var(--pdf-muted);
+  font-size: 0.84rem;
+}
+
+ul,
+ol {
+  margin-top: 7px;
+  margin-bottom: 13px;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+.summary-grid,
+.hero-meta,
+.signal-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.doc-grid,
+.chapter-map {
+  grid-template-columns: 1fr !important;
+}

@@ -1,0 +1,63 @@
+{
+  "outputDir": "pdf",
+  "buildDir": "_pdf-build",
+  "chromePdfOptions": {
+    "printBackground": true,
+    "preferCSSPageSize": true,
+    "paperWidth": 8.27,
+    "paperHeight": 11.69,
+    "marginTop": 0,
+    "marginRight": 0,
+    "marginBottom": 0,
+    "marginLeft": 0,
+    "displayHeaderFooter": false
+  },
+  "svgRasterization": {
+    "enabled": true,
+    "scale": 2,
+    "outputExtension": ".png"
+  },
+  "styles": [
+    "tools/pdf-print.css"
+  ],
+  "servercore": {
+    "name": "ServerCorePortfolio",
+    "title": "ServerCore Portfolio",
+    "subtitle": "io_uring based asynchronous server runtime",
+    "author": "Jinho Bae",
+    "intro": "Linux `io_uring` 기반 비동기 서버 런타임 `ServerCore` 구현 포트폴리오",
+    "sourceDir": "content/servercore/chapters",
+    "diagramsDir": "content/servercore/diagrams",
+    "output": "ServerCore-Portfolio-jinhoo.pdf"
+  },
+  "pages": [
+    {
+      "name": "ClientPortfolio",
+      "source": "content/client/ClientPortfolio.qmd",
+      "output": "ClientPortfolio.pdf"
+    },
+    {
+      "name": "RuntimeWebPortfolio",
+      "source": "content/runtime/RuntimeWebPortfolio.qmd",
+      "output": "RuntimeWebPortfolio.pdf"
+    },
+    {
+      "name": "RuntimeProxyPortfolio",
+      "source": "content/runtime/RuntimeProxyPortfolio.qmd",
+      "output": "RuntimeProxyPortfolio.pdf"
+    },
+    {
+      "name": "RuntimeGamePortfolio",
+      "source": "content/runtime/RuntimeGamePortfolio.qmd",
+      "output": "RuntimeGamePortfolio.pdf"
+    },
+    {
+      "name": "DevOpsPortfolio",
+      "source": "content/devops/azure-aks-production-architecture.qmd",
+      "output": "DevOpsPortfolio.pdf",
+      "resources": [
+        "content/devops/assets"
+      ]
+    }
+  ]
+}
